@@ -2,7 +2,7 @@
 
 [简体中文](./README.zh-CN.md) | English
 
-A browser script (Tampermonkey / Greasemonkey) that exports chat history from major LLM platforms to **Markdown files with one click**.
+A browser script (Violentmonkey / Tampermonkey / Greasemonkey) that exports chat history from major LLM platforms to **Markdown files with one click**.
 
 After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-App-Download), you can also save the current conversation to your AfterChat workspace with one click.
 
@@ -26,17 +26,15 @@ After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-
 ## ✨ Features
 
 - **Multi-platform support**: works with 12 major LLM platforms.
-- **Export a single conversation or all at once**:
-  - On a **conversation detail page**, click the button → exports the current conversation;
-  - On a **conversation list page**, click the button → fetches all conversations and downloads them as a package.
+- **Single or batch export**: exports the current conversation or all conversations at once.
 - **Content fidelity**: exports include user messages, AI replies, **reasoning / thinking**, and **citation sources**.
 - **One-click save to AfterChat**: on a conversation detail page, **right-click the button** to save the current conversation directly to your AfterChat workspace.
 
 ## 📦 Installation
 
-1. Install the **Tampermonkey** browser extension ([Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) / [Firefox](https://addons.mozilla.org/firefox/addon/tampermonkey/)).
-2. Open the Tampermonkey dashboard → **Create a new script**, paste the full contents of `afterchat.user.js` into it, and save.
-3. Visit any supported platform while **signed in** — the script injects a circular download button in the bottom-right corner of the page. You're all set.
+After installing Violentmonkey ([Chrome](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) / [Firefox](https://addons.mozilla.org/firefox/addon/violentmonkey/)) or Tampermonkey ([Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) / [Firefox](https://addons.mozilla.org/firefox/addon/tampermonkey/)), click the link below and confirm in the popup:
+
+[Install AfterChat — LLM Chat Exporter](https://update.greasyfork.org/scripts/589622/AfterChat%20%E2%80%94%20LLM%20Chat%20Exporter.user.js)
 
 ## 🚀 Usage
 
@@ -44,9 +42,9 @@ The script shows a circular download button in the bottom-right corner of the pa
 
 | Action | Where | Result |
 | --- | --- | --- |
-| **Left-click** | Conversation detail page | Export the current conversation (Markdown) |
-| **Left-click** | Conversation list page | Fetch all conversations and export as a ZIP |
-| **Right-click** | Conversation detail page | Save the current conversation to the AfterChat workspace |
+| **Left-click** | Detail page | Export the current conversation (Markdown) |
+| **Left-click** | Default/list page | Fetch all conversations and export as a ZIP |
+| **Right-click** | Detail page | Save the current conversation to the AfterChat workspace |
 
 ## ⚠️ Disclaimer
 
