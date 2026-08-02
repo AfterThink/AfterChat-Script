@@ -53,3 +53,7 @@ The script shows a circular download button in the bottom-right corner of the pa
 - This script pulls data through each platform's **front-end same-origin API**. These are unofficial interfaces and may stop working when platforms update.
 - Please follow each platform's terms of service. Exported content is intended for personal backup and learning only.
 - The script uses `@grant none` and sends no data to any third party; exported files are only saved locally.
+
+## 📄 License
+
+Licensed under the [GNU Affero General Public License v3.0](./LICENSE).

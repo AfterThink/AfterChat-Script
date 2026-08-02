@@ -1,9 +1,30 @@
+// AfterChat — LLM Chat Exporter
+// Copyright (C) 2026 AfterThink Studio
+// SPDX-License-Identifier: AGPL-3.0
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as
+// published by the Free Software Foundation, version 3 of the License.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 // ==UserScript==
-// @name         AfterChat
-// @namespace    http://tampermonkey.net/
-// @version      2026.08.02
-// @description  Export LLM Chat History from Providers
+// @name         AfterChat — LLM Chat Exporter
+// @name:en      AfterChat — LLM Chat Exporter
+// @name:zh-CN   AfterChat — LLM 对话导出器
+// @namespace    https://github.com/AfterThink
+// @version      1.0
+// @description  Export LLM chat history from major AI platforms
+// @description:en  Export LLM chat history from major AI platforms
+// @description:zh-CN  一键导出主流 LLM 平台的聊天记录
 // @author       AfterThink Studio
+// @license      AGPL-3.0
 // @match        https://m365.cloud.microsoft/chat*
 // @match        https://chatgpt.com/*
 // @match        https://chat.deepseek.com/*
