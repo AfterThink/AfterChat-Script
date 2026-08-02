@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+.venv/
+venv/
+env/
+
+# Bun
+node_modules/
+.bun-cache/
+*.bun
+
+# 本地工具
+.tools/
+
+# 下载的导出文件
+chat-export-*.json
+chat-export-*.md
+
+# 抓取的 cURL 文件
+fetchHistory*.txt
+fetchPages*.txt
+fetchhistory.txt
+fetchpage.txt
+curl.txt
+
+# 系统文件
+.DS_Store
+Thumbs.db
+nul
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
