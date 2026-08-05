@@ -22,10 +22,11 @@ After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-
 | Qianwen | `www.qianwen.com` |
 | Tencent Yuanbao | `yuanbao.tencent.com` |
 | Doubao | `www.doubao.com` |
+| Arena AI | `arena.ai` |
 
 ## ✨ Features
 
-- **Multi-platform support**: works with 12 major LLM platforms.
+- **Multi-platform support**: works with 13 major LLM platforms.
 - **Single or batch export**: exports the current conversation or all conversations at once.
 - **Content fidelity**: exports include user messages, AI replies, **reasoning / thinking**, and **citation sources**.
 - **One-click save to AfterChat**: on a conversation detail page, **right-click the button** to save the current conversation directly to your AfterChat workspace.

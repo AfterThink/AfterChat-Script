@@ -22,10 +22,11 @@
 | 千问 | `www.qianwen.com` |
 | 腾讯元宝 | `yuanbao.tencent.com` |
 | 豆包 | `www.doubao.com` |
+| Arena AI | `arena.ai` |
 
 ## ✨ 功能特性
 
-- **多平台适配**：支持 12 个主流 LLM 平台。
+- **多平台适配**：支持 13 个主流 LLM 平台。
 - **单条 / 批量导出**：同时支持导出当前对话和全部对话。
 - **内容保真**：导出内容包含用户消息、AI 回复、**思考过程（reasoning / thinking）**，以及**引用来源**。
 - **一键存到 AfterChat**：在对话详情页**右键点击按钮**，将当前对话直接存入 AfterChat 工作区。

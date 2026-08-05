@@ -3,10 +3,10 @@
 // @name:en      AfterChat — LLM Chat Exporter
 // @name:zh-CN   AfterChat — LLM 对话导出器
 // @namespace    https://github.com/AfterThink
-// @version      1.0
-// @description  Export LLM chat history from major AI platforms
-// @description:en  Export LLM chat history from major AI platforms
-// @description:zh-CN  一键导出主流 LLM 平台的聊天记录
+// @version      1.1.0
+// @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Qianwen, Arena AI
+// @description:en  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Qianwen, Arena AI
+// @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、千问、Arena AI 的聊天记录
 // @author       AfterThink Studio
 // @license      AGPL-3.0
 // @match        https://m365.cloud.microsoft/chat*
@@ -21,6 +21,7 @@
 // @match        https://gemini.google.com/*
 // @match        https://www.kimi.com/*
 // @match        https://www.doubao.com/*
+// @match        https://arena.ai/*
 // @icon         https://avatars.githubusercontent.com/u/266756423?s=400&u=d38fce2849e95af734f50228d5195fcdf1c7719e&v=4
 // @grant        none
 // @run-at       document-idle
@@ -42,6 +43,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+// =============================================================
+//  📜 Changelog（完整版见仓库根 CHANGELOG.md）
+// =============================================================
+//  1.1.0 (2026-08-05)
+//    - 新增 arena.ai 适配器：battle / side-by-side / direct-chat / agent
+//      四种模式（含投票、引用、思维链；格式规范见 docs/ChatFormat.arena.md）
+//    - 时间格式：全平台 UTC → 本地时间 + 时区偏移（如 16:00:53 +08:00）
+//    - 修复 aistudio 多账号切换（/u/<n>/ 前缀）后的导出
+// =============================================================
+
 (function () {
   'use strict';
 
@@ -58,6 +69,19 @@
     API_DELAY: 1200,       // 单条对话导出间隔（毫秒）
     DEBUG_LIMIT: 0,        // 调试限条数，0 或 null 表示不限
   };
+
+  // ---- 通用时间格式化：本地时间 + 数值时区偏移（如 2026-08-05 16:00:53 +08:00） ----
+  function formatLocalTime(date) {
+    if (!date || isNaN(date.getTime())) return 'unknown';
+    const p2 = (n) => String(n).padStart(2, '0');
+    const offMin = -date.getTimezoneOffset();
+    const offSign = offMin >= 0 ? '+' : '-';
+    const offAbs = Math.abs(offMin);
+    const offStr = offSign + p2(Math.floor(offAbs / 60)) + ':' + p2(offAbs % 60);
+    return date.getFullYear() + '-' + p2(date.getMonth() + 1) + '-' + p2(date.getDate())
+      + ' ' + p2(date.getHours()) + ':' + p2(date.getMinutes()) + ':' + p2(date.getSeconds())
+      + ' ' + offStr;
+  }
 
   // =============================================================
   //  🧩  PLATFORM_ADAPTERS — 平台适配器
@@ -149,7 +173,7 @@
         const tone = rcr.tone || 'unknown';
         const createTimeMs = rcr.createTimeUtc;
         const timeStr = createTimeMs
-          ? new Date(createTimeMs).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')
+          ? formatLocalTime(new Date(createTimeMs))
           : 'unknown';
         const convUrl = convId
           ? `https://m365.cloud.microsoft/chat/conversation/${convId}?auth=2`
@@ -419,7 +443,7 @@
         const messages = data?.chat_messages || [];
         const model = session.model_type || 'unknown';
         const timeStr = session.inserted_at
-          ? new Date(session.inserted_at * 1000).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')
+          ? formatLocalTime(new Date(session.inserted_at * 1000))
           : 'unknown';
         const convUrl = convId
           ? `https://chat.deepseek.com/a/chat/s/${convId}`
@@ -576,7 +600,7 @@
         }
 
         const timeStr = data?.created_at
-          ? new Date(data.created_at * 1000).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')
+          ? formatLocalTime(new Date(data.created_at * 1000))
           : 'unknown';
         const convUrl = convId
           ? `https://chat.qwen.ai/c/${convId}`
@@ -1023,7 +1047,7 @@
 
         const modelName = turns.find((t) => t.model_name)?.model_name || 'Qwen';
         const timeStr = session.created_at
-          ? new Date(Number(session.created_at)).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')
+          ? formatLocalTime(new Date(Number(session.created_at)))
           : 'unknown';
         const convUrl = convId ? `https://www.qianwen.com/chat/${convId}` : 'https://www.qianwen.com';
         const stripHashes = (s) => String(s || '').replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
@@ -1296,7 +1320,7 @@
         const modelName = data?.chatModelId || data?.modelId || convs.find((c) => c?.speechesV2?.[0]?.chatModelId)?.speechesV2?.[0]?.chatModelId || 'Yuanbao';
         const timeValue = data?.firstRepliedAt || convs[0]?.createTime || data?.lastRepliedAt;
         const timeStr = timeValue
-          ? new Date(Number(timeValue) * 1000).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')
+          ? formatLocalTime(new Date(Number(timeValue) * 1000))
           : 'unknown';
         const url = agentId && conversationId
           ? `https://yuanbao.tencent.com/chat/${agentId}/${conversationId}`
@@ -1537,7 +1561,7 @@
           });
 
         const timeStr = chat.createTime
-          ? new Date(chat.createTime).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')
+          ? formatLocalTime(new Date(chat.createTime))
           : 'unknown';
         const convUrl = convId ? `https://www.kimi.com/chat/${convId}` : 'https://www.kimi.com';
         const modelName = chat?.lastRequest?.scenario || 'Kimi';
@@ -1872,7 +1896,7 @@
           .sort((a, b) => (Number(a.index_in_conv) || 0) - (Number(b.index_in_conv) || 0));
 
         const timeStr = conv.create_time
-          ? new Date(Number(conv.create_time) * 1000).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')
+          ? formatLocalTime(new Date(Number(conv.create_time) * 1000))
           : 'unknown';
         const convUrl = convId ? `https://www.doubao.com/chat/${convId}` : 'https://www.doubao.com';
         const modelName = conv?.conv_extra?.inner_bot_name || conv?.tags?.[0] || '豆包';
@@ -2061,7 +2085,7 @@
         // 取最早消息的时间作为对话创建时间
         const firstMsg = messages[0];
         const timeStr = firstMsg?.createdAt
-          ? new Date(firstMsg.createdAt).toISOString().replace('T', ' ').replace(/\.\d+.*$/, ' UTC')
+          ? formatLocalTime(new Date(firstMsg.createdAt))
           : 'unknown';
         const convUrl = convId
           ? `https://copilot.microsoft.com/chats/${convId}`
@@ -2125,7 +2149,10 @@
       detect: () => window.location.hostname === 'aistudio.google.com',
 
       getCurrentConversationId: () => {
-        const match = window.location.pathname.match(/^\/prompts\/([^\/?]+)/);
+        // 多账号切换后 URL 会带 /u/<n>/ 前缀（如 /u/1/prompts/<id>）
+        const m1 = window.location.pathname.match(/^\/u\/\d+\/prompts\/([^\/?]+)/);
+        const m2 = window.location.pathname.match(/^\/prompts\/([^\/?]+)/);
+        const match = m1 || m2;
         if (!match) return null;
         // /prompts/new_chat 是默认页，不是真实对话 ID
         if (match[1] === 'new_chat') return null;
@@ -2182,10 +2209,13 @@
       toMarkdown(data, title, convId) {
         const messages = data?.messages || [];
         const modelName = data?.modelName || 'Gemini';
-        const timeStr = new Date().toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC');
-        const convUrl = convId
-          ? 'https://aistudio.google.com/prompts/' + convId
+        const timeStr = formatLocalTime(new Date());
+        // 保留 /u/<n>/ 前缀，保证点开 URL 落在正确的 Google 账号上
+        const authUser = this._authUserFromUrl();
+        const base = authUser && authUser !== '0'
+          ? 'https://aistudio.google.com/u/' + authUser
           : 'https://aistudio.google.com';
+        const convUrl = convId ? base + '/prompts/' + convId : base;
 
         const lines = [];
         lines.push('## Metadata');
@@ -2276,6 +2306,16 @@
         return '';
       },
 
+      /** 从 URL /u/<n>/ 前缀提取 Google 账号索引（无前缀或非浏览器环境默认 0） */
+      _authUserFromUrl() {
+        try {
+          const m = window.location.pathname.match(/^\/u\/(\d+)\//);
+          return m ? m[1] : '0';
+        } catch (e) {
+          return '0';
+        }
+      },
+
       /** 实时计算 SAPISIDHASH */
       async _computeSAPISIDHash() {
         const sapisid = this._getSAPISID();
@@ -2322,7 +2362,7 @@
           xhr.withCredentials = true;
           xhr.setRequestHeader('Content-Type', 'application/json+protobuf');
           xhr.setRequestHeader('X-Goog-Api-Key', apiKey);
-          xhr.setRequestHeader('X-Goog-AuthUser', '0');
+          xhr.setRequestHeader('X-Goog-AuthUser', this._authUserFromUrl());
           xhr.setRequestHeader('Authorization', 'SAPISIDHASH ' + sapisidHash);
 
           xhr.onload = () => {
@@ -2559,7 +2599,7 @@
 
         const createTime = data.create_time;
         const timeStr = createTime
-          ? new Date(createTime * 1000).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')
+          ? formatLocalTime(new Date(createTime * 1000))
           : 'unknown';
         const convUrl = convId
           ? `https://chatgpt.com/c/${convId}`
@@ -2770,7 +2810,7 @@
 
         const firstTime = messages.find((m) => m.created_at_ms)?.created_at_ms;
         const timeStr = firstTime
-          ? new Date(firstTime).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')
+          ? formatLocalTime(new Date(firstTime))
           : 'unknown';
         const convUrl = convId
           ? `https://x.com/i/grok?conversation=${convId}`
@@ -3096,6 +3136,426 @@
         }
 
         return lines.join('\n');
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[arena]  Arena AI
+    // ═══════════════════════════════════════════════════════
+    {
+      id: 'arena',
+      name: 'Arena AI',
+      detect: () => window.location.hostname === 'arena.ai',
+
+      /** 会话元信息缓存：id -> history/unified 条目（含 type / title / createdAt） */
+      _convMeta: new Map(),
+
+      /** 模型注册表缓存：modelId -> displayName（从页面 RSC 的 initialModels 解析） */
+      _models: null,
+
+      getCurrentConversationId: () => {
+        const m1 = window.location.pathname.match(/^\/c\/([^\/?]+)/);
+        if (m1) return m1[1];
+        const m2 = window.location.pathname.match(/^\/agent\/([^\/?]+)/);
+        return m2 ? m2[1] : null;
+      },
+
+      /** 从页面 RSC（initialModels）加载 模型id -> 显示名 映射 */
+      async _loadModels() {
+        if (this._models) return this._models;
+        const map = new Map();
+        try {
+          const chunks = [];
+          for (const s of document.querySelectorAll('script')) {
+            const t = s.textContent || '';
+            const re = /__next_f\.push\(\[1,"((?:\\.|[^"\\])*)"\]\)/g;
+            let m;
+            while ((m = re.exec(t))) {
+              try { chunks.push(JSON.parse('"' + m[1] + '"')); } catch (e) { /* ignore */ }
+            }
+          }
+          const flight = chunks.join('');
+          const idx = flight.indexOf('initialModels');
+          if (idx >= 0) {
+            const arrStart = flight.indexOf('[', idx);
+            let depth = 0, inStr = false, esc = false, end = -1;
+            for (let i = arrStart; i < flight.length; i++) {
+              const c = flight[i];
+              if (inStr) {
+                if (esc) { esc = false; continue; }
+                if (c === '\\') { esc = true; continue; }
+                if (c === '"') inStr = false;
+                continue;
+              }
+              if (c === '"') { inStr = true; continue; }
+              if (c === '[') depth++;
+              else if (c === ']') { depth--; if (depth === 0) { end = i + 1; break; } }
+            }
+            if (end > 0) {
+              for (const mod of JSON.parse(flight.slice(arrStart, end))) {
+                const name = mod.displayName || mod.publicName || mod.name;
+                if (mod.id && name) map.set(mod.id, name);
+              }
+            }
+          }
+        } catch (e) { /* 模型名解析失败时用 modelId 兜底 */ }
+        this._models = map;
+        return map;
+      },
+
+      _modelName(id) {
+        if (!id) return 'unknown';
+        return (this._models && this._models.get(id)) || id;
+      },
+
+      /** 拉取单个会话的列表元信息（agent 模式需要 title/createdAt） */
+      async _ensureConvMeta(id) {
+        if (this._convMeta.has(id)) return this._convMeta.get(id);
+        try {
+          const r = await fetch('/api/history/unified?limit=50&includeArchived=false', { headers: { accept: '*/*' } });
+          if (r.ok) {
+            const body = await r.json();
+            for (const e of body?.entries || []) this._convMeta.set(e.id, e);
+          }
+        } catch (e) { /* ignore */ }
+        return this._convMeta.get(id) || null;
+      },
+
+      async getAllConversations(onProgress) {
+        const all = [];
+        let cursor = '';
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+
+        while (all.length < limit) {
+          const url = '/api/history/unified?limit=50&includeArchived=false'
+            + (cursor ? '&cursor=' + encodeURIComponent(cursor) : '');
+          const r = await fetch(url, { headers: { accept: '*/*' } });
+          if (!r.ok) throw new Error('history API ' + r.status + ': ' + r.statusText);
+          const body = await r.json();
+          const entries = body?.entries || [];
+          if (!entries.length) break;
+
+          for (const e of entries) this._convMeta.set(e.id, e);
+          all.push(...entries);
+          if (onProgress) onProgress(all.length);
+
+          const pag = body?.pagination || {};
+          if (!pag.hasMore || !pag.cursor) break;
+          cursor = pag.cursor;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return all.slice(0, limit).map((e) => ({
+          id: e.id,
+          title: e.title || '',
+          type: e.type,
+          mode: e.mode,
+          productMode: e.productMode,
+          createdAt: e.createdAt,
+          updatedAt: e.updatedAt,
+          modelAId: e.modelAId,
+          modelBId: e.modelBId,
+          modelAOrganization: e.modelAOrganization,
+          modelBOrganization: e.modelBOrganization,
+        }));
+      },
+
+      async getConversationDetails(id) {
+        const meta = this._convMeta.get(id);
+        const type = meta?.type || (window.location.pathname.startsWith('/agent/') ? 'agentic' : 'evaluation');
+        await this._loadModels(); // toMarkdown 是同步的，模型名必须提前就绪
+        if (type === 'agentic') return this._getAgentConversation(id);
+        return this._getEvaluation(id);
+      },
+
+      async _getEvaluation(id) {
+        const r = await fetch('/api/evaluation/' + id, { headers: { accept: '*/*' } });
+        if (!r.ok) throw new Error('evaluation API ' + r.status + ': ' + r.statusText);
+        return r.json();
+      },
+
+      async _getAgentConversation(id) {
+        const r = await fetch('/agent/' + id + '?_rsc=1', { headers: { accept: '*/*', rsc: '1' } });
+        if (!r.ok) throw new Error('agent RSC ' + r.status + ': ' + r.statusText);
+        const flight = await r.text();
+        const meta = await this._ensureConvMeta(id);
+        return {
+          type: 'agentic',
+          sessionId: id,
+          title: meta?.title || '',
+          createdAt: meta?.createdAt || null,
+          messages: this._parseAgentRsc(flight),
+        };
+      },
+
+      /** 解析 Next.js RSC（Flight）payload：取 {"messages":[...]} 块并解析 $id 引用
+       * 注意：Flight 的 T chunk 会粘在前一个 chunk 内容末尾（不换行），且内容长度按字节计 */
+      _parseAgentRsc(flight) {
+        const text = String(flight);
+        const bytes = new TextEncoder().encode(text);
+        const decoder = new TextDecoder('utf-8');
+
+        // 1. 定位 {"messages" JSON 块
+        const start = text.indexOf('{"messages"');
+        if (start < 0) throw new Error('agent RSC: messages block not found');
+        const jsonStr = this._extractBalancedJson(text, start);
+        const raw = JSON.parse(jsonStr);
+
+        // 2. 扫描所有 `id:T<hex>,` 文本 chunk（任意位置，含粘在行中的）
+        const tChunks = new Map();
+        const re = /(^|[^0-9a-f])([0-9a-f]+):T([0-9a-fA-F]+),/g;
+        let m;
+        while ((m = re.exec(text))) {
+          const id = m[2];
+          if (tChunks.has(id)) continue;
+          const len = parseInt(m[3], 16);
+          const contentStartStr = m.index + m[0].length;
+          const byteStart = new TextEncoder().encode(text.slice(0, contentStartStr)).length;
+          const contentBytes = bytes.subarray(byteStart, byteStart + len);
+          tChunks.set(id, decoder.decode(contentBytes));
+        }
+
+        // 3. 递归解析 $id 引用（仅文本 chunk）
+        const resolve = (value) => {
+          if (typeof value === 'string') {
+            const ref = value.match(/^\$([0-9a-zA-Z]+)$/);
+            if (ref) {
+              const content = tChunks.get(ref[1]);
+              if (content !== undefined) return content;
+            }
+            return value;
+          }
+          if (Array.isArray(value)) return value.map((v) => resolve(v));
+          if (value && typeof value === 'object') {
+            const out = {};
+            for (const k of Object.keys(value)) out[k] = resolve(value[k]);
+            return out;
+          }
+          return value;
+        };
+
+        const resolved = resolve(raw);
+        return Array.isArray(resolved.messages) ? resolved.messages : [];
+      },
+
+      /** 从 start 起提取配平的 JSON 对象 */
+      _extractBalancedJson(s, start) {
+        let depth = 0, inStr = false, esc = false;
+        for (let i = start; i < s.length; i++) {
+          const c = s[i];
+          if (inStr) {
+            if (esc) { esc = false; continue; }
+            if (c === '\\') { esc = true; continue; }
+            if (c === '"') inStr = false;
+            continue;
+          }
+          if (c === '"') { inStr = true; continue; }
+          if (c === '{') depth++;
+          else if (c === '}') {
+            depth--;
+            if (depth === 0) return s.slice(start, i + 1);
+          }
+        }
+        throw new Error('agent RSC: unbalanced JSON');
+      },
+
+      /** 将 Arena 数据转为 Markdown（契约见 docs/ChatFormat.arena.md） */
+      toMarkdown(data, title, convId) {
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+        const mode = this._detectMode(data);
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Mode:** `' + mode + '`');
+        if (mode !== 'agent') {
+          const models = this._collectModels(data);
+          if (models.length) lines.push('- **Models:** ' + models.map((m) => '`' + m + '`').join(', '));
+        }
+        const votes = this._collectVotes(data);
+        if (votes.length) lines.push('- **Votes:** ' + votes.join(', '));
+        lines.push('- **Time:** ' + this._formatTime(data?.createdAt));
+        const url = mode === 'agent'
+          ? 'https://arena.ai/agent/' + convId
+          : 'https://arena.ai/c/' + convId;
+        lines.push('- **URL:** ' + url);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        if (mode === 'agent') this._renderAgentBody(lines, data, stripHashes);
+        else this._renderEvaluationBody(lines, data, stripHashes);
+
+        return lines.join('\n');
+      },
+
+      _detectMode(data) {
+        if (data?.type === 'agentic') return 'agent';
+        const m = data?.mode;
+        if (m === 'direct-battle') return 'direct-chat';
+        return m || 'unknown';
+      },
+
+      /** battle / side-by-side / direct-chat 共用渲染：一轮 = User + 各模型回答 + 投票 */
+      _renderEvaluationBody(lines, data, stripHashes) {
+        const messages = data?.messages || [];
+        const pendingVotes = new Map();
+        for (const fb of data?.pairwiseFeedbacks || []) {
+          if (fb && fb.id) pendingVotes.set(fb.id, { fb, emitted: new Set() });
+        }
+
+        for (const msg of messages) {
+          if (msg?.status && msg.status !== 'success') continue;
+          const content = String(msg?.content || '').trim();
+          if (!content) continue;
+
+          if (msg.role === 'user') {
+            lines.push('### 🧑‍💻 User');
+            lines.push('');
+            lines.push(stripHashes(content));
+            lines.push('');
+            continue;
+          }
+
+          lines.push('### 🤖 Assistant — ' + this._modelName(msg.modelId));
+          lines.push('');
+          lines.push(stripHashes(content));
+          lines.push('');
+
+          // 投票行：该轮两条助手消息都输出后追加
+          for (const pv of pendingVotes.values()) {
+            const { fb, emitted } = pv;
+            if (fb.messageAId === msg.id || fb.messageBId === msg.id) {
+              emitted.add(msg.id);
+              if (emitted.size >= 2) {
+                lines.push('> 🏆 **Vote:** ' + this._voteText(fb));
+                lines.push('');
+                pendingVotes.delete(fb.id);
+              }
+              break;
+            }
+          }
+        }
+      },
+
+      /** agent 模式渲染：Thought Process + Response 固定两段，引用收集到末尾 */
+      _renderAgentBody(lines, data, stripHashes) {
+        const messages = data?.messages || [];
+        const urlToNum = new Map();
+        const refList = [];
+
+        for (const msg of messages) {
+          if (msg.role === 'user') {
+            const texts = (msg.parts || [])
+              .filter((p) => p.type === 'text' && p.text)
+              .map((p) => p.text);
+            const text = texts.join('\n\n').trim();
+            if (!text) continue;
+            lines.push('### 🧑‍💻 User');
+            lines.push('');
+            lines.push(stripHashes(text));
+            lines.push('');
+          } else if (msg.role === 'assistant') {
+            const thoughts = (msg.parts || [])
+              .filter((p) => p.type === 'reasoning' && p.text)
+              .map((p) => p.text);
+            const texts = (msg.parts || [])
+              .filter((p) => p.type === 'text' && p.text)
+              .map((p) => p.text);
+            if (!thoughts.length && !texts.length) continue;
+
+            lines.push('### 🤖 Assistant');
+            lines.push('');
+            if (thoughts.length) {
+              lines.push('#### 🤔 Thought Process');
+              lines.push('');
+              lines.push(stripHashes(thoughts.join('\n\n')));
+              lines.push('');
+            }
+            if (texts.length) {
+              const joined = texts.join('\n\n');
+              lines.push('#### 💡 Response');
+              lines.push('');
+              lines.push(stripHashes(this._processCitations(joined, urlToNum, refList)));
+              lines.push('');
+            }
+          }
+        }
+
+        if (refList.length) {
+          lines.push('### References');
+          lines.push('');
+          refList.forEach((url, i) => {
+            lines.push('- [' + (i + 1) + '] ' + url);
+          });
+          lines.push('');
+        }
+      },
+
+      /** 正文 [N](url) 引用 → [N]，URL 去重后按序编号（全局跨消息） */
+      _processCitations(text, urlToNum, refList) {
+        const re = /\[(\d+)\]\((https?:\/\/[^)\s]+)\)/g;
+        const matches = [];
+        let m;
+        while ((m = re.exec(text))) {
+          let num;
+          if (urlToNum.has(m[2])) num = urlToNum.get(m[2]);
+          else {
+            num = refList.length + 1;
+            urlToNum.set(m[2], num);
+            refList.push(m[2]);
+          }
+          matches.push({ start: m.index, end: m.index + m[0].length, num });
+        }
+        let out = text;
+        for (let i = matches.length - 1; i >= 0; i--) {
+          const mm = matches[i];
+          out = out.slice(0, mm.start) + '[' + mm.num + ']' + out.slice(mm.end);
+        }
+        return out;
+      },
+
+      _collectModels(data) {
+        const seen = new Set();
+        const out = [];
+        for (const msg of data?.messages || []) {
+          if (msg?.role !== 'assistant' || !msg.modelId) continue;
+          const name = this._modelName(msg.modelId);
+          if (!seen.has(name)) {
+            seen.add(name);
+            out.push(name);
+          }
+        }
+        return out;
+      },
+
+      _collectVotes(data) {
+        const counts = new Map();
+        for (const fb of data?.pairwiseFeedbacks || []) {
+          const v = this._voteText(fb);
+          if (!v) continue;
+          counts.set(v, (counts.get(v) || 0) + 1);
+        }
+        return [...counts.entries()].map(([v, n]) => v + ' × ' + n);
+      },
+
+      _voteText(fb) {
+        const v = fb?.value;
+        if (v === 'a' || v === 'model_a') return this._modelName(fb.modelAId) + ' wins';
+        if (v === 'b' || v === 'model_b') return this._modelName(fb.modelBId) + ' wins';
+        if (v === 'tie') return 'tie';
+        if (v === 'both_bad') return 'both bad';
+        if (v === 'both_good') return 'both good';
+        return v || '';
+      },
+
+      _formatTime(str) {
+        if (!str) return 'unknown';
+        // 补全 +00 → +00:00，否则 V8 解析不了
+        const norm = String(str).replace(' ', 'T').replace(/([+-]\d{2})$/, '$1:00');
+        const d = new Date(norm);
+        if (isNaN(d.getTime())) return String(str);
+        return formatLocalTime(d);
       },
     },
   ];
@@ -3602,7 +4062,7 @@
         } else {
           const exportData = {
             platform: adapter.id,
-            exportTime: new Date().toISOString(),
+            exportTime: formatLocalTime(new Date()),
             totalConversations: 1,
             exported: 1,
             failed: 0,
@@ -3672,7 +4132,7 @@
 
         const exportMeta = {
           platform: adapter.id,
-          exportTime: new Date().toISOString(),
+          exportTime: formatLocalTime(new Date()),
           totalConversations: total,
           exported: successCount,
           failed: failCount,
