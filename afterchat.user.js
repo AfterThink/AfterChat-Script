@@ -3,13 +3,17 @@
 // @name:en      AfterChat — LLM Chat Exporter
 // @name:zh-CN   AfterChat — LLM 对话导出器
 // @namespace    https://github.com/AfterThink
-// @version      1.1.0
-// @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Qianwen, Arena AI
-// @description:en  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Qianwen, Arena AI
-// @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、千问、Arena AI 的聊天记录
+// @version      1.5.0
+// @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat
+// @description:en  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat
+// @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat 的聊天记录
 // @author       AfterThink Studio
 // @license      AGPL-3.0
 // @match        https://m365.cloud.microsoft/chat*
+// @match        https://ima.qq.com/*
+// @match        https://chat.z.ai/*
+// @match        https://chatglm.cn/*
+// @match        https://duck.ai/*
 // @match        https://chatgpt.com/*
 // @match        https://chat.deepseek.com/*
 // @match        https://chat.qwen.ai/*
@@ -51,6 +55,21 @@
 //      四种模式（含投票、引用、思维链；格式规范见 docs/ChatFormat.arena.md）
 //    - 时间格式：全平台 UTC → 本地时间 + 时区偏移（如 16:00:53 +08:00）
 //    - 修复 aistudio 多账号切换（/u/<n>/ 前缀）后的导出
+//  1.2.0 (2026-08-06)
+//    - 新增腾讯 ima 适配器：列表 get_history_list（cursor 翻页）+ 详情 get_session
+//      认证走 localStorage accountInfo → x-ima-cookie；支持思考链、引用重编号
+//      注意：get_session 仅返回最近 20 轮（服务端上限，无翻页）
+//  1.3.0 (2026-08-06)
+//    - 新增 Z.ai 适配器：列表 get chats（页码翻页）+ 详情两步走
+//      （消息树 + messages/batch 批量正文）；支持思考链、引用重编号
+//      消息树含全部消息 id，长对话也能完整导出
+//  1.4.0 (2026-08-06)
+//    - 新增智谱清言 chatglm.cn 适配器：列表 recent_list + 详情 messages
+//      认证走 cookie chatglm_token；请求需 x-sign 签名（md5(ts-nonce-盐)）
+//      支持思考链（原样保留）、引用重编号
+//  1.5.0 (2026-08-06)
+//    - 新增 duck.ai 适配器：无后端 API，直接读写浏览器 IndexedDB（savedAIChatData/saved-chats）
+//      支持思考链、搜索引用（<citation src> → [N]）；无会话 URL，仅全部导出
 // =============================================================
 
 (function () {
@@ -366,6 +385,1130 @@
             },
           }));
         });
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[ima]  腾讯 ima 知识库
+    // ═══════════════════════════════════════════════════════
+    // 列表 /cgi-bin/history/get_history_list（cursor 翻页）
+    // 详情 /cgi-bin/session_logic/get_session（仅返回最近 msgs_limit≤20 轮）
+    // 鉴权：localStorage['ima-universal-local-storage-accountInfo'] → x-ima-cookie
+    {
+      id: 'ima',
+      name: '腾讯 ima 知识库',
+      detect: () => window.location.hostname === 'ima.qq.com',
+
+      getCurrentConversationId: () => {
+        const m = window.location.pathname.match(/^\/chat\/([^\/?]+)/)
+          || window.location.search.match(/[?&]sessionId=([^&]+)/);
+        return m ? m[1] : null;
+      },
+
+      /** 从 localStorage 读取登录态 */
+      _account() {
+        try {
+          return JSON.parse(localStorage.getItem('ima-universal-local-storage-accountInfo')) || {};
+        } catch (e) {
+          return {};
+        }
+      },
+
+      /** 组装 x-ima-cookie 头（token 字段与服务端校验一致） */
+      _imaCookie() {
+        const a = this._account();
+        return 'PLATFORM=H5; CLIENT-TYPE=256053; WEB-VERSION=999.999.999; '
+          + 'IMA-GUID=' + (a.guid || '') + '; '
+          + 'IMA-Q36=' + String(a.guid || '').replace(/^guid-/, '') + '; '
+          + 'IMA-IUA=' + navigator.userAgent + '; '
+          + 'IMA-UID=' + (a.userId || '') + '; '
+          + 'IMA-TOKEN=' + (a.token || '') + '; '
+          + 'IMA-REFRESH-TOKEN=' + (a.refreshToken || '') + '; '
+          + 'UID-TYPE=' + (a.idType ?? '') + '; '
+          + 'TOKEN-TYPE=' + (a.tokenType ?? '');
+      },
+
+      _headers() {
+        return {
+          'content-type': 'application/json',
+          'from_browser_ima': '1',
+          'extension_version': '999.999.999',
+          'x-ima-cookie': this._imaCookie(),
+        };
+      },
+
+      async getAllConversations(onProgress) {
+        const all = [];
+        let cursor = '';
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+
+        while (all.length < limit) {
+          const r = await fetch('/cgi-bin/history/get_history_list', {
+            method: 'POST',
+            headers: this._headers(),
+            body: JSON.stringify({
+              limit: 20,
+              filter: 3,
+              cursor: cursor || '',
+              conditions: [{ type: 1, relate_type_condition: { not: false, relate_types: [] } }],
+            }),
+          });
+          if (!r.ok) throw new Error(`列表API ${r.status}: ${r.statusText}`);
+          const body = await r.json();
+          if (body.code !== 0) throw new Error(`列表API code ${body.code}: ${body.msg || ''}`);
+
+          const items = (body.histories || [])
+            .map((h) => h.ai_session)
+            .filter((s) => s && s.id)
+            .map((s) => ({
+              id: s.id,
+              title: (s.title || '').trim(),
+              update_ts: s.update_ts,
+            }));
+          if (!items.length) break;
+
+          all.push(...items);
+          if (onProgress) onProgress(all.length);
+
+          if (body.is_end) break;
+          cursor = body.next_cursor || '';
+          if (!cursor) break;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return all.slice(0, limit);
+      },
+
+      async getConversationDetails(id) {
+        const r = await fetch('/cgi-bin/session_logic/get_session', {
+          method: 'POST',
+          headers: this._headers(),
+          body: JSON.stringify({ session_id: id, msgs_limit: 20 }),
+        });
+        if (!r.ok) throw new Error(`详情API ${r.status}: ${r.statusText}`);
+        const body = await r.json();
+        if (body.code !== 0) throw new Error(`详情API code ${body.code}: ${body.msg || ''}`);
+
+        const session = body.session || {};
+        // 标题兜底：name 为空时取第一条提问（getChatTitle 读 data.session.title）
+        session.title = (session.name || '').trim()
+          || this._firstQuestion(session)
+          || '';
+        return body;
+      },
+
+      _firstQuestion(session) {
+        for (const m of session.msgs || []) {
+          const q = m?.qa_msg?.question?.text;
+          if (q && q.trim()) return q.trim();
+        }
+        return '';
+      },
+
+      /** 将 ima 聊天数据转为 Markdown */
+      toMarkdown(data, title, convId) {
+        const session = data?.session || {};
+        const msgs = this._collectMessages(data);
+
+        const timeStr = session.update_ts
+          ? formatLocalTime(new Date(Number(session.update_ts)))
+          : 'unknown';
+        const convUrl = convId ? `https://ima.qq.com/chat/${convId}` : 'https://ima.qq.com';
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `' + this._modelName(msgs) + '`');
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${convUrl}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+
+        // ---- 第一遍：收集每条消息的引用编号 [N](@ref) → 全局编号（按 URL 去重） ----
+        const msgCiteMap = new Map();  // msgIndex → Map<localNum, globalNum>
+        const urlToNum = new Map();    // url → globalNum
+        let nextNum = 1;
+
+        for (let i = 0; i < msgs.length; i++) {
+          const fa = msgs[i]?.qa_msg?.format_answer || {};
+          const text = this._assistantText(fa);
+          if (!text) continue;
+          const medias = this._parseMedias(fa);
+          const nums = [...new Set([...text.matchAll(/\[(\d+)\]\(@ref\)/g)].map(m => Number(m[1])))];
+          const localMap = new Map();
+          for (const n of nums) {
+            const url = medias[n - 1]?.jumpUrl || '';
+            if (!url) continue;
+            if (!urlToNum.has(url)) urlToNum.set(url, nextNum++);
+            localMap.set(n, urlToNum.get(url));
+          }
+          msgCiteMap.set(i, localMap);
+        }
+
+        // ---- 第二遍：生成正文 ----
+        for (let i = 0; i < msgs.length; i++) {
+          const q = msgs[i]?.qa_msg || {};
+          const question = (q.question?.text || q.question?.processed_text || '').trim();
+          if (!question) continue;
+
+          lines.push('### 🧑\u200d💻 User');
+          lines.push('');
+          lines.push(stripHashes(question));
+          lines.push('');
+
+          const fa = q.format_answer || {};
+          const responseText = this._assistantText(fa);
+          if (!responseText) continue;
+
+          const citeMap = msgCiteMap.get(i) || new Map();
+          const cleaned = responseText.replace(/\[(\d+)\]\(@ref\)/g, (_, n) => {
+            const gn = citeMap.get(Number(n));
+            return gn !== undefined ? `[${gn}]` : '';
+          });
+
+          lines.push('### 🤖 Assistant');
+          lines.push('');
+
+          const thinking = this._thinkingText(fa);
+          if (thinking) {
+            lines.push('#### 🤔 Thought Process');
+            lines.push('');
+            lines.push(stripHashes(thinking));
+            lines.push('');
+            lines.push('#### 💡 Response');
+            lines.push('');
+          }
+
+          lines.push(stripHashes(cleaned));
+          lines.push('');
+        }
+
+        // ---- References ----
+        if (urlToNum.size > 0) {
+          const sorted = [...urlToNum.entries()].sort((a, b) => a[1] - b[1]);
+          lines.push('---');
+          lines.push('');
+          lines.push('### References');
+          lines.push('');
+          for (const [url, num] of sorted) {
+            lines.push(`- [${num}] ${url}`);
+          }
+          lines.push('');
+        }
+
+        return lines.join('\n');
+      },
+
+      // ---- 内部辅助方法 ----
+      _collectMessages(data) {
+        const out = [];
+        const pushSession = (s) => { if (s && Array.isArray(s.msgs)) out.push(...s.msgs); };
+        pushSession(data?.session);
+        for (const cs of data?.child_sessions || []) pushSession(cs);
+        // 按消息时间正序
+        return out.sort((a, b) =>
+          (Number(a?.qa_msg?.create_ts) || 0) - (Number(b?.qa_msg?.create_ts) || 0)
+        );
+      },
+
+      _modelName(msgs) {
+        for (const m of msgs) {
+          try {
+            const qaStart = JSON.parse(m?.qa_msg?.format_answer?.qa_start || '{}');
+            if (qaStart?.title) return qaStart.title;
+          } catch (e) { /* 忽略 */ }
+        }
+        return 'ima';
+      },
+
+      _assistantText(fa) {
+        try {
+          const parsed = JSON.parse(fa?.answer || '');
+          if (parsed && typeof parsed.Text === 'string') return parsed.Text;
+        } catch (e) { /* 忽略 */ }
+        return '';
+      },
+
+      _thinkingText(fa) {
+        try {
+          const parsed = JSON.parse(fa?.thinking || '');
+          if (parsed && typeof parsed.Message === 'string') return parsed.Message.trim();
+        } catch (e) { /* 忽略 */ }
+        return '';
+      },
+
+      _parseMedias(fa) {
+        try {
+          const sm = typeof fa?.search_medias === 'string'
+            ? JSON.parse(fa.search_medias)
+            : (fa?.search_medias || {});
+          return Array.isArray(sm?.medias) ? sm.medias : [];
+        } catch (e) {
+          return [];
+        }
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[zai]  Z.ai (GLM)
+    // ═══════════════════════════════════════════════════════
+    // 列表 GET /api/v1/chats/?page=N&type=default（纯数组，翻到空页结束）
+    // 详情 GET /api/v1/chats/<id> → 消息树（含全部消息 id，无分页）
+    // 正文 POST /api/v1/chats/<id>/messages/batch {ids} → 消息内容 map（可大批量）
+    // 鉴权：localStorage['token'] → authorization: Bearer <jwt>，x-region: overseas
+    {
+      id: 'zai',
+      name: 'Z.ai',
+      detect: () => window.location.hostname === 'chat.z.ai',
+
+      getCurrentConversationId: () => {
+        const match = window.location.pathname.match(/^\/c\/([^\/?]+)/);
+        return match ? match[1] : null;
+      },
+
+      /** 从 localStorage 读取 JWT */
+      _token() {
+        try {
+          return localStorage.getItem('token') || '';
+        } catch (e) {
+          return '';
+        }
+      },
+
+      _headers() {
+        return {
+          'accept': 'application/json',
+          'content-type': 'application/json',
+          'x-region': 'overseas',
+          ...(this._token() ? { 'authorization': 'Bearer ' + this._token() } : {}),
+        };
+      },
+
+      async getAllConversations(onProgress) {
+        const all = [];
+        let page = 1;
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+
+        while (all.length < limit) {
+          const r = await fetch(`/api/v1/chats/?page=${page}&type=default`, { headers: this._headers() });
+          if (!r.ok) throw new Error(`列表API ${r.status}: ${r.statusText}`);
+          const items = await r.json();
+          if (!Array.isArray(items) || !items.length) break;  // 空页 = 没有更多
+
+          const mapped = items
+            .map((c) => ({
+              id: c.id || '',
+              title: (c.title || '').trim(),
+              updated_at: c.updated_at,
+              created_at: c.created_at,
+            }))
+            .filter((c) => c.id);
+          if (!mapped.length) break;
+
+          all.push(...mapped);
+          if (onProgress) onProgress(all.length);
+
+          page++;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return all.slice(0, limit);
+      },
+
+      async getConversationDetails(id) {
+        const r = await fetch(`/api/v1/chats/${id}`, { headers: this._headers() });
+        if (!r.ok) throw new Error(`详情API ${r.status}: ${r.statusText}`);
+        const body = await r.json();
+
+        // 收集全部消息 id（活动链 + 根节点兜底，与前端一致）
+        const tree = body?.chat?.history?.messages || {};
+        const ids = this._collectMessageIds(tree, body?.chat?.history?.currentId);
+        const contents = await this._fetchMessageContents(id, ids);
+
+        // 消息正文挂到返回体（toMarkdown 读 data.messages）
+        body.messages = contents;
+        return body;
+      },
+
+      /** 消息树 → 全部 id：沿 currentId 的父链回退 + 无父节点的根 */
+      _collectMessageIds(tree, currentId) {
+        const set = new Set();
+        let cur = currentId;
+        while (cur && !set.has(cur)) {
+          set.add(cur);
+          cur = tree[cur]?.parentId || null;
+        }
+        for (const m of Object.values(tree)) {
+          if (m && !m.parentId) set.add(m.id);
+        }
+        return [...set];
+      },
+
+      /** 批量拉消息正文（每批 100 个 id，防止超长会话单次过大） */
+      async _fetchMessageContents(id, ids) {
+        const out = {};
+        const CHUNK = 100;
+        for (let i = 0; i < ids.length; i += CHUNK) {
+          const slice = ids.slice(i, i + CHUNK);
+          const r = await fetch(`/api/v1/chats/${id}/messages/batch`, {
+            method: 'POST',
+            headers: this._headers(),
+            body: JSON.stringify({ ids: slice }),
+          });
+          if (!r.ok) throw new Error(`消息API ${r.status}: ${r.statusText}`);
+          const d = await r.json();
+          Object.assign(out, d.data || {});
+          if (i + CHUNK < ids.length) await sleep(CONFIG.API_PAGE_DELAY);
+        }
+        return out;
+      },
+
+      /** 活动链（currentId → 根 反转 = 时间正序）；异常时退回按时间排序 */
+      _activeChain(tree, currentId) {
+        const chain = [];
+        const seen = new Set();
+        let cur = currentId;
+        while (cur && !seen.has(cur)) {
+          seen.add(cur);
+          chain.push(cur);
+          cur = tree[cur]?.parentId || null;
+        }
+        chain.reverse();
+        if (!chain.length) {
+          return Object.values(tree)
+            .filter((m) => m && m.id)
+            .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
+            .map((m) => m.id);
+        }
+        return chain;
+      },
+
+      /** 将 Z.ai 聊天数据转为 Markdown */
+      toMarkdown(data, title, convId) {
+        const chat = data?.chat || {};
+        const tree = chat.history?.messages || {};
+        const contents = data?.messages || {};
+        const chain = this._activeChain(tree, chat.history?.currentId);
+        if (!chain.length) throw new Error('未找到消息数据');
+
+        const models = chat.models || data?.meta?.models || [];
+        const model = (Array.isArray(models) && models[0]) || 'glm';
+        const timeStr = data.updated_at
+          ? formatLocalTime(new Date(Number(data.updated_at) * 1000))
+          : 'unknown';
+        const convUrl = convId ? `https://chat.z.ai/c/${convId}` : 'https://chat.z.ai';
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `' + model + '`');
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${convUrl}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+
+        // ---- 第一遍：引用编号【turnNsearchM】→ 全局编号（按 URL 去重） ----
+        const msgCiteMap = new Map();  // msgId → Map<refId, globalNum>
+        const urlToNum = new Map();    // url → globalNum
+        let nextNum = 1;
+
+        for (const mid of chain) {
+          const blocks = contents[mid]?.content_blocks || [];
+          const text = this._textBlock(blocks);
+          if (!text) continue;
+          const refMap = this._toolRefs(blocks);  // refId → {title, url}
+          const keys = [...new Set([...text.matchAll(/【(turn\d+search\d+)】/g)].map(x => x[1]))];
+          const localMap = new Map();
+          for (const key of keys) {
+            const ref = refMap.get(key);
+            if (!ref || !ref.url) continue;
+            if (!urlToNum.has(ref.url)) urlToNum.set(ref.url, nextNum++);
+            localMap.set(key, urlToNum.get(ref.url));
+          }
+          msgCiteMap.set(mid, localMap);
+        }
+
+        // ---- 第二遍：生成正文 ----
+        for (const mid of chain) {
+          const m = contents[mid] || {};
+          const role = m.role || tree[mid]?.role;
+          const blocks = m.content_blocks || [];
+
+          if (role === 'user') {
+            const text = (m.content || '').trim();
+            if (!text) continue;
+            lines.push('### 🧑\u200d💻 User');
+            lines.push('');
+            lines.push(stripHashes(text));
+            lines.push('');
+
+          } else if (role === 'assistant') {
+            const responseText = this._textBlock(blocks);
+            if (!responseText) continue;
+
+            const citeMap = msgCiteMap.get(mid) || new Map();
+            const cleaned = responseText.replace(/【(turn\d+search\d+)】/g, (_, key) => {
+              const gn = citeMap.get(key);
+              return gn !== undefined ? `[${gn}]` : '';
+            });
+
+            lines.push('### 🤖 Assistant');
+            lines.push('');
+
+            const thinking = this._reasoningText(blocks);
+            if (thinking) {
+              lines.push('#### 🤔 Thought Process');
+              lines.push('');
+              lines.push(stripHashes(thinking));
+              lines.push('');
+              lines.push('#### 💡 Response');
+              lines.push('');
+            }
+
+            lines.push(stripHashes(cleaned));
+            lines.push('');
+          }
+          // system / tool 消息不导出
+        }
+
+        // ---- References ----
+        if (urlToNum.size > 0) {
+          const sorted = [...urlToNum.entries()].sort((a, b) => a[1] - b[1]);
+          lines.push('---');
+          lines.push('');
+          lines.push('### References');
+          lines.push('');
+          for (const [url, num] of sorted) {
+            lines.push(`- [${num}] ${url}`);
+          }
+          lines.push('');
+        }
+
+        return lines.join('\n');
+      },
+
+      // ---- 内部辅助方法 ----
+      _textBlock(blocks) {
+        const b = (blocks || []).find((x) => x.type === 'text');
+        const text = (b?.content || '').trim();
+        return text;
+      },
+
+      _reasoningText(blocks) {
+        return (blocks || [])
+          .filter((x) => x.type === 'reasoning')
+          .map((x) => (x.content || '').trim())
+          .filter(Boolean)
+          .join('\n\n');
+      },
+
+      /** tool_calls results → refId → {title, url} */
+      _toolRefs(blocks) {
+        const map = new Map();
+        for (const b of blocks || []) {
+          if (b.type !== 'tool_calls') continue;
+          for (const res of b.results || []) {
+            // results[].content 里可能拼接了多个 [ref_id=...] 块，需要 matchAll
+            const re = /\[ref_id=(turn\d+search\d+)†([^†]*)†([^\]]+)\]/g;
+            let mm;
+            while ((mm = re.exec(res.content || '')) !== null) {
+              map.set(mm[1], { title: mm[2].trim(), url: mm[3].trim() });
+            }
+          }
+        }
+        return map;
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[chatglm]  ChatGLM (智谱清言)
+    // ═══════════════════════════════════════════════════════
+    // 列表 POST /chatglm/mainchat-api/conversation/recent_list {page,page_size}
+    // 详情 GET /chatglm/mainchat-api/conversation/messages?assistant_id&conversation_id
+    // 鉴权：cookie chatglm_token → authorization: Bearer；另需 x-sign 签名
+    //   x-sign = md5(ts-nonce-8a1317a7468aa3ad86e997d08f3f31cb)
+    //   ts = Date.now() 字符串倒数第 2 位替换为 (数字和-该位)%10；nonce = uuid4 去横线
+    {
+      id: 'chatglm',
+      name: 'ChatGLM',
+      detect: () => window.location.hostname === 'chatglm.cn',
+
+      getCurrentConversationId: () => {
+        const m = window.location.search.match(/[?&]cid=([^&]+)/);
+        return m ? m[1] : null;
+      },
+
+      /** cookie chatglm_token → JWT */
+      _token() {
+        try {
+          const m = document.cookie.match(/(?:^|;\s*)chatglm_token=([^;]+)/);
+          return m ? m[1] : '';
+        } catch (e) {
+          return '';
+        }
+      },
+
+      /** 设备 id：32 位 hex（服务端仅校验格式），首次生成后持久化 */
+      _deviceId() {
+        const gen = () => {
+          let id = '';
+          const chars = '0123456789abcdef';
+          for (let i = 0; i < 32; i++) id += chars[Math.floor(Math.random() * 16)];
+          return id;
+        };
+        try {
+          let id = localStorage.getItem('afterchat-chatglm-device-id');
+          if (!id || !/^[0-9a-f]{32}$/i.test(id)) {
+            id = gen();
+            localStorage.setItem('afterchat-chatglm-device-id', id);
+          }
+          return id;
+        } catch (e) {
+          return gen();
+        }
+      },
+
+      /** 生成签名所需的 {ts, nonce, sign}（与前端一致） */
+      _sign() {
+        const A = String(Date.now());
+        const e = A.length;
+        const digits = A.split('').map((c) => Number(c));
+        const t = digits.reduce((s, d) => s + d, 0) - digits[e - 2];
+        const ts = A.substring(0, e - 2) + (t % 10) + A.substring(e - 1, e);
+        let nonce = '';
+        try {
+          nonce = (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx')
+            .replace(/-/g, '');
+        } catch (err) {
+          const chars = '0123456789abcdef';
+          for (let i = 0; i < 32; i++) nonce += chars[Math.floor(Math.random() * 16)];
+        }
+        const sign = this._md5(`${ts}-${nonce}-8a1317a7468aa3ad86e997d08f3f31cb`);
+        return { ts, nonce, sign };
+      },
+
+      _headers() {
+        const s = this._sign();
+        return {
+          'accept': 'application/json, text/plain, */*',
+          'authorization': 'Bearer ' + this._token(),
+          'app-name': 'chatglm',
+          'x-app-platform': 'pc',
+          'x-app-version': '0.0.1',
+          'x-app-fr': 'default',
+          'x-lang': 'zh',
+          'x-device-id': this._deviceId(),
+          'x-request-id': s.nonce,
+          'x-timestamp': s.ts,
+          'x-nonce': s.nonce,
+          'x-sign': s.sign,
+          'x-exp-groups': this._expGroups(),
+        };
+      },
+
+      _expGroups() {
+        try {
+          return localStorage.getItem('trialGroup') || '';
+        } catch (e) {
+          return '';
+        }
+      },
+
+      async getAllConversations(onProgress) {
+        const all = [];
+        let page = 1;
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+
+        while (all.length < limit) {
+          const r = await fetch('/chatglm/mainchat-api/conversation/recent_list', {
+            method: 'POST',
+            headers: { ...this._headers(), 'content-type': 'application/json;charset=utf-8' },
+            body: JSON.stringify({ page, page_size: 20 }),
+          });
+          if (!r.ok) throw new Error(`列表API ${r.status}: ${r.statusText}`);
+          const body = await r.json();
+          if (body.status !== 0) throw new Error(`列表API status ${body.status}: ${body.message || ''}`);
+
+          const list = body.result?.conversation_list || [];
+          if (!list.length) break;
+          for (const c of list) {
+            all.push({
+              id: c.conversation_id || '',
+              title: (c.title || '').trim(),
+              assistant_id: c.assistant_id,
+              update_time: c.update_time,
+              history_total: c.history_total,
+            });
+          }
+          if (onProgress) onProgress(all.length);
+
+          if (!body.result?.has_more) break;
+          page++;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return all.filter((c) => c.id).slice(0, limit);
+      },
+
+      /** 从列表查找会话元信息（assistant_id / title / update_time） */
+      async _findConversation(id) {
+        let page = 1;
+        while (page <= 50) {
+          const r = await fetch('/chatglm/mainchat-api/conversation/recent_list', {
+            method: 'POST',
+            headers: { ...this._headers(), 'content-type': 'application/json;charset=utf-8' },
+            body: JSON.stringify({ page, page_size: 50 }),
+          });
+          if (!r.ok) throw new Error(`列表API ${r.status}: ${r.statusText}`);
+          const body = await r.json();
+          const list = body.result?.conversation_list || [];
+          const hit = list.find((c) => c.conversation_id === id);
+          if (hit) {
+            return {
+              assistant_id: hit.assistant_id,
+              title: (hit.title || '').trim(),
+              update_time: hit.update_time,
+            };
+          }
+          if (!body.result?.has_more || !list.length) break;
+          page++;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+        throw new Error(`未在列表中找到会话 ${id}`);
+      },
+
+      async getConversationDetails(id) {
+        const meta = await this._findConversation(id);
+        const r = await fetch(
+          `/chatglm/mainchat-api/conversation/messages?assistant_id=${encodeURIComponent(meta.assistant_id)}&conversation_id=${encodeURIComponent(id)}`,
+          { headers: this._headers() }
+        );
+        if (!r.ok) throw new Error(`详情API ${r.status}: ${r.statusText}`);
+        const body = await r.json();
+        if (body.status !== 0) throw new Error(`详情API status ${body.status}: ${body.message || ''}`);
+
+        return {
+          conversation_id: id,
+          assistant_id: meta.assistant_id,
+          title: meta.title,
+          update_time: meta.update_time,
+          messages: body.result?.messages || [],
+        };
+      },
+
+      /** 将 ChatGLM 聊天数据转为 Markdown */
+      toMarkdown(data, title, convId) {
+        const messages = data?.messages || [];
+        if (!messages.length) throw new Error('未找到消息数据');
+
+        const convUrl = convId ? `https://chatglm.cn/main/alltoolsdetail?cid=${convId}` : 'https://chatglm.cn';
+        const timeStr = data.update_time
+          ? formatLocalTime(new Date(Number(data.update_time) * 1000))
+          : 'unknown';
+
+        // 模型：取最后一条助手消息的 text block 模型
+        let model = 'glm';
+        outer: for (let i = messages.length - 1; i >= 0; i--) {
+          const parts = messages[i]?.output?.parts || [];
+          for (const p of parts) {
+            for (const c of p.content || []) {
+              if (c.type === 'text' && c.text && p.model) {
+                model = p.model;
+                break outer;
+              }
+            }
+          }
+        }
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `' + model + '`');
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${convUrl}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+
+        // ---- 第一遍：收集引用编号【turnNsearchM】→ 全局编号（按 URL 去重） ----
+        const msgCiteMap = new Map();  // 消息下标 → Map<refKey, globalNum>
+        const urlToNum = new Map();    // url → globalNum
+        let nextNum = 1;
+
+        for (let i = 0; i < messages.length; i++) {
+          const ap = this._assistantParts(messages[i]);
+          const responseText = ap.texts.join('\n');
+          if (!responseText) continue;
+          const keys = [...new Set([...responseText.matchAll(/【(turn\d+search\d+)】/g)].map(x => x[1]))];
+          const localMap = new Map();
+          for (const key of keys) {
+            const ref = ap.refMap.get(key);
+            if (!ref || !ref.url) continue;
+            if (!urlToNum.has(ref.url)) urlToNum.set(ref.url, nextNum++);
+            localMap.set(key, urlToNum.get(ref.url));
+          }
+          msgCiteMap.set(i, localMap);
+        }
+
+        // ---- 第二遍：生成正文 ----
+        for (let i = 0; i < messages.length; i++) {
+          const m = messages[i];
+          const inputText = (m.input?.content || [])
+            .map((c) => c.text || '')
+            .join('\n')
+            .trim();
+          if (!inputText) continue;
+
+          lines.push('### 🧑\u200d💻 User');
+          lines.push('');
+          lines.push(stripHashes(inputText));
+          lines.push('');
+
+          const ap = this._assistantParts(m);
+          const responseText = ap.texts.join('\n');
+          if (!responseText) continue;
+
+          const citeMap = msgCiteMap.get(i) || new Map();
+          const cleaned = responseText.replace(/【(turn\d+search\d+)】/g, (_, key) => {
+            const gn = citeMap.get(key);
+            return gn !== undefined ? `[${gn}]` : '';
+          });
+          // 思考文本里的引用标记也一并替换（保持与正文一致的编号）
+          const citeReplacer = (_, key) => {
+            const gn = citeMap.get(key);
+            return gn !== undefined ? `[${gn}]` : '';
+          };
+          const cleanThoughts = ap.thoughts.map((t) => t.replace(/【(turn\d+search\d+)】/g, citeReplacer));
+
+          lines.push('### 🤖 Assistant');
+          lines.push('');
+
+          if (cleanThoughts.length) {
+            lines.push('#### 🤔 Thought Process');
+            lines.push('');
+            lines.push(stripHashes(cleanThoughts.join('\n\n')));
+            lines.push('');
+            lines.push('#### 💡 Response');
+            lines.push('');
+          }
+
+          lines.push(stripHashes(cleaned));
+          lines.push('');
+        }
+
+        // ---- References ----
+        if (urlToNum.size > 0) {
+          const sorted = [...urlToNum.entries()].sort((a, b) => a[1] - b[1]);
+          lines.push('---');
+          lines.push('');
+          lines.push('### References');
+          lines.push('');
+          for (const [url, num] of sorted) {
+            lines.push(`- [${num}] ${url}`);
+          }
+          lines.push('');
+        }
+
+        return lines.join('\n');
+      },
+
+      // ---- 内部辅助方法 ----
+      /** 解析一条消息的助手输出：thoughts / texts / refMap / 模型 */
+      _assistantParts(m) {
+        const parts = m?.output?.parts || [];
+        const thoughts = [];
+        const texts = [];
+        const refMap = new Map();
+        let model = '';
+        for (const p of parts) {
+          for (const c of p.content || []) {
+            if (c.type === 'think' && c.think) {
+              thoughts.push(c.think.trim());
+            } else if (c.type === 'text' && c.text) {
+              texts.push(c.text.trim());
+              if (p.model) model = p.model;
+            } else if (c.type === 'tool_result') {
+              // 搜索结果在 part 级 meta_data.tool_result_extra.search_results，match_key 对应正文【turnNsearchM】
+              for (const sr of p.meta_data?.tool_result_extra?.search_results || []) {
+                if (sr.match_key && sr.url) {
+                  refMap.set(sr.match_key, { title: sr.title || '', url: sr.url });
+                }
+              }
+            }
+          }
+        }
+        // 思考链原样保留（ChatGLM 模型喜欢先在心里答一遍，不去重）
+        return { thoughts, texts, refMap, model, parts };
+      },
+
+      // ---- MD5（RFC1321 风格公开实现，Public Domain）----
+      _md5(s) {
+        function md5cycle(x, k) {
+          var a = x[0], b = x[1], c = x[2], d = x[3];
+          a = ff(a, b, c, d, k[0], 7, -680876936); d = ff(d, a, b, c, k[1], 12, -389564586); c = ff(c, d, a, b, k[2], 17, 606105819); b = ff(b, c, d, a, k[3], 22, -1044525330);
+          a = ff(a, b, c, d, k[4], 7, -176418897); d = ff(d, a, b, c, k[5], 12, 1200080426); c = ff(c, d, a, b, k[6], 17, -1473231341); b = ff(b, c, d, a, k[7], 22, -45705983);
+          a = ff(a, b, c, d, k[8], 7, 1770035416); d = ff(d, a, b, c, k[9], 12, -1958414417); c = ff(c, d, a, b, k[10], 17, -42063); b = ff(b, c, d, a, k[11], 22, -1990404162);
+          a = ff(a, b, c, d, k[12], 7, 1804603682); d = ff(d, a, b, c, k[13], 12, -40341101); c = ff(c, d, a, b, k[14], 17, -1502002290); b = ff(b, c, d, a, k[15], 22, 1236535329);
+          a = gg(a, b, c, d, k[1], 5, -165796510); d = gg(d, a, b, c, k[6], 9, -1069501632); c = gg(c, d, a, b, k[11], 14, 643717713); b = gg(b, c, d, a, k[0], 20, -373897302);
+          a = gg(a, b, c, d, k[5], 5, -701558691); d = gg(d, a, b, c, k[10], 9, 38016083); c = gg(c, d, a, b, k[15], 14, -660478335); b = gg(b, c, d, a, k[4], 20, -405537848);
+          a = gg(a, b, c, d, k[9], 5, 568446438); d = gg(d, a, b, c, k[14], 9, -1019803690); c = gg(c, d, a, b, k[3], 14, -187363961); b = gg(b, c, d, a, k[8], 20, 1163531501);
+          a = gg(a, b, c, d, k[13], 5, -1444681467); d = gg(d, a, b, c, k[2], 9, -51403784); c = gg(c, d, a, b, k[7], 14, 1735328473); b = gg(b, c, d, a, k[12], 20, -1926607734);
+          a = hh(a, b, c, d, k[5], 4, -378558); d = hh(d, a, b, c, k[8], 11, -2022574463); c = hh(c, d, a, b, k[11], 16, 1839030562); b = hh(b, c, d, a, k[14], 23, -35309556);
+          a = hh(a, b, c, d, k[1], 4, -1530992060); d = hh(d, a, b, c, k[4], 11, 1272893353); c = hh(c, d, a, b, k[7], 16, -155497632); b = hh(b, c, d, a, k[10], 23, -1094730640);
+          a = hh(a, b, c, d, k[13], 4, 681279174); d = hh(d, a, b, c, k[0], 11, -358537222); c = hh(c, d, a, b, k[3], 16, -722521979); b = hh(b, c, d, a, k[6], 23, 76029189);
+          a = hh(a, b, c, d, k[9], 4, -640364487); d = hh(d, a, b, c, k[12], 11, -421815835); c = hh(c, d, a, b, k[15], 16, 530742520); b = hh(b, c, d, a, k[2], 23, -995338651);
+          a = ii(a, b, c, d, k[0], 6, -198630844); d = ii(d, a, b, c, k[7], 10, 1126891415); c = ii(c, d, a, b, k[14], 15, -1416354905); b = ii(b, c, d, a, k[5], 21, -57434055);
+          a = ii(a, b, c, d, k[12], 6, 1700485571); d = ii(d, a, b, c, k[3], 10, -1894986606); c = ii(c, d, a, b, k[10], 15, -1051523); b = ii(b, c, d, a, k[1], 21, -2054922799);
+          a = ii(a, b, c, d, k[8], 6, 1873313359); d = ii(d, a, b, c, k[15], 10, -30611744); c = ii(c, d, a, b, k[6], 15, -1560198380); b = ii(b, c, d, a, k[13], 21, 1309151649);
+          a = ii(a, b, c, d, k[4], 6, -145523070); d = ii(d, a, b, c, k[11], 10, -1120210379); c = ii(c, d, a, b, k[2], 15, 718787259); b = ii(b, c, d, a, k[9], 21, -343485551);
+          x[0] = add32(a, x[0]); x[1] = add32(b, x[1]); x[2] = add32(c, x[2]); x[3] = add32(d, x[3]);
+        }
+        function cmn(q, a, b, x, s, t) { a = add32(add32(a, q), add32(x, t)); return add32(a << s | a >>> (32 - s), b); }
+        function ff(a, b, c, d, x, s, t) { return cmn(b & c | ~b & d, a, b, x, s, t); }
+        function gg(a, b, c, d, x, s, t) { return cmn(b & d | c & ~d, a, b, x, s, t); }
+        function hh(a, b, c, d, x, s, t) { return cmn(b ^ c ^ d, a, b, x, s, t); }
+        function ii(a, b, c, d, x, s, t) { return cmn(c ^ (b | ~d), a, b, x, s, t); }
+        function md51(s) {
+          var n = s.length, state = [1732584193, -271733879, -1732584194, 271733878], i;
+          for (i = 64; i <= s.length; i += 64) { md5cycle(state, md5blk(s.substring(i - 64, i))); }
+          s = s.substring(i - 64);
+          var tail = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+          for (i = 0; i < s.length; i++) tail[i >> 2] |= s.charCodeAt(i) << (i % 4 << 3);
+          tail[i >> 2] |= 0x80 << (i % 4 << 3);
+          if (i > 55) { md5cycle(state, tail); tail = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; }
+          tail[14] = n * 8;
+          md5cycle(state, tail);
+          return state;
+        }
+        function md5blk(s) {
+          var md5blks = [], i;
+          for (i = 0; i < 64; i += 4) md5blks[i >> 2] = s.charCodeAt(i) + (s.charCodeAt(i + 1) << 8) + (s.charCodeAt(i + 2) << 16) + (s.charCodeAt(i + 3) << 24);
+          return md5blks;
+        }
+        function rhex(n) { var s = '', j; for (j = 0; j < 4; j++) s += hex_chr[n >> (j * 8 + 4) & 15] + hex_chr[n >> (j * 8) & 15]; return s; }
+        function hex(x) { for (var i = 0; i < x.length; i++) x[i] = rhex(x[i]); return x.join(''); }
+        function add32(a, b) { return a + b & 4294967295; }
+        var hex_chr = '0123456789abcdef'.split('');
+        return hex(md51(s));
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[duck]  DuckDuckGo AI Chat (duck.ai)
+    // ═══════════════════════════════════════════════════════
+    // 无后端 API：聊天记录全部存在浏览器 IndexedDB（库 savedAIChatData，仓库 saved-chats）。
+    // 会话 key = chatId；另有 `__metadata__` 元数据项需跳过。
+    // duck.ai 没有每会话独立 URL（始终 https://duck.ai/），故只支持「导出全部」。
+    {
+      id: 'duck',
+      name: 'DuckDuckGo AI Chat',
+      detect: () => window.location.hostname === 'duck.ai',
+
+      getCurrentConversationId: () => null,  // 无会话 URL，仅全部导出
+
+      /** 打开 IndexedDB */
+      _openDb() {
+        return new Promise((resolve, reject) => {
+          try {
+            const req = indexedDB.open('savedAIChatData');
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(new Error('打开 IndexedDB 失败: ' + (req.error?.message || 'unknown')));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      },
+
+      /** 读一个 key 的值 */
+      _get(db, key) {
+        return new Promise((resolve, reject) => {
+          const req = db.transaction('saved-chats', 'readonly').objectStore('saved-chats').get(key);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(new Error('IndexedDB 读取失败: ' + (req.error?.message || 'unknown')));
+        });
+      },
+
+      /** 所有 key（排除元数据项） */
+      _allKeys(db) {
+        return new Promise((resolve, reject) => {
+          const req = db.transaction('saved-chats', 'readonly').objectStore('saved-chats').getAllKeys();
+          req.onsuccess = () => resolve(req.result.filter((k) => k !== '__metadata__'));
+          req.onerror = () => reject(new Error('IndexedDB 读 key 失败: ' + (req.error?.message || 'unknown')));
+        });
+      },
+
+      async getAllConversations(onProgress) {
+        const db = await this._openDb();
+        try {
+          const keys = await this._allKeys(db);
+          const out = [];
+          for (const k of keys) {
+            const chat = await this._get(db, k);
+            if (!chat) continue;
+            out.push({
+              id: chat.chatId || k,
+              title: (chat.title || '').trim(),
+              model: chat.model || '',
+              lastEdit: chat.lastEdit || null,
+            });
+          }
+          if (onProgress) onProgress(out.length);
+          return out;
+        } finally {
+          db.close();
+        }
+      },
+
+      async getConversationDetails(id) {
+        const db = await this._openDb();
+        try {
+          const chat = await this._get(db, id);
+          if (!chat) throw new Error('IndexedDB 中未找到会话 ' + id);
+          return chat;
+        } finally {
+          db.close();
+        }
+      },
+
+      /** 将 duck.ai 聊天数据转为 Markdown */
+      toMarkdown(data, title, convId) {
+        const messages = data?.messages || [];
+        if (!messages.length) throw new Error('未找到消息数据');
+
+        const model = data.model || '';
+        const timeStr = data.lastEdit
+          ? formatLocalTime(new Date(data.lastEdit))
+          : 'unknown';
+        // duck.ai 无每会话 URL
+        const convUrl = 'https://duck.ai/';
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `' + (model || 'duck.ai') + '`');
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${convUrl}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+
+        // ---- 第一遍：收集每条助手消息的引用 <citation src="1,2"> → 全局编号（按 URL 去重） ----
+        const msgCiteMap = new Map();  // 消息下标 → Map<localNum, globalNum>
+        const urlToNum = new Map();    // url → globalNum
+        let nextNum = 1;
+
+        for (let i = 0; i < messages.length; i++) {
+          if (messages[i]?.role !== 'assistant') continue;
+          const { responseText, sources } = this._assistantParts(messages[i]);
+          if (!responseText) continue;
+          const localMap = new Map();
+          const re = /<citation src="([0-9,\s]+)"><\/citation>/g;
+          let m;
+          while ((m = re.exec(responseText)) !== null) {
+            for (const nStr of m[1].split(',')) {
+              const n = Number(nStr.trim());
+              if (!n || localMap.has(n)) continue;
+              const src = sources[n - 1];
+              const url = src?.source?.url || '';
+              if (!url) continue;
+              if (!urlToNum.has(url)) urlToNum.set(url, nextNum++);
+              localMap.set(n, urlToNum.get(url));
+            }
+          }
+          msgCiteMap.set(i, localMap);
+        }
+
+        // ---- 第二遍：生成正文 ----
+        for (let i = 0; i < messages.length; i++) {
+          const msg = messages[i];
+
+          if (msg.role === 'user') {
+            const text = (msg.content || '').trim();
+            if (!text) continue;
+            lines.push('### 🧑\u200d💻 User');
+            lines.push('');
+            lines.push(stripHashes(text));
+            lines.push('');
+
+          } else if (msg.role === 'assistant') {
+            const { responseText, thoughts } = this._assistantParts(msg);
+            if (!responseText) continue;
+
+            const citeMap = msgCiteMap.get(i) || new Map();
+            const cleaned = responseText.replace(/<citation src="([0-9,\s]+)"><\/citation>/g, (_, nums) => {
+              return nums.split(',')
+                .map((nStr) => {
+                  const gn = citeMap.get(Number(nStr.trim()));
+                  return gn !== undefined ? `[${gn}]` : '';
+                })
+                .join('');
+            });
+
+            lines.push('### 🤖 Assistant');
+            lines.push('');
+
+            if (thoughts.length) {
+              lines.push('#### 🤔 Thought Process');
+              lines.push('');
+              lines.push(stripHashes(thoughts.join('\n\n')));
+              lines.push('');
+              lines.push('#### 💡 Response');
+              lines.push('');
+            }
+
+            lines.push(stripHashes(cleaned));
+            lines.push('');
+          }
+        }
+
+        // ---- References ----
+        if (urlToNum.size > 0) {
+          const sorted = [...urlToNum.entries()].sort((a, b) => a[1] - b[1]);
+          lines.push('---');
+          lines.push('');
+          lines.push('### References');
+          lines.push('');
+          for (const [url, num] of sorted) {
+            lines.push(`- [${num}] ${url}`);
+          }
+          lines.push('');
+        }
+
+        return lines.join('\n');
+      },
+
+      // ---- 内部辅助方法 ----
+      /** 解析助手消息：reasoning→thoughts，text→正文，source→引用源（按出现顺序 1-based） */
+      _assistantParts(msg) {
+        const thoughts = [];
+        const sources = [];
+        let responseText = '';
+        for (const p of msg?.parts || []) {
+          if (!p) continue;
+          if (p.type === 'reasoning' && p.text) {
+            thoughts.push(p.text.trim());
+          } else if (p.type === 'text' && p.text) {
+            responseText = p.text.trim();
+          } else if (p.type === 'source') {
+            sources.push(p);
+          }
+          // tool-invocation 等中间产物跳过
+        }
+        return { thoughts, sources, responseText };
       },
     },
 

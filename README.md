@@ -2,7 +2,7 @@
 
 [简体中文](./README.zh-CN.md) | English
 
-A browser script (Violentmonkey / Tampermonkey / Greasemonkey) that exports chat history from major LLM platforms to **Markdown files with one click**.
+AfterChat is a free, open-source **AI chat history exporter** — a userscript for Violentmonkey / Tampermonkey / Greasemonkey that backs up your LLM conversations with one click. Export chats from **ChatGPT, Gemini, DeepSeek, GLM (Z.ai / ChatGLM)** and 17+ major AI platforms to **Markdown**, preserving **reasoning / thinking** and **citation sources**, for personal archive, migration and offline reading.
 
 After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-App-Download), you can also save the current conversation to your AfterChat workspace with one click.
 
@@ -15,18 +15,22 @@ After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-
 | Google AI Studio | `aistudio.google.com` |
 | M365 Copilot | `m365.cloud.microsoft` |
 | Microsoft Copilot | `copilot.microsoft.com` |
-| Grok | `x.com/i/grok` |
+| Grok (xAI) | `x.com/i/grok` |
 | DeepSeek | `chat.deepseek.com` |
-| Qwen | `chat.qwen.ai` |
+| Qwen (通义千问) | `chat.qwen.ai` |
 | Kimi | `www.kimi.com` |
 | Qianwen | `www.qianwen.com` |
-| Tencent Yuanbao | `yuanbao.tencent.com` |
-| Doubao | `www.doubao.com` |
+| Tencent Yuanbao (腾讯元宝) | `yuanbao.tencent.com` |
+| Doubao (豆包) | `www.doubao.com` |
 | Arena AI | `arena.ai` |
+| Tencent IMA (腾讯 ima) | `ima.qq.com` |
+| Z.ai (GLM) | `chat.z.ai` |
+| ChatGLM (智谱清言) | `chatglm.cn` |
+| DuckDuckGo AI Chat | `duck.ai` |
 
 ## ✨ Features
 
-- **Multi-platform support**: works with 13 major LLM platforms.
+- **Multi-platform support**: works with 17 major LLM platforms.
 - **Single or batch export**: exports the current conversation or all conversations at once.
 - **Content fidelity**: exports include user messages, AI replies, **reasoning / thinking**, and **citation sources**.
 - **One-click save to AfterChat**: on a conversation detail page, **right-click the button** to save the current conversation directly to your AfterChat workspace.
