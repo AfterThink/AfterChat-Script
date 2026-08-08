@@ -2,7 +2,7 @@
 
 [简体中文](./README.zh-CN.md) | English
 
-AfterChat is a free, open-source **AI chat history exporter** — a userscript for Violentmonkey / Tampermonkey / Greasemonkey that backs up your LLM conversations with one click. Export chats from **ChatGPT, Gemini, DeepSeek, GLM (Z.ai / ChatGLM)** and 17+ major AI platforms to **Markdown**, preserving **reasoning / thinking** and **citation sources**, for personal archive, migration and offline reading.
+AfterChat is a free, open-source **AI chat history exporter** — a userscript for Violentmonkey / Tampermonkey / Greasemonkey that backs up your LLM conversations with one click. Export chats from **ChatGPT, Gemini, DeepSeek, GLM (Z.ai / ChatGLM)** and 18 major AI platforms to **Markdown**, preserving **reasoning / thinking** and **citation sources**, for personal archive, migration and offline reading.
 
 After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-App-Download), you can also save the current conversation to your AfterChat workspace with one click.
 
@@ -27,10 +27,11 @@ After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-
 | Z.ai (GLM) | `chat.z.ai` |
 | ChatGLM (智谱清言) | `chatglm.cn` |
 | DuckDuckGo AI Chat | `duck.ai` |
+| Perplexity | `www.perplexity.ai` |
 
 ## ✨ Features
 
-- **Multi-platform support**: works with 17 major LLM platforms.
+- **Multi-platform support**: works with 18 major LLM platforms.
 - **Single or batch export**: exports the current conversation or all conversations at once.
 - **Content fidelity**: exports include user messages, AI replies, **reasoning / thinking**, and **citation sources**.
 - **One-click save to AfterChat**: on a conversation detail page, **right-click the button** to save the current conversation directly to your AfterChat workspace.

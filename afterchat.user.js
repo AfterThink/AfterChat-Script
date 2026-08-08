@@ -3,10 +3,10 @@
 // @name:en      AfterChat — LLM Chat Exporter
 // @name:zh-CN   AfterChat — LLM 对话导出器
 // @namespace    https://github.com/AfterThink
-// @version      1.5.0
-// @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat
-// @description:en  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat
-// @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat 的聊天记录
+// @version      1.6.0
+// @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
+// @description:en  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
+// @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat、Perplexity 的聊天记录
 // @author       AfterThink Studio
 // @license      AGPL-3.0
 // @match        https://m365.cloud.microsoft/chat*
@@ -26,6 +26,7 @@
 // @match        https://www.kimi.com/*
 // @match        https://www.doubao.com/*
 // @match        https://arena.ai/*
+// @match        https://www.perplexity.ai/*
 // @icon         https://avatars.githubusercontent.com/u/266756423?s=400&u=d38fce2849e95af734f50228d5195fcdf1c7719e&v=4
 // @grant        none
 // @run-at       document-idle
@@ -70,6 +71,10 @@
 //  1.5.0 (2026-08-06)
 //    - 新增 duck.ai 适配器：无后端 API，直接读写浏览器 IndexedDB（savedAIChatData/saved-chats）
 //      支持思考链、搜索引用（<citation src> → [N]）；无会话 URL，仅全部导出
+//  1.6.0 (2026-08-08)
+//    - 新增 Perplexity 适配器：列表 /rest/thread/list_recent + 详情 /rest/thread/{uuid}
+//      （schematized 响应 blocks 分块）；每条 entry 一轮问答，正文 [N] 引用按
+//      web_results[N-1].url 汇总到末尾 References；详情接口游标翻页
 // =============================================================
 
 (function () {
@@ -1509,6 +1514,168 @@
           // tool-invocation 等中间产物跳过
         }
         return { thoughts, sources, responseText };
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[pplx]  Perplexity
+    // ═══════════════════════════════════════════════════════
+    // LLM 注意: 列表走 /rest/thread/list_recent（无分页，一次返回全部）；
+    // 详情走 /rest/thread/{uuid}（schematized 响应：每条 entry 的 blocks 里
+    // ask_text.markdown_block 是正文，web_results.web_result_block 是引用源）。
+    {
+      id: 'pplx',
+      name: 'Perplexity',
+      detect: () => window.location.hostname === 'www.perplexity.ai',
+
+      getCurrentConversationId: () => {
+        const match = window.location.pathname.match(/^\/search\/([^\/?]+)/);
+        return match ? match[1] : null;
+      },
+
+      _threadHeaders() {
+        return {
+          'x-app-apiclient': 'default',
+          'x-app-apiversion': '2.18',
+        };
+      },
+
+      /** 详情接口查询串（与站点前端一致的最小参数集） */
+      _threadQuery(limit, offset, fromFirst) {
+        const p = new URLSearchParams();
+        p.set('with_parent_info', 'true');
+        p.set('with_schematized_response', 'true');
+        p.set('version', '2.18');
+        p.set('source', 'default');
+        p.set('limit', String(limit));
+        p.set('offset', String(offset));
+        p.set('from_first', String(fromFirst));
+        p.set('with_first_entry', 'false');
+        p.set('with_latest_entry', 'false');
+        for (const uc of ['answer_modes', 'search_result_widgets', 'preserve_latex']) {
+          p.append('supported_block_use_cases', uc);
+        }
+        return p;
+      },
+
+      /** ISO 时间串 → Date；无时区后缀时按 UTC 处理（thread_metadata 的时间不带偏移） */
+      _parseDate(str) {
+        if (!str) return null;
+        const hasTz = /(?:Z|[+-]\d{2}:\d{2})$/.test(str);
+        const d = new Date(hasTz ? str : str + 'Z');
+        return isNaN(d.getTime()) ? null : d;
+      },
+
+      async getAllConversations(onProgress) {
+        const r = await fetch('/rest/thread/list_recent?exclude_asi=false&version=2.18&source=default');
+        if (!r.ok) throw new Error(`API ${r.status}: ${r.statusText}`);
+        const body = await r.json();
+        const list = Array.isArray(body) ? body : [];
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        const result = list
+          .slice(0, limit)
+          .map((t) => ({
+            id: t.uuid || '',
+            title: (t.title || '').trim(),
+            updated_at: t.updated_at,
+            status: t.status,
+          }))
+          .filter((c) => c.id);
+        if (onProgress) onProgress(result.length);
+        return result;
+      },
+
+      async getConversationDetails(id) {
+        const limit = 50;
+        const allEntries = [];
+        let body = null;
+        let offset = 0;
+        let fromFirst = true;
+
+        for (let i = 0; i < 200; i++) {
+          const url = `/rest/thread/${id}?` + this._threadQuery(limit, offset, fromFirst);
+          const r = await fetch(url, { headers: this._threadHeaders() });
+          if (!r.ok) throw new Error(`API ${r.status}: ${r.statusText}`);
+          body = await r.json();
+          allEntries.push(...(body.entries || []));
+          if (!body.has_next_page || !body.next_cursor) break;
+          offset = body.next_cursor;
+          fromFirst = false;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        // title 注入到 data.title（核心引擎 getChatTitle 的兜底链里有这个键）
+        return {
+          ...body,
+          entries: allEntries,
+          title: body?.thread_metadata?.title || allEntries[0]?.thread_title || '',
+        };
+      },
+
+      /** 将 Perplexity 聊天数据转为 Markdown */
+      toMarkdown(data, title, convId) {
+        const meta = data?.thread_metadata || {};
+        const entries = data?.entries || [];
+        const model = entries[0]?.display_model || meta.display_model || 'unknown';
+        const created = meta.created_at ? this._parseDate(meta.created_at) : null;
+        const timeStr = created ? formatLocalTime(created) : 'unknown';
+        const convUrl = convId
+          ? `https://www.perplexity.ai/search/${convId}`
+          : 'https://www.perplexity.ai';
+
+        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `' + model + '`');
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${convUrl}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        for (const entry of entries) {
+          const userText = entry?.query_str || '';
+          if (userText) {
+            lines.push('### 🧑‍💻 User');
+            lines.push('');
+            lines.push(stripHashes(userText));
+            lines.push('');
+          }
+
+          const mb = entry?.blocks?.find((b) => b.markdown_block && b.intended_usage === 'ask_text');
+          const answer = mb?.markdown_block?.answer || '';
+          if (!answer) continue;
+
+          lines.push('### 🤖 Assistant');
+          lines.push('');
+          lines.push(stripHashes(answer));
+          lines.push('');
+
+          // 引用：[N] → web_results[N-1].url（每个 entry 独立编号）
+          const wrBlock = entry?.blocks?.find((b) => b.web_result_block);
+          const webResults = wrBlock?.web_result_block?.web_results || [];
+          const citedNums = [...new Set(
+            [...answer.matchAll(/\[(\d+)\]/g)].map((m) => Number(m[1]))
+          )].filter((n) => Number.isInteger(n) && n >= 1 && n <= webResults.length)
+            .sort((a, b) => a - b);
+
+          if (citedNums.length > 0) {
+            lines.push('---');
+            lines.push('');
+            lines.push('### References');
+            lines.push('');
+            for (const n of citedNums) {
+              const w = webResults[n - 1];
+              if (w?.url) lines.push(`- [${n}] ${w.url}`);
+            }
+            lines.push('');
+          }
+        }
+
+        return lines.join('\n');
       },
     },
 
