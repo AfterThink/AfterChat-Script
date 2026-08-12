@@ -1,12 +1,38 @@
 // ==UserScript==
 // @name         AfterChat — LLM Chat Exporter
-// @name:en      AfterChat — LLM Chat Exporter
 // @name:zh-CN   AfterChat — LLM 对话导出器
+// @name:zh-TW   AfterChat — LLM 對話匯出器
+// @name:ja      AfterChat — LLM チャット書き出しツール
+// @name:ko      AfterChat — LLM 채팅 내보내기
+// @name:es      AfterChat — Exportador de chats de LLM
+// @name:fr      AfterChat — Exportateur de conversations LLM
+// @name:de      AfterChat — LLM-Chat-Exporter
+// @name:pt-BR   AfterChat — Exportador de Chats de LLM
+// @name:ru      AfterChat — экспортёр чатов LLM
+// @name:it      AfterChat — Esportatore di chat LLM
+// @name:vi      AfterChat — Trình xuất khẩu hội thoại LLM
+// @name:id      AfterChat — Eksportir Chat LLM
+// @name:th      AfterChat — เครื่องมือส่งออกแชท LLM
+// @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
+// @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.6.0
-// @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
-// @description:en  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
-// @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat、Perplexity 的聊天记录
+// @version      1.9.0
+// @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
+// @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、腾讯混元、Mistral、Sakana AI、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat、Perplexity 的聊天记录
+// @description:zh-TW  一鍵匯出 ChatGPT、Gemini、DeepSeek、通義千問、Kimi、豆包、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、騰訊元寶、騰訊混元、Mistral、Sakana AI、千問、Arena AI、騰訊 ima、Z.ai、智譜清言、DuckDuckGo AI Chat、Perplexity 的聊天記錄
+// @description:ja  ChatGPT、Gemini、DeepSeek、Qwen、Kimi、Doubao、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、Tencent Yuanbao、Tencent Hunyuan、Mistral、Sakana AI、Qianwen、Arena AI、Tencent IMA、Z.ai、ChatGLM、DuckDuckGo AI Chat、Perplexity などのチャット履歴をワンクリックで書き出し
+// @description:ko  ChatGPT、Gemini、DeepSeek、Qwen、Kimi、Doubao、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、Tencent Yuanbao、Tencent Hunyuan、Mistral、Sakana AI、Qianwen、Arena AI、Tencent IMA、Z.ai、ChatGLM、DuckDuckGo AI Chat、Perplexity  등 LLM 채팅 기록을 원클릭으로 내보내기
+// @description:es  Exporta con un clic el historial de chat de ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat y Perplexity
+// @description:fr  Exportez en un clic l'historique de vos conversations ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat et Perplexity
+// @description:de  Chatverläufe von ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat und Perplexity mit einem Klick exportieren
+// @description:pt-BR  Exporte com um clique o histórico de chats do ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat e Perplexity
+// @description:ru  Экспортируйте в один клик историю чатов ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat и Perplexity
+// @description:it  Esporta con un clic la cronologia delle chat di ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat e Perplexity
+// @description:vi  Xuất lịch sử trò chuyện từ ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat và Perplexity chỉ với một cú nhấp chuột
+// @description:id  Ekspor riwayat chat dari ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, dan Perplexity dengan sekali klik
+// @description:th  ส่งออกประวัติแชทจาก ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat และ Perplexity ด้วยคลิกเดียว
+// @description:tr  ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat ve Perplexity sohbet geçmişini tek tıkla dışa aktarın
+// @description:ar  صدّر سجل المحادثات من ChatGPT وGemini وDeepSeek وQwen وKimi وDoubao وGrok وGoogle AI Studio وMicrosoft Copilot وM365 Copilot وTencent Yuanbao وTencent Hunyuan وMistral وSakana AI وQianwen وArena AI وTencent IMA وZ.ai وChatGLM وDuckDuckGo AI Chat وPerplexity بنقرة واحدة
 // @author       AfterThink Studio
 // @license      AGPL-3.0
 // @match        https://m365.cloud.microsoft/chat*
@@ -15,12 +41,16 @@
 // @match        https://chatglm.cn/*
 // @match        https://duck.ai/*
 // @match        https://chatgpt.com/*
+// @match        https://chat.mistral.ai/*
+// @match        https://chat.sakana.ai/*
 // @match        https://chat.deepseek.com/*
 // @match        https://chat.qwen.ai/*
 // @match        https://www.qianwen.com/*
 // @match        https://yuanbao.tencent.com/*
 // @match        https://copilot.microsoft.com/*
 // @match        https://aistudio.google.com/*
+// @match        https://aistudio.tencent.com/*
+// @match        https://aistudio.tencent.ai/*
 // @match        https://x.com/i/grok*
 // @match        https://gemini.google.com/*
 // @match        https://www.kimi.com/*
@@ -75,6 +105,22 @@
 //    - 新增 Perplexity 适配器：列表 /rest/thread/list_recent + 详情 /rest/thread/{uuid}
 //      （schematized 响应 blocks 分块）；每条 entry 一轮问答，正文 [N] 引用按
 //      web_results[N-1].url 汇总到末尾 References；详情接口游标翻页
+//  1.7.0 (2026-08-12)
+//    - 新增腾讯混元适配器（aistudio.tencent.com + 海外站 aistudio.tencent.ai）：
+//      列表 /api/new-portal/chat/conversation/list（offset 翻页）
+//      + 详情 /api/new-portal/user/agent/conversation/v1/detail（lastId 游标翻页，整轮返回）
+//      URL /chat/<agentId>/<conversationId>，支持思考链、搜索引用汇总 References
+//      海外站 API 域自动切到 api.hy.tencent.ai（路径与国内站一致）
+//  1.7.1 (2026-08-12)
+//    - 修复 chatgpt.com 等站点按钮消失：应用挂载后会重建 body/html 顶层子节点，
+//      把按钮容器一并清掉；新增 ensureUIAlive 自愈观察器，被移除后自动重建
+//  1.8.0 (2026-08-12)
+//    - 新增 Mistral Le Chat 适配器：列表 tRPC chat.last（cursor 翻页）
+//      + 详情 Next.js RSC 流（提取 initialMessages，支持搜索引用）
+//  1.9.0 (2026-08-12)
+//    - 新增 Sakana AI 适配器：列表 /api/v2/conversations + 详情 /api/v2/conversations/<id>
+//      content 里 <plan>/<think> 思考 → Thought Process，<answer> → Response
+//      <source-chip title url /> 搜索引用 → [标题](链接)
 // =============================================================
 
 (function () {
@@ -2698,6 +2744,331 @@
     },
 
     // ═══════════════════════════════════════════════════════
+    //  ADAPTER[hunyuan]  腾讯混元 (Hy AI Studio)
+    // ═══════════════════════════════════════════════════════
+    // 列表 POST /api/new-portal/chat/conversation/list
+    //   body {limit, offset, modelTag:'all'} → {code, totalCount, data:[{id, agentId, title, funcName,...}]}
+    // 详情 POST /api/new-portal/user/agent/conversation/v1/detail
+    //   body {conversationId, offset, limit, chatModelId?, agentId?, lastId?}
+    //   → {code, hasMore, convs:[{speaker:'ai'|'human', index, chatRecordId, createTime,
+    //      speechesV2:[{speechType:'thought'|'text', content:[{type:'text'|'thought'|'tool_calls'|'searchGuid'|'drawWithSearch', msg?, content?, docs?}]}]}]}
+    // 注意: convs 按新→旧返回；长对话用 lastId（最旧已加载 conv 的 chatRecordId）游标翻页，
+    //       服务端整轮返回（ai+其前置 human），cursor 所在轮已包含在已加载页内，不会丢消息。
+    {
+      id: 'hunyuan',
+      name: '腾讯混元',
+      // 国内站 aistudio.tencent.com + 海外站 aistudio.tencent.ai（API 同构，海外域 api.hy.tencent.ai，已实测确认）
+      detect: () => ['aistudio.tencent.com', 'aistudio.tencent.ai'].includes(window.location.hostname),
+
+      _siteHost() {
+        return (typeof window !== 'undefined' && window.location && window.location.hostname)
+          || 'aistudio.tencent.com';
+      },
+
+      _apiBase() {
+        // 海外站 aistudio.tencent.ai 的 API 域是 api.hy.tencent.ai（实测确认，非 api.hunyuan.tencent.ai）
+        return this._siteHost().endsWith('.tencent.ai')
+          ? 'https://api.hy.tencent.ai'
+          : 'https://api.hunyuan.tencent.com';
+      },
+
+      getCurrentConversationId: () => {
+        const m = window.location.pathname.match(/^\/chat\/([^\/?]+)\/([^\/?]+)/);
+        return m ? `${m[1]}/${m[2]}` : null;
+      },
+
+      _packId(agentId, conversationId) {
+        return `${agentId || 'HunyuanDefault'}/${conversationId}`;
+      },
+
+      _unpackId(id) {
+        const parts = String(id || '').split('/').filter(Boolean);
+        if (parts.length >= 2) return { agentId: parts[0], conversationId: parts[1] };
+        return { agentId: 'HunyuanDefault', conversationId: parts[0] || '' };
+      },
+
+      _headers(agentId, conversationId) {
+        const h = {
+          'accept': 'application/json',
+          'content-type': 'application/json',
+          'x-requested-with': 'XMLHttpRequest',
+          'x-source': 'web',
+        };
+        if (agentId) h['x-agentid'] = conversationId ? `${agentId}/${conversationId}` : agentId;
+        return h;
+      },
+
+      async _post(path, body, headers) {
+        const r = await fetch(this._apiBase() + path, {
+          method: 'POST',
+          credentials: 'include',
+          headers: headers || { 'accept': 'application/json', 'content-type': 'application/json' },
+          body: JSON.stringify(body || {}),
+        });
+        const text = await r.text();
+        let data = null;
+        try { data = text ? JSON.parse(text) : {}; } catch (e) { data = { raw: text }; }
+        const code = Number(data?.code);
+        if (!r.ok || !(code === 0 || code === 200)) {
+          throw new Error(`Hunyuan API ${r.status}: ${data?.msg || data?.message || text.slice(0, 120)}`);
+        }
+        return data;
+      },
+
+      async getAllConversations(onProgress) {
+        const all = [];
+        const seen = new Set();
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        const pageSize = 40;
+        let offset = 0;
+        let total = Infinity;
+
+        while (all.length < limit && offset < total) {
+          const body = await this._post('/api/new-portal/chat/conversation/list', {
+            limit: pageSize,
+            offset,
+            modelTag: 'all',
+          }, this._headers());
+          const conversations = Array.isArray(body?.data) ? body.data : [];
+          total = Number(body?.totalCount ?? conversations.length);
+          let added = 0;
+          for (const c of conversations) {
+            const cid = c.id;
+            if (!cid || seen.has(cid)) continue;
+            seen.add(cid);
+            const agentId = c.agentId || 'HunyuanDefault';
+            all.push({
+              id: this._packId(agentId, cid),
+              title: c.title || cid,
+              created_at: c.createdAt,
+              updated_at: c.updatedAt,
+              agentId,
+              model: c.funcName || c.chatModelId || c.modelId,
+              chatModelId: c.chatModelId || '',
+            });
+            added++;
+            if (all.length >= limit) break;
+          }
+          if (onProgress) onProgress(all.length);
+          if (!conversations.length || !added) break;
+          offset += conversations.length;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return all.slice(0, limit);
+      },
+
+      async getConversationDetails(id) {
+        const { agentId, conversationId } = this._unpackId(id);
+        if (!conversationId) throw new Error('缺少混元 conversationId');
+        let chatModelId = '';
+        let convTitle = '';
+        try {
+          const m = await this._ensureModelMap();
+          const info = m.get(conversationId) || {};
+          chatModelId = info.chatModelId || '';
+          convTitle = info.title || '';
+        } catch (e) { /* 列表拉不到也不阻塞详情 */ }
+        const allConvs = [];
+        const seen = new Set();
+        const pageSize = 15;
+        let cursor = null; // lastId: 最旧已加载轮次内任一 conv 的 chatRecordId
+        let newestIndex = 0;
+        let meta = null;
+        let pages = 0;
+
+        while (pages++ < 200) {
+          const body = {
+            conversationId,
+            offset: newestIndex,
+            limit: pageSize,
+          };
+          if (agentId) body.agentId = agentId;
+          if (chatModelId) body.chatModelId = chatModelId;
+          if (cursor) body.lastId = cursor;
+          const resp = await this._post(
+            '/api/new-portal/user/agent/conversation/v1/detail',
+            body,
+            this._headers(agentId, conversationId)
+          );
+          if (!meta) meta = resp;
+          const batch = Array.isArray(resp?.convs) ? resp.convs : [];
+          let added = 0;
+          let oldestLoaded = null;
+          let maxIndex = newestIndex;
+          for (const conv of batch) {
+            const idx = Number(conv?.index);
+            if (Number.isFinite(idx)) {
+              maxIndex = Math.max(maxIndex, idx);
+              if (!oldestLoaded || idx < Number(oldestLoaded.index)) oldestLoaded = conv;
+            }
+            const key = conv?.id || `${conv?.speaker || ''}:${idx}`;
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            allConvs.push(conv);
+            added++;
+          }
+          newestIndex = maxIndex;
+          if (!resp?.hasMore || !batch.length || !added || !oldestLoaded) break;
+          cursor = oldestLoaded.chatRecordId || null;
+          if (!cursor) break;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        const result = { ...(meta || {}), agentId, conversationId, convs: allConvs };
+        // 详情接口不带标题，从列表缓存补上，让单条导出文件名用真实标题
+        if (!result.title && convTitle) result.title = convTitle;
+        return result;
+      },
+
+      _modelCache: null,
+
+      async _ensureModelMap() {
+        if (this._modelCache) return this._modelCache;
+        const map = new Map();
+        let offset = 0;
+        while (true) {
+          const body = await this._post('/api/new-portal/chat/conversation/list', {
+            limit: 40,
+            offset,
+            modelTag: 'all',
+          }, this._headers());
+          const conversations = Array.isArray(body?.data) ? body.data : [];
+          for (const c of conversations) {
+            if (!c.id) continue;
+            map.set(c.id, {
+              chatModelId: c.chatModelId || '',
+              funcName: c.funcName || '',
+              modelId: c.modelId,
+              title: c.title || '',
+            });
+          }
+          if (!conversations.length || map.size >= Number(body?.totalCount ?? 0)) break;
+          offset += conversations.length;
+        }
+        this._modelCache = map;
+        return map;
+      },
+
+      _docRefs(docs) {
+        const refs = [];
+        for (const doc of (docs || [])) {
+          const url = doc?.url || doc?.link || '';
+          if (!url) continue;
+          const rawIndex = Number(doc.index ?? doc.idx ?? refs.length + 1);
+          refs.push({
+            index: Number.isFinite(rawIndex) && rawIndex > 0 ? rawIndex : refs.length + 1,
+            title: doc.title || doc.name || '',
+            url,
+          });
+        }
+        return refs;
+      },
+
+      _speechParts(conv) {
+        const thought = [];
+        const text = [];
+        const refs = [];
+        for (const speech of (conv?.speechesV2 || [])) {
+          for (const item of (speech?.content || [])) {
+            const type = item?.type || '';
+            if (type === 'thought') {
+              if (item.msg) thought.push(item.msg);
+            } else if (type === 'text') {
+              if (item.msg) text.push(item.msg);
+            } else if (type === 'tool_calls') {
+              try {
+                const parsed = JSON.parse(item.content || '[]');
+                if (Array.isArray(parsed)) refs.push(...this._docRefs(parsed));
+              } catch (e) { /* 忽略解析失败 */ }
+            } else if (type === 'searchGuid' || type === 'drawWithSearch') {
+              if (Array.isArray(item.docs)) refs.push(...this._docRefs(item.docs));
+            }
+          }
+        }
+        return { thought: thought.join('\n\n').trim(), text: text.join('\n\n').trim(), refs };
+      },
+
+      toMarkdown(data, title, convId) {
+        const { agentId, conversationId } = this._unpackId(convId || data?.conversationId || data?.id || '');
+        const convs = [...(data?.convs || [])]
+          .filter((c) => c && (c.speaker === 'ai' || c.speaker === 'human'))
+          .sort((a, b) => (Number(a.index) || 0) - (Number(b.index) || 0));
+        const modelName = data?.funcName || data?.chatModelId || data?.modelId || 'Hunyuan';
+        const timeValue = convs[0]?.createTime || data?.createTime;
+        const timeStr = timeValue
+          ? formatLocalTime(new Date(Number(timeValue) * 1000))
+          : 'unknown';
+        const url = agentId && conversationId
+          ? `https://${this._siteHost()}/chat/${agentId}/${conversationId}`
+          : `https://${this._siteHost()}`;
+        const stripHashes = (s) => String(s || '').replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+        const refMap = new Map();
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push(`- **Model:** \`${modelName}\``);
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${url}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        for (const conv of convs) {
+          const role = String(conv.speaker || '').toLowerCase() === 'human' ? 'user' : 'assistant';
+          const parts = this._speechParts(conv);
+          const fallback = (conv.displayPrompt || '').trim();
+          if (!parts.text && !parts.thought && !fallback) continue;
+          for (const ref of parts.refs) {
+            if (!refMap.has(ref.index)) refMap.set(ref.index, ref);
+          }
+          if (role === 'user') {
+            const body = stripHashes(parts.text || fallback);
+            if (!body) continue;
+            lines.push('### 🧑‍💻 User');
+            lines.push('');
+            lines.push(body);
+            lines.push('');
+          } else {
+            const thoughtText = stripHashes(parts.thought);
+            const responseText = stripHashes(parts.text);
+            if (!thoughtText && !responseText) continue;
+            lines.push('### 🤖 Assistant');
+            lines.push('');
+            if (thoughtText) {
+              lines.push('#### 🤔 Thought Process');
+              lines.push('');
+              lines.push(thoughtText);
+              lines.push('');
+              if (responseText) {
+                lines.push('#### 💡 Response');
+                lines.push('');
+              }
+            }
+            if (responseText) {
+              lines.push(responseText);
+              lines.push('');
+            }
+          }
+        }
+
+        if (refMap.size > 0) {
+          lines.push('---');
+          lines.push('');
+          lines.push('### References');
+          lines.push('');
+          for (const [idx, ref] of [...refMap.entries()].sort((a, b) => a[0] - b[0])) {
+            lines.push(ref.title ? `- [${idx}] ${ref.title} ${ref.url}` : `- [${idx}] ${ref.url}`);
+          }
+          lines.push('');
+        }
+
+        return lines.join('\n').replace(/\n{3,}/g, '\n\n');
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
     //  ADAPTER[kimi]  Kimi
     // ═══════════════════════════════════════════════════════
     {
@@ -4868,6 +5239,463 @@
         return formatLocalTime(d);
       },
     },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[mistral]  Mistral Le Chat
+    // ═══════════════════════════════════════════════════════
+    // 列表: tRPC GET /api/trpc/chat.last?batch=1&input=...（cursor 翻页, nextCursor 结束）
+    // 详情: Next.js RSC 流 GET /chat/<id>?_rsc=<nonce>（需 RSC: 1 头），
+    //       从 flight 流提取 "chat":{...} 元数据 + "initialMessages":[...] 消息数组。
+    //       flight 里的 Date 带 $D 前缀（"$D2026-..."），提取后需剥离。
+    // 消息: {role: user|assistant, content: markdown 正文,
+    //        contentChunks: [{type:'tool_call', publicResult:{<id>:{url,title,rank}}},
+    //                        {type:'reference', referenceIds:[...]}, {type:'text', text}]}
+    {
+      id: 'mistral',
+      name: 'Mistral Le Chat',
+      detect: () => window.location.hostname === 'chat.mistral.ai',
+
+      getCurrentConversationId: () => {
+        const m = window.location.pathname.match(/^\/chat\/([^\/?]+)/);
+        return m ? m[1] : null;
+      },
+
+      async _trpc(procedures, inputs) {
+        const input = encodeURIComponent(JSON.stringify(
+          Object.fromEntries(Object.entries(inputs).map(([k, v]) => [k, { json: v }]))
+        ));
+        const r = await fetch(`/api/trpc/${procedures}?batch=1&input=${input}`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: { 'accept': 'application/json' },
+        });
+        const text = await r.text();
+        if (!r.ok) throw new Error(`Mistral API ${r.status}: ${text.slice(0, 120)}`);
+        let data;
+        try { data = JSON.parse(text); } catch (e) { data = []; }
+        return data;
+      },
+
+      /** 从 RSC flight 流里提取 "key":<json 值>（括号配对，支持嵌套对象/数组；fromIndex 可选搜索起点） */
+      _extractRscValue(t, key, fromIndex = 0) {
+        const start = t.indexOf(`"${key}":`, fromIndex);
+        if (start < 0) return undefined;
+        let i = start + key.length + 3; // 跳过 "key":
+        while (i < t.length && /\s/.test(t[i])) i++;
+        const ch = t[i];
+        if (ch === '{' || ch === '[') {
+          const open = ch;
+          const close = ch === '{' ? '}' : ']';
+          let depth = 0, inStr = false, esc = false;
+          for (let j = i; j < t.length; j++) {
+            const c = t[j];
+            if (inStr) {
+              if (esc) esc = false;
+              else if (c === '\\') esc = true;
+              else if (c === '"') inStr = false;
+              continue;
+            }
+            if (c === '"') inStr = true;
+            else if (c === open) depth++;
+            else if (c === close) { depth--; if (depth === 0) return t.slice(i, j + 1); }
+          }
+        } else if (ch === '"') {
+          for (let j = i + 1; j < t.length; j++) {
+            if (t[j] === '\\') j++;
+            else if (t[j] === '"') return t.slice(i, j + 1);
+          }
+        }
+        return undefined;
+      },
+
+      /** flight 流里可能有多处 "chat":，锚定到真正的对话对象（带 id 的那个） */
+      _findChatAnchor(t) {
+        const a = t.indexOf('"chat":{"id"');
+        if (a >= 0) return a;
+        // 兜底：没有 id 开头也试第一个
+        return t.indexOf('"chat":');
+      },
+
+      /** 从 RSC flight 流里解析 $N 引用（reasoning 文本以 "$90" 形式存在，指向流中 "90:" 行）
+       *  行格式: "90:T<hex>,<utf-8 文本...>" 或 "90:\"<json 字符串>\""；文本到下一个行号前缀结束 */
+      _resolveFlightRef(t, ref) {
+        const num = String(ref || '').replace(/^\$/, '');
+        if (!/^[0-9a-fA-F]+$/.test(num)) return '';
+        const m = t.match(new RegExp('(?:^|\\n)' + num + ':', 'm'));
+        if (!m) return '';
+        let rest = t.slice(m.index + m[0].length);
+        if (rest.startsWith('"')) {
+          let out = '';
+          for (let i = 1; i < rest.length; i++) {
+            const ch = rest[i];
+            if (ch === '\\') {
+              const n = rest[i + 1];
+              if (n === 'n') out += '\n';
+              else if (n === 't') out += '\t';
+              else if (n === 'r') out += '\r';
+              else if (n === '"') out += '"';
+              else if (n === '\\') out += '\\';
+              else out += n;
+              i++;
+              continue;
+            }
+            if (ch === '"') break;
+            out += ch;
+          }
+          return out;
+        }
+        if (rest.startsWith('T')) {
+          // T<hex 字节长度>,<utf-8 文本>：按长度精确截取（reasoning 文本可能含字面换行）
+          const comma = rest.indexOf(',');
+          if (comma < 0) return '';
+          const byteLen = parseInt(rest.slice(1, comma), 16);
+          const body = rest.slice(comma + 1);
+          if (byteLen > 0 && body.length >= byteLen) {
+            try {
+              const bytes = new TextEncoder().encode(body);
+              return new TextDecoder().decode(bytes.slice(0, byteLen)).trim();
+            } catch (e) { /* fallthrough */ }
+          }
+          // 兜底：到下一个行号前缀（\n<hex>:）
+          const end = body.search(/\n[0-9a-fA-F]+:/);
+          return (end >= 0 ? body.slice(0, end) : body).trim();
+        }
+        return '';
+      },
+
+      /** 消息里 reasoning（思考）块文本：contentChunks 中 _context.type === 'reasoning' 的 text chunk */
+      _extractThinking(m) {
+        const parts = [];
+        for (const ch of (m?.contentChunks || [])) {
+          if (ch?.type === 'text' && ch?._context?.type === 'reasoning' && ch.text) {
+            parts.push(ch.text);
+          }
+        }
+        return parts.join('\n\n').trim();
+      },
+
+      async getAllConversations(onProgress) {
+        const all = [];
+        let cursor = null;
+        while (true) {
+          const input = {
+            chatVisibility: 'private',
+            chatPermission: 'write',
+            includeProjectChats: false,
+            productType: 'chat',
+            direction: 'forward',
+          };
+          if (cursor) input.cursor = cursor;
+          const resp = await this._trpc('chat.last', { 0: input });
+          const json = resp?.[0]?.result?.data?.json || {};
+          const items = Array.isArray(json.items) ? json.items : [];
+          let added = 0;
+          for (const it of items) {
+            if (!it.id) continue;
+            all.push({
+              id: it.id,
+              title: (it.userTitle || it.generatedTitle || it.title || it.id).trim(),
+              updated_at: it.updatedAt,
+            });
+            added++;
+          }
+          if (onProgress) onProgress(all.length);
+          if (!items.length || !added || !json.nextCursor) break;
+          cursor = json.nextCursor;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+        return all;
+      },
+
+      async getConversationDetails(id) {
+        if (!id) throw new Error('缺少 Mistral chatId');
+        const r = await fetch(`/chat/${id}?_rsc=${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, {
+          credentials: 'include',
+          headers: { 'RSC': '1', 'accept': '*/*' },
+        });
+        const text = await r.text();
+        if (!r.ok) throw new Error(`Mistral RSC ${r.status}: ${text.slice(0, 120)}`);
+
+        let chat = null;
+        try {
+          const anchor = this._findChatAnchor(text);
+          const raw = anchor >= 0 ? this._extractRscValue(text, 'chat', anchor) : undefined;
+          chat = raw ? JSON.parse(raw) : null;
+        } catch (e) { chat = null; }
+        let messages = [];
+        try {
+          const raw = this._extractRscValue(text, 'initialMessages');
+          messages = raw ? JSON.parse(raw) : [];
+        } catch (e) { messages = []; }
+        if (!Array.isArray(messages)) messages = [];
+
+        // 剥离 flight 的 $D Date 前缀（"$D2026-08-12T..." → "2026-08-12T..."）
+        const stripDates = (obj) => {
+          if (typeof obj === 'string') return obj.replace(/^\$D/, '');
+          if (Array.isArray(obj)) return obj.map(stripDates);
+          if (obj && typeof obj === 'object') {
+            const out = {};
+            for (const k of Object.keys(obj)) out[k] = stripDates(obj[k]);
+            return out;
+          }
+          return obj;
+        };
+        if (chat) chat = stripDates(chat);
+        if (messages.length) {
+          // reasoning chunk 的 text 是 "$N" 引用 → 在原始 flight 流里解析成真实文本
+          const resolveChunk = (ch) => {
+            if (ch?._context?.type === 'reasoning' && /^\$[0-9a-fA-F]+$/.test(String(ch.text || ''))) {
+              ch.text = this._resolveFlightRef(text, ch.text) || ch.text;
+            }
+            return ch;
+          };
+          messages = stripDates(messages.map((m) => ({
+            ...m,
+            contentChunks: Array.isArray(m?.contentChunks) ? m.contentChunks.map(resolveChunk) : m.contentChunks,
+          })));
+        }
+
+        const title = (chat?.userTitle || chat?.generatedTitle || '').trim();
+        return { id, title, chat, initialMessages: messages };
+      },
+
+      _collectRefs(contentChunks) {
+        // tool_call.publicResult: {<id>: {url, title, rank, ...}}
+        const byId = new Map();
+        for (const ch of (contentChunks || [])) {
+          if (ch?.type !== 'tool_call' || !ch.publicResult) continue;
+          for (const [k, v] of Object.entries(ch.publicResult)) {
+            if (!v?.url) continue;
+            if (!byId.has(k)) byId.set(k, { url: v.url, title: v.title || '', rank: Number(v.rank) || 999 });
+          }
+        }
+        return [...byId.values()].sort((a, b) => a.rank - b.rank);
+      },
+
+      toMarkdown(data, title, convId) {
+        const id = convId || data?.id || data?.chatId || '';
+        // flight 流里 initialMessages 是逆序的（最新在前），按 createdAt 升序排回时间正序
+        const timeOf = (m) => {
+          const t = new Date(m?.createdAt || '').getTime();
+          return Number.isFinite(t) ? t : Number.MAX_SAFE_INTEGER;
+        };
+        const messages = [...(Array.isArray(data?.initialMessages) ? data.initialMessages : [])]
+          .sort((a, b) => timeOf(a) - timeOf(b));
+        const updatedAt = data?.chat?.updatedAt || data?.updatedAt;
+        const timeStr = updatedAt ? formatLocalTime(new Date(updatedAt)) : 'unknown';
+        const url = id ? `https://chat.mistral.ai/chat/${id}` : 'https://chat.mistral.ai';
+        const stripHashes = (s) => String(s || '').replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+
+        const allRefs = [];
+        const seenUrls = new Set();
+        for (const m of messages) {
+          for (const ref of this._collectRefs(m?.contentChunks)) {
+            if (seenUrls.has(ref.url)) continue;
+            seenUrls.add(ref.url);
+            allRefs.push(ref);
+          }
+        }
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `Mistral Le Chat`');
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${url}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        for (const m of messages) {
+          if (!m || typeof m !== 'object') continue;
+          const role = String(m.role || '').toLowerCase();
+          const body = stripHashes(m.content || '').trim();
+          if (!body) continue;
+          if (role === 'user') {
+            lines.push('### 🧑‍💻 User');
+            lines.push('');
+            lines.push(body);
+            lines.push('');
+          } else {
+            const thinking = stripHashes(this._extractThinking(m));
+            lines.push('### 🤖 Assistant');
+            lines.push('');
+            if (thinking) {
+              lines.push('#### 🤔 Thought Process');
+              lines.push('');
+              lines.push(thinking);
+              lines.push('');
+              lines.push('#### 💡 Response');
+              lines.push('');
+            }
+            lines.push(body);
+            lines.push('');
+          }
+        }
+
+        if (allRefs.length > 0) {
+          lines.push('---');
+          lines.push('');
+          lines.push('### References');
+          lines.push('');
+          allRefs.forEach((ref, i) => {
+            lines.push(ref.title ? `- [${i + 1}] ${ref.title} ${ref.url}` : `- [${i + 1}] ${ref.url}`);
+          });
+          lines.push('');
+        }
+
+        return lines.join('\n').replace(/\n{3,}/g, '\n\n');
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[sakana]  Sakana AI Chat
+    // ═══════════════════════════════════════════════════════
+    // 列表: GET /api/v2/conversations（一次返回全部，无分页）→ {json:{conversations:[{id,title,updatedAt}]}}
+    // 详情: GET /api/v2/conversations/<id> → {json:{messages:[{from,content,order,...}], title}}
+    // thinking 在 content 里：<plan>...</plan>（Osaka 方言模型）或 <think>...</think>（thinking 模式），
+    //   正文在 <answer>...</answer>；部分消息 <think><think> 双开但单个闭合，取第一个 </think>。
+    {
+      id: 'sakana',
+      name: 'Sakana AI',
+      detect: () => window.location.hostname === 'chat.sakana.ai',
+
+      getCurrentConversationId: () => {
+        const m = window.location.pathname.match(/^\/conversation\/([^\/?]+)/);
+        return m ? m[1] : null;
+      },
+
+      async _get(path) {
+        const r = await fetch(path, {
+          credentials: 'include',
+          headers: { 'accept': 'application/json' },
+        });
+        const text = await r.text();
+        if (!r.ok) throw new Error(`Sakana API ${r.status}: ${text.slice(0, 120)}`);
+        let data;
+        try { data = JSON.parse(text); } catch (e) { data = {}; }
+        return data?.json ?? data;
+      },
+
+      async getAllConversations(onProgress) {
+        const data = await this._get('/api/v2/conversations');
+        const list = Array.isArray(data?.conversations) ? data.conversations : [];
+        const all = [];
+        for (const c of list) {
+          const cid = c.id || c._id;
+          if (!cid) continue;
+          all.push({
+            id: cid,
+            title: (c.title || cid).trim(),
+            updated_at: c.updatedAt,
+          });
+        }
+        if (onProgress) onProgress(all.length);
+        return all;
+      },
+
+      async getConversationDetails(id) {
+        if (!id) throw new Error('缺少 Sakana conversationId');
+        const data = await this._get(`/api/v2/conversations/${encodeURIComponent(id)}`);
+        return {
+          id,
+          title: data?.title || '',
+          updatedAt: data?.updatedAt,
+          messages: Array.isArray(data?.messages) ? data.messages : [],
+        };
+      },
+
+      /** 拆 content：<plan>/<think> → 思考，<answer> → 正文，其余 → 正文 */
+      _splitContent(content) {
+        const text = String(content || '');
+        const thoughts = [];
+        let m;
+        const planRe = /<plan>([\s\S]*?)<\/plan>/g;
+        while ((m = planRe.exec(text))) thoughts.push(m[1]);
+        const thinkRe = /<think>([\s\S]*?)<\/think>/g;
+        while ((m = thinkRe.exec(text))) thoughts.push(m[1].replace(/^<think>\s*/, ''));
+        const answers = [];
+        const ansRe = /<answer>([\s\S]*?)<\/answer>/g;
+        while ((m = ansRe.exec(text))) answers.push(m[1]);
+        let answer;
+        if (answers.length) {
+          answer = answers.join('\n\n');
+        } else {
+          answer = text
+            .replace(/<plan>[\s\S]*?<\/plan>/g, '')
+            .replace(/<think>[\s\S]*?<\/think>/g, '')
+            .replace(/<\/?[a-zA-Z_]+>/g, '')
+            .trim();
+        }
+        return { thought: thoughts.join('\n\n').trim(), answer: answer.trim() };
+      },
+
+      /** 清理 content：把搜索引用标签 <source-chip title="X" url="Y" /> 转成 markdown 链接 */
+      _cleanContent(s) {
+        return String(s || '').replace(/<source-chip\b[^>]*>/gi, (match) => {
+          const t = (match.match(/title="([^"]*)"/i) || [])[1] || '';
+          const u = (match.match(/url="([^"]*)"/i) || [])[1] || '';
+          if (u) return t ? `[${t}](${u})` : `<${u}>`;
+          return '';
+        });
+      },
+
+      toMarkdown(data, title, convId) {
+        const id = convId || data?.id || '';
+        const messages = [...(Array.isArray(data?.messages) ? data.messages : [])]
+          .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+        const timeStr = data?.updatedAt
+          ? formatLocalTime(new Date(data.updatedAt))
+          : 'unknown';
+        const url = id ? `https://chat.sakana.ai/conversation/${id}` : 'https://chat.sakana.ai';
+        const stripHashes = (s) => String(s || '').replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `Sakana AI`');
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${url}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        for (const m of messages) {
+          if (!m || typeof m !== 'object') continue;
+          const from = String(m.from || '').toLowerCase();
+          if (from === 'system') continue;
+          const parts = this._splitContent(m.content);
+          const thought = this._cleanContent(parts.thought);
+          const answer = this._cleanContent(parts.answer);
+          if (!thought && !answer) continue;
+          if (from === 'user') {
+            lines.push('### 🧑‍💻 User');
+            lines.push('');
+            lines.push(stripHashes(answer));
+            lines.push('');
+          } else {
+            lines.push('### 🤖 Assistant');
+            lines.push('');
+            if (thought) {
+              lines.push('#### 🤔 Thought Process');
+              lines.push('');
+              lines.push(stripHashes(thought));
+              lines.push('');
+              if (answer) {
+                lines.push('#### 💡 Response');
+                lines.push('');
+              }
+            }
+            if (answer) {
+              lines.push(stripHashes(answer));
+              lines.push('');
+            }
+          }
+        }
+
+        return lines.join('\n').replace(/\n{3,}/g, '\n\n');
+      },
+    },
   ];
 
 
@@ -5544,13 +6372,66 @@
 
     window.addEventListener('popstate', () => requestAnimationFrame(checkURL));
     document.addEventListener('click', () => setTimeout(checkURL, 150), true);
-    setInterval(checkURL, 1500);
+    // UI 被站点移除后重建时会再次调用 watchURL；清掉旧定时器避免累积
+    if (window.__m365UiTimer) clearInterval(window.__m365UiTimer);
+    window.__m365UiTimer = setInterval(checkURL, 1500);
   }
 
   // ---- UI 构建（可以改样式） ----
   // LLM 注意: 布局、颜色、字体等 cssText 可以随便改。
   // 但不要改 createController / startExportProcess / watchURL 的调用方式。
+
+  // ---- UI 自愈：部分站点（如 chatgpt.com）应用挂载完成后会重建 body/html 顶层子节点，
+  //      把挂在 body 下的按钮容器一并清掉；用 MutationObserver 监测（只盯 html/body 两层），
+  //      被移除后自动重建。带节流/暂停：避免与持续清节点的站点死磕，也避免过度重建。 ----
+  const UI_HEAL_MIN_INTERVAL = 500;  // 两次重建的最小间隔(ms)
+  const UI_HEAL_MAX_BURST = 8;       // 连续重建次数上限，超过后暂停
+  const UI_HEAL_PAUSE = 30000;       // 暂停时长(ms)
+
+  function ensureUIAlive(adapter) {
+    const win = window;
+    if (win.__m365UiGuard) { win.__m365UiGuard.reattach(); return; }
+
+    let lastHealAt = 0;
+    let burst = 0;
+    let pauseUntil = 0;
+    let pendingTimer = null;
+
+    const heal = () => {
+      pendingTimer = null;
+      if (document.getElementById('m365-export-container')) return;
+      const now = Date.now();
+      if (now < pauseUntil) return;                     // 暂停期:不再自动重建
+      if (now - lastHealAt < UI_HEAL_MIN_INTERVAL) {    // 节流:稍后补一次
+        if (!pendingTimer) pendingTimer = setTimeout(heal, UI_HEAL_MIN_INTERVAL);
+        return;
+      }
+      lastHealAt = now;
+      if (++burst > UI_HEAL_MAX_BURST) {                // 持续被清:降级,避免死磕
+        burst = 0;
+        pauseUntil = now + UI_HEAL_PAUSE;
+        console.warn('[AfterChat] 页面反复移除导出按钮，已暂停自动重建 30s');
+        return;
+      }
+      try { createUI(adapter); } catch (e) { console.error('重建导出按钮失败:', e); }
+    };
+
+    const mo = new MutationObserver(() => heal());
+    const state = {
+      reattach() {
+        try { mo.disconnect(); } catch {}
+        // 只观察两层，不扫全树：站点重建 body 子节点或替换 body 元素都能捕获，
+        // 聊天流式输出的深层变更不会触发回调，避免不必要的开销。
+        try { mo.observe(document.documentElement, { childList: true, subtree: false }); } catch {}
+        try { if (document.body) mo.observe(document.body, { childList: true, subtree: false }); } catch {}
+      },
+    };
+    state.reattach();
+    win.__m365UiGuard = state;
+  }
+
   function createUI(adapter) {
+    ensureUIAlive(adapter);
     if (document.getElementById('m365-export-container')) return;
 
     const container = document.createElement('div');

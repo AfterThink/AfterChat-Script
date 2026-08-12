@@ -2,7 +2,9 @@
 
 [English](./README.md) | 简体中文
 
-AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工具**（油猴脚本，支持 Violentmonkey / Tampermonkey / Greasemonkey），一键将 **ChatGPT、Gemini、DeepSeek、GLM（Z.ai / 智谱清言）** 等 18 个主流 AI 平台的聊天记录导出为 **Markdown 文件**，完整保留**思考过程（reasoning / thinking）**与**引用来源**，方便个人备份、迁移与离线阅读。
+AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工具**。
+
+一键将 **ChatGPT、Gemini、DeepSeek、GLM（Z.ai / 智谱清言）** 等 21+ 主流 AI 平台的聊天记录导出为 **Markdown 文件**，完整保留**思考过程（reasoning / thinking）**与**引用来源**，方便个人备份、迁移与离线阅读。
 
 安装 [AfterChat 客户端](https://github.com/AfterThink/AfterChat-App-Download)后，支持一键保存当前对话到 AfterChat 工作区。
 
@@ -18,20 +20,23 @@ AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工�
 | Grok (xAI) | `x.com/i/grok` |
 | DeepSeek | `chat.deepseek.com` |
 | Qwen（通义千问） | `chat.qwen.ai` |
-| Kimi | `www.kimi.com` |
-| 千问 | `www.qianwen.com` |
+| Kimi | `kimi.com` |
+| 千问 | `qianwen.com` |
 | 腾讯元宝 | `yuanbao.tencent.com` |
-| 豆包 | `www.doubao.com` |
+| 腾讯混元 | `aistudio.tencent.com` / `aistudio.tencent.ai` |
+| Mistral Le Chat | `chat.mistral.ai` |
+| Sakana AI | `chat.sakana.ai` |
+| 豆包 | `doubao.com` |
 | Arena AI | `arena.ai` |
 | 腾讯 ima | `ima.qq.com` |
 | Z.ai（GLM） | `chat.z.ai` |
 | 智谱清言（ChatGLM） | `chatglm.cn` |
 | DuckDuckGo AI Chat | `duck.ai` |
-| Perplexity | `www.perplexity.ai` |
+| Perplexity | `perplexity.ai` |
 
 ## ✨ 功能特性
 
-- **多平台适配**：支持 18 个主流 LLM 平台。
+- **多平台适配**：支持 21 个主流 LLM 平台。
 - **单条 / 批量导出**：同时支持导出当前对话和全部对话。
 - **内容保真**：导出内容包含用户消息、AI 回复、**思考过程（reasoning / thinking）**，以及**引用来源**。
 - **一键存到 AfterChat**：在对话详情页**右键点击按钮**，将当前对话直接存入 AfterChat 工作区。

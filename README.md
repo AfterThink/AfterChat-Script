@@ -2,7 +2,9 @@
 
 [简体中文](./README.zh-CN.md) | English
 
-AfterChat is a free, open-source **AI chat history exporter** — a userscript for Violentmonkey / Tampermonkey / Greasemonkey that backs up your LLM conversations with one click. Export chats from **ChatGPT, Gemini, DeepSeek, GLM (Z.ai / ChatGLM)** and 18 major AI platforms to **Markdown**, preserving **reasoning / thinking** and **citation sources**, for personal archive, migration and offline reading.
+AfterChat is a free, open-source **AI chat history exporter** — a userscript that backs up your LLM conversations with one click.
+
+Export chats from **ChatGPT, Gemini, DeepSeek, GLM (Z.ai / ChatGLM)** and 21+ major AI platforms to **Markdown**, preserving **reasoning / thinking** and **citation sources**, for personal archive, migration and offline reading.
 
 After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-App-Download), you can also save the current conversation to your AfterChat workspace with one click.
 
@@ -17,21 +19,24 @@ After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-
 | Microsoft Copilot | `copilot.microsoft.com` |
 | Grok (xAI) | `x.com/i/grok` |
 | DeepSeek | `chat.deepseek.com` |
-| Qwen (通义千问) | `chat.qwen.ai` |
-| Kimi | `www.kimi.com` |
-| Qianwen | `www.qianwen.com` |
-| Tencent Yuanbao (腾讯元宝) | `yuanbao.tencent.com` |
-| Doubao (豆包) | `www.doubao.com` |
+| Qwen | `chat.qwen.ai` |
+| Kimi | `kimi.com` |
+| Qianwen | `qianwen.com` |
+| Tencent Yuanbao | `yuanbao.tencent.com` |
+| Tencent Hunyuan | `aistudio.tencent.com` / `aistudio.tencent.ai` |
+| Mistral Le Chat | `chat.mistral.ai` |
+| Sakana AI | `chat.sakana.ai` |
+| Doubao | `doubao.com` |
 | Arena AI | `arena.ai` |
-| Tencent IMA (腾讯 ima) | `ima.qq.com` |
-| Z.ai (GLM) | `chat.z.ai` |
-| ChatGLM (智谱清言) | `chatglm.cn` |
+| Tencent IMA | `ima.qq.com` |
+| Z.ai | `chat.z.ai` |
+| ChatGLM | `chatglm.cn` |
 | DuckDuckGo AI Chat | `duck.ai` |
-| Perplexity | `www.perplexity.ai` |
+| Perplexity | `perplexity.ai` |
 
 ## ✨ Features
 
-- **Multi-platform support**: works with 18 major LLM platforms.
+- **Multi-platform support**: works with 21 major LLM platforms.
 - **Single or batch export**: exports the current conversation or all conversations at once.
 - **Content fidelity**: exports include user messages, AI replies, **reasoning / thinking**, and **citation sources**.
 - **One-click save to AfterChat**: on a conversation detail page, **right-click the button** to save the current conversation directly to your AfterChat workspace.
