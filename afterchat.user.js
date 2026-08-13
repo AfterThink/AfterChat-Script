@@ -16,23 +16,23 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.9.0
-// @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
-// @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、腾讯混元、Mistral、Sakana AI、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat、Perplexity 的聊天记录
-// @description:zh-TW  一鍵匯出 ChatGPT、Gemini、DeepSeek、通義千問、Kimi、豆包、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、騰訊元寶、騰訊混元、Mistral、Sakana AI、千問、Arena AI、騰訊 ima、Z.ai、智譜清言、DuckDuckGo AI Chat、Perplexity 的聊天記錄
-// @description:ja  ChatGPT、Gemini、DeepSeek、Qwen、Kimi、Doubao、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、Tencent Yuanbao、Tencent Hunyuan、Mistral、Sakana AI、Qianwen、Arena AI、Tencent IMA、Z.ai、ChatGLM、DuckDuckGo AI Chat、Perplexity などのチャット履歴をワンクリックで書き出し
-// @description:ko  ChatGPT、Gemini、DeepSeek、Qwen、Kimi、Doubao、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、Tencent Yuanbao、Tencent Hunyuan、Mistral、Sakana AI、Qianwen、Arena AI、Tencent IMA、Z.ai、ChatGLM、DuckDuckGo AI Chat、Perplexity  등 LLM 채팅 기록을 원클릭으로 내보내기
-// @description:es  Exporta con un clic el historial de chat de ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat y Perplexity
-// @description:fr  Exportez en un clic l'historique de vos conversations ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat et Perplexity
-// @description:de  Chatverläufe von ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat und Perplexity mit einem Klick exportieren
-// @description:pt-BR  Exporte com um clique o histórico de chats do ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat e Perplexity
-// @description:ru  Экспортируйте в один клик историю чатов ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat и Perplexity
-// @description:it  Esporta con un clic la cronologia delle chat di ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat e Perplexity
-// @description:vi  Xuất lịch sử trò chuyện từ ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat và Perplexity chỉ với một cú nhấp chuột
-// @description:id  Ekspor riwayat chat dari ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, dan Perplexity dengan sekali klik
-// @description:th  ส่งออกประวัติแชทจาก ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat และ Perplexity ด้วยคลิกเดียว
-// @description:tr  ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat ve Perplexity sohbet geçmişini tek tıkla dışa aktarın
-// @description:ar  صدّر سجل المحادثات من ChatGPT وGemini وDeepSeek وQwen وKimi وDoubao وGrok وGoogle AI Studio وMicrosoft Copilot وM365 Copilot وTencent Yuanbao وTencent Hunyuan وMistral وSakana AI وQianwen وArena AI وTencent IMA وZ.ai وChatGLM وDuckDuckGo AI Chat وPerplexity بنقرة واحدة
+// @version      1.10.0
+// @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
+// @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、腾讯混元、MiniMax、Mistral、Sakana AI、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat、Perplexity 的聊天记录
+// @description:zh-TW  一鍵匯出 ChatGPT、Gemini、DeepSeek、通義千問、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、騰訊元寶、騰訊混元、MiniMax、Mistral、Sakana AI、千問、Arena AI、騰訊 ima、Z.ai、智譜清言、DuckDuckGo AI Chat、Perplexity 的聊天記錄
+// @description:ja  ChatGPT、Gemini、DeepSeek、Qwen、Kimi、Doubao、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Sakana AI、Qianwen、Arena AI、Tencent IMA、Z.ai、ChatGLM、DuckDuckGo AI Chat、Perplexity などのチャット履歴をワンクリックで書き出し
+// @description:ko  ChatGPT、Gemini、DeepSeek、Qwen、Kimi、Doubao、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Sakana AI、Qianwen、Arena AI、Tencent IMA、Z.ai、ChatGLM、DuckDuckGo AI Chat、Perplexity  등 LLM 채팅 기록을 원클릭으로 내보내기
+// @description:es  Exporta con un clic el historial de chat de ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat y Perplexity
+// @description:fr  Exportez en un clic l'historique de vos conversations ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat et Perplexity
+// @description:de  Chatverläufe von ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat und Perplexity mit einem Klick exportieren
+// @description:pt-BR  Exporte com um clique o histórico de chats do ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat e Perplexity
+// @description:ru  Экспортируйте в один клик историю чатов ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat и Perplexity
+// @description:it  Esporta con un clic la cronologia delle chat di ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat e Perplexity
+// @description:vi  Xuất lịch sử trò chuyện từ ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat và Perplexity chỉ với một cú nhấp chuột
+// @description:id  Ekspor riwayat chat dari ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, dan Perplexity dengan sekali klik
+// @description:th  ส่งออกประวัติแชทจาก ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat และ Perplexity ด้วยคลิกเดียว
+// @description:tr  ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat ve Perplexity sohbet geçmişini tek tıkla dışa aktarın
+// @description:ar  صدّر سجل المحادثات من ChatGPT وGemini وDeepSeek وQwen وKimi وDoubao وDola وGrok وGoogle AI Studio وMicrosoft Copilot وM365 Copilot وTencent Yuanbao وTencent Hunyuan وMiniMax وMistral وSakana AI وQianwen وArena AI وTencent IMA وZ.ai وChatGLM وDuckDuckGo AI Chat وPerplexity بنقرة واحدة
 // @author       AfterThink Studio
 // @license      AGPL-3.0
 // @match        https://m365.cloud.microsoft/chat*
@@ -55,8 +55,11 @@
 // @match        https://gemini.google.com/*
 // @match        https://www.kimi.com/*
 // @match        https://www.doubao.com/*
+// @match        https://www.dola.com/*
 // @match        https://arena.ai/*
 // @match        https://www.perplexity.ai/*
+// @match        https://agent.minimax.io/*
+// @match        https://agent.minimaxi.com/*
 // @icon         https://avatars.githubusercontent.com/u/266756423?s=400&u=d38fce2849e95af734f50228d5195fcdf1c7719e&v=4
 // @grant        none
 // @run-at       document-idle
@@ -121,6 +124,14 @@
 //    - 新增 Sakana AI 适配器：列表 /api/v2/conversations + 详情 /api/v2/conversations/<id>
 //      content 里 <plan>/<think> 思考 → Thought Process，<answer> → Response
 //      <source-chip title url /> 搜索引用 → [标题](链接)
+//  1.10.0 (2026-08-13)
+//    - Dola（豆包国际版 www.dola.com）：与豆包 API 同构，按 hunyuan 模式并入 doubao 适配器
+//      一站双域（_siteHost 区分 aid/region/导出 URL/Model 兜底），README 拆分为独立平台
+//    - 新增 MiniMax 适配器（agent.minimax.io + 国内版 agent.minimaxi.com，API 同构）：
+//      列表 /minimax-cloud/api/v1/sidebar/session/tree + 详情 /session/{id} + /session/{id}/message
+//      认证 token 头+query（localStorage _token）；x-signature = md5(x-timestamp + 固定盐 + body)
+//      （盐与算法从页面 webpack 逆向，cURL 交叉验证）；yy 头实测不校验；msg_type 2 中间消息跳过
+//      国内版仅前端代码确认同构，消息接口未实测（无账号）
 // =============================================================
 
 (function () {
@@ -3307,12 +3318,20 @@
     },
 
     // ═══════════════════════════════════════════════════════
-    //  ADAPTER[doubao]  豆包
+    //  ADAPTER[doubao]  豆包 / Dola（Dola 是豆包国际版，API 同构，一站双域，参考 hunyuan 模式）
     // ═══════════════════════════════════════════════════════
     {
       id: 'doubao',
       name: '豆包',
-      detect: () => window.location.hostname === 'www.doubao.com',
+      detect: () => ['www.doubao.com', 'www.dola.com'].includes(window.location.hostname),
+
+      // 当前站点 host；Node 测试环境下无 window，用 _fallbackHost（测试可覆盖为 dola）
+      _fallbackHost: 'www.doubao.com',
+
+      _siteHost() {
+        return (typeof window !== 'undefined' && window.location && window.location.hostname)
+          || this._fallbackHost;
+      },
 
       getCurrentConversationId: () => {
         const match = window.location.pathname.match(/^\/chat\/([^\/?]+)/);
@@ -3351,25 +3370,29 @@
           return path + url.search;
         }
 
-        // 兜底：Doubao 后端依赖这类 web 参数；完整环境下一般会走上面的 performance endpoint。
+        // 兜底：Doubao/Dola 后端依赖这类 web 参数；完整环境下一般会走上面的 performance endpoint。
+        // 豆包(CN) 与 Dola(国际版) 的 aid/region/版本号不同，按当前站点区分。
+        const isDola = this._siteHost().endsWith('dola.com');
         const p = new URLSearchParams({
           version_code: '20800',
           language: (navigator.language || 'zh').split('-')[0],
           device_platform: 'web',
           doubao_device_platform: 'web',
-          aid: '497858',
-          real_aid: '497858',
+          aid: isDola ? '495671' : '497858',
+          real_aid: isDola ? '495671' : '497858',
           pkg_type: 'release_version',
-          pc_version: '3.29.13',
-          doubao_pc_version: '3.29.13',
-          region: 'CN',
-          sys_region: 'CN',
+          pc_version: isDola ? '3.32.3' : '3.29.13',
+          doubao_pc_version: isDola ? '3.32.3' : '3.29.13',
+          region: isDola ? 'JP' : 'CN',
+          sys_region: isDola ? 'JP' : 'CN',
           samantha_web: '1',
           web_platform: 'browser',
           'use-olympus-account': '1',
           web_tab_id: this._uuid(),
         });
         try {
+          const deviceId = localStorage.getItem('desktop_device_id') || '';
+          if (deviceId) p.set('device_id', deviceId);
           const teaId = localStorage.getItem('flow_tea_user_id') || '';
           if (teaId) { p.set('web_id', teaId); p.set('tea_uuid', teaId); }
         } catch (e) { /* ignore */ }
@@ -3579,8 +3602,9 @@
         const timeStr = conv.create_time
           ? formatLocalTime(new Date(Number(conv.create_time) * 1000))
           : 'unknown';
-        const convUrl = convId ? `https://www.doubao.com/chat/${convId}` : 'https://www.doubao.com';
-        const modelName = conv?.conv_extra?.inner_bot_name || conv?.tags?.[0] || '豆包';
+        const convUrl = convId ? `https://${this._siteHost()}/chat/${convId}` : `https://${this._siteHost()}`;
+        const modelName = conv?.conv_extra?.inner_bot_name || conv?.tags?.[0]
+          || (this._siteHost().endsWith('dola.com') ? 'Dola' : '豆包');
         const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
         const urlToRef = new Map();
 
@@ -3643,6 +3667,289 @@
         }
 
         return lines.join('\n').replace(/\n{3,}/g, '\n\n');
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[minimax]  MiniMax Agent — 海外版 agent.minimax.io / 国内版 agent.minimaxi.com
+    //  两端 API 完全同构（已从两端前端 webpack 模块逐项确认）：
+    //  接口：会话树 GET /minimax-cloud/api/v1/sidebar/session/tree
+    //        会话信息 GET /minimax-cloud/api/v1/session/{id}
+    //        消息     GET /minimax-cloud/api/v1/session/{id}/message?limit=80
+    //  鉴权：token 头 + query token（localStorage _token / user_detail_agent.token）
+    //        x-signature = md5(x-timestamp + "I*7Cf%WZ#S&%1RlZJ&C2" + body)（GET 无 body）
+    //        yy 头服务端不校验（实测任意值 200），用固定占位即可
+    //  差异：国内版 sys_language/lang 为 zh（REGION=cn），海外版为 en（REGION=en）
+    //  海外版已用真实浏览器 + 真实会话 430078672212281 实测；国内版因无账号未实测消息接口。
+    // ═══════════════════════════════════════════════════════
+    {
+      id: 'minimax',
+      name: 'MiniMax',
+      detect: () => ['agent.minimax.io', 'agent.minimaxi.com'].includes(window.location.hostname),
+
+      // 当前站点 host；Node 测试环境下无 window，用 _fallbackHost（默认海外版）
+      _fallbackHost: 'agent.minimax.io',
+
+      _siteHost() {
+        return (typeof window !== 'undefined' && window.location && window.location.hostname)
+          || this._fallbackHost;
+      },
+
+      getCurrentConversationId: () => {
+        const m = window.location.search.match(/[?&]id=([^&]+)/);
+        return m ? decodeURIComponent(m[1]) : null;
+      },
+
+      _token() {
+        try {
+          const ud = JSON.parse(localStorage.getItem('user_detail_agent') || '{}');
+          return ud.token || localStorage.getItem('_token') || '';
+        } catch (e) {
+          return '';
+        }
+      },
+
+      // 构造页面同款 web query 参数（复刻前端 mC 逻辑，实测缺参数会 401）
+      _webParams() {
+        const now = Date.now();
+        let ud = {};
+        try { ud = JSON.parse(localStorage.getItem('user_detail_agent') || '{}'); } catch (e) { /* ignore */ }
+        const zh = this._siteHost().endsWith('minimaxi.com'); // 国内版 REGION=cn → zh
+        const p = new URLSearchParams({
+          device_platform: 'web',
+          biz_id: '3',
+          app_id: '3001',
+          version_code: '22201',
+          timezone_offset: String(-60 * new Date().getTimezoneOffset()),
+          sys_language: zh ? 'zh' : 'en',
+          lang: zh ? 'zh' : 'en',
+          uuid: localStorage.getItem('UNIQUE_USER_ID') || '',
+          device_id: sessionStorage.getItem('tab_device_id') || '',
+          os_name: navigator.userAgent.includes('Win') ? 'Windows' : navigator.userAgent.includes('Mac') ? 'macOS' : 'unknown',
+          browser_name: navigator.userAgent.includes('Firefox') ? 'Firefox' : navigator.userAgent.includes('Chrome') ? 'Chrome' : 'unknown',
+          browser_language: navigator.language || '',
+          browser_platform: navigator.platform || '',
+          user_id: ud.realUserID || '0',
+          screen_width: String(screen.width || 0),
+          screen_height: String(screen.height || 0),
+          unix: String(now),
+          token: this._token(),
+          client: 'web',
+        });
+        return p.toString();
+      },
+
+      // 优先复用页面已加载的真实 endpoint（含合法参数），只刷新 session id / token / unix；
+      // 兜底自行拼参数。
+      _endpoint(path) {
+        const resources = [];
+        try {
+          resources.push(...performance.getEntriesByType('resource').map((e) => e.name || ''));
+        } catch (e) { /* ignore */ }
+        const found = [...resources].reverse().find((u) => String(u).includes('/minimax-cloud/api/v1/'));
+        const now = Date.now();
+        if (found) {
+          try {
+            const url = new URL(found, window.location.origin);
+            url.pathname = path;
+            url.searchParams.set('unix', String(now));
+            url.searchParams.set('token', this._token());
+            return url.pathname + url.search;
+          } catch (e) { /* ignore */ }
+        }
+        return path + '?' + this._webParams();
+      },
+
+      async _get(url) {
+        const ts = Math.floor(Date.now() / 1000);
+        const sig = this._md5(String(ts) + 'I*7Cf%WZ#S&%1RlZJ&C2');
+        const r = await fetch(url, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            token: this._token(),
+            yy: '9d285808f21a907f949225cffeb77556',
+            'x-timestamp': String(ts),
+            'x-signature': sig,
+          },
+        });
+        if (!r.ok) throw new Error(`MiniMax API ${r.status}: ${await r.text().catch(() => r.statusText)}`);
+        const data = await r.json();
+        if (data?.base_resp && data.base_resp.status_code !== 0) {
+          throw new Error(`MiniMax API ${data.base_resp.status_code}: ${data.base_resp.status_msg || 'unknown error'}`);
+        }
+        return data;
+      },
+
+      async getAllConversations(onProgress) {
+        const all = [];
+        const seen = new Set();
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        let cursor = '';
+
+        while (all.length < limit) {
+          let url = this._endpoint('/minimax-cloud/api/v1/sidebar/session/tree');
+          if (cursor) url += (url.includes('?') ? '&' : '?') + 'cursor=' + encodeURIComponent(cursor);
+          const data = await this._get(url);
+          const sessions = Array.isArray(data.sessions) ? data.sessions : [];
+          let added = 0;
+
+          for (const item of sessions) {
+            const s = item?.session || item || {};
+            const id = s.session_id;
+            if (!id || seen.has(id)) continue;
+            seen.add(id);
+            all.push({
+              id,
+              title: (s.title || '').trim() || id,
+              created_at: s.created_at,
+              updated_at: s.updated_at,
+              model: s.model?.model_id || '',
+              archived: !!s.archived,
+            });
+            added++;
+            if (all.length >= limit) break;
+          }
+
+          if (onProgress) onProgress(all.length);
+          if (!data.has_more || !data.next_cursor || !sessions.length || !added) break;
+          cursor = data.next_cursor;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return all.slice(0, limit);
+      },
+
+      async getConversationDetails(id) {
+        const sessionResp = await this._get(this._endpoint(`/minimax-cloud/api/v1/session/${id}`));
+        const messages = [];
+        const seen = new Set();
+        let cursor = '';
+
+        while (true) {
+          let url = this._endpoint(`/minimax-cloud/api/v1/session/${id}/message`);
+          url += (url.includes('?') ? '&' : '?') + 'limit=80';
+          if (cursor) url += '&cursor=' + encodeURIComponent(cursor);
+          const data = await this._get(url);
+          const batch = Array.isArray(data.messages) ? data.messages : [];
+          let added = 0;
+
+          for (const m of batch) {
+            if (!m?.msg_id || seen.has(m.msg_id)) continue;
+            seen.add(m.msg_id);
+            messages.push(m);
+            added++;
+          }
+
+          if (!data.has_more || !data.next_cursor || !batch.length || !added) break;
+          cursor = data.next_cursor;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        messages.sort((a, b) => (Number(a.timestamp) || 0) - (Number(b.timestamp) || 0));
+        return {
+          conversation_id: id,
+          sessionInfo: sessionResp,
+          messages,
+          session: sessionResp?.session || {},
+        };
+      },
+
+      toMarkdown(data, title, convId) {
+        const session = data?.session || data?.sessionInfo?.session || {};
+        // msg_type: 1 正常消息；2 为中间态/被替代的回复（与最终回复开头重复），跳过
+        const messages = (Array.isArray(data?.messages) ? data.messages : [])
+          .filter((m) => m?.msg_content && Number(m.msg_type) === 1);
+
+        const timeStr = session.created_at
+          ? formatLocalTime(new Date(Number(session.created_at)))
+          : 'unknown';
+        const convUrl = convId ? `https://${this._siteHost()}/mavis?id=${convId}` : `https://${this._siteHost()}`;
+        const modelName = session?.model?.model_id || session?.model?.provider_id || 'MiniMax';
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push(`- **Model:** \`${modelName}\``);
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${convUrl}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        for (const msg of messages) {
+          const role = msg.role === 'user' ? 'user' : msg.role === 'assistant' ? 'assistant' : 'other';
+          if (role === 'other') continue;
+          const text = String(msg.msg_content || '').trim();
+          if (!text) continue;
+
+          if (role === 'user') {
+            lines.push('### 🧑‍💻 User');
+            lines.push('');
+            lines.push(stripHashes(text));
+            lines.push('');
+          } else {
+            lines.push('### 🤖 Assistant');
+            lines.push('');
+            lines.push(stripHashes(text));
+            lines.push('');
+          }
+        }
+
+        return lines.join('\n').replace(/\n{3,}/g, '\n\n');
+      },
+
+      // ---- MD5（RFC1321 风格公开实现，Public Domain；与 chatglm 适配器同款）----
+      _md5(s) {
+        function md5cycle(x, k) {
+          var a = x[0], b = x[1], c = x[2], d = x[3];
+          a = ff(a, b, c, d, k[0], 7, -680876936); d = ff(d, a, b, c, k[1], 12, -389564586); c = ff(c, d, a, b, k[2], 17, 606105819); b = ff(b, c, d, a, k[3], 22, -1044525330);
+          a = ff(a, b, c, d, k[4], 7, -176418897); d = ff(d, a, b, c, k[5], 12, 1200080426); c = ff(c, d, a, b, k[6], 17, -1473231341); b = ff(b, c, d, a, k[7], 22, -45705983);
+          a = ff(a, b, c, d, k[8], 7, 1770035416); d = ff(d, a, b, c, k[9], 12, -1958414417); c = ff(c, d, a, b, k[10], 17, -42063); b = ff(b, c, d, a, k[11], 22, -1990404162);
+          a = ff(a, b, c, d, k[12], 7, 1804603682); d = ff(d, a, b, c, k[13], 12, -40341101); c = ff(c, d, a, b, k[14], 17, -1502002290); b = ff(b, c, d, a, k[15], 22, 1236535329);
+          a = gg(a, b, c, d, k[1], 5, -165796510); d = gg(d, a, b, c, k[6], 9, -1069501632); c = gg(c, d, a, b, k[11], 14, 643717713); b = gg(b, c, d, a, k[0], 20, -373897302);
+          a = gg(a, b, c, d, k[5], 5, -701558691); d = gg(d, a, b, c, k[10], 9, 38016083); c = gg(c, d, a, b, k[15], 14, -660478335); b = gg(b, c, d, a, k[4], 20, -405537848);
+          a = gg(a, b, c, d, k[9], 5, 568446438); d = gg(d, a, b, c, k[14], 9, -1019803690); c = gg(c, d, a, b, k[3], 14, -187363961); b = gg(b, c, d, a, k[8], 20, 1163531501);
+          a = gg(a, b, c, d, k[13], 5, -1444681467); d = gg(d, a, b, c, k[2], 9, -51403784); c = gg(c, d, a, b, k[7], 14, 1735328473); b = gg(b, c, d, a, k[12], 20, -1926607734);
+          a = hh(a, b, c, d, k[5], 4, -378558); d = hh(d, a, b, c, k[8], 11, -2022574463); c = hh(c, d, a, b, k[11], 16, 1839030562); b = hh(b, c, d, a, k[14], 23, -35309556);
+          a = hh(a, b, c, d, k[1], 4, -1530992060); d = hh(d, a, b, c, k[4], 11, 1272893353); c = hh(c, d, a, b, k[7], 16, -155497632); b = hh(b, c, d, a, k[10], 23, -1094730640);
+          a = hh(a, b, c, d, k[13], 4, 681279174); d = hh(d, a, b, c, k[0], 11, -358537222); c = hh(c, d, a, b, k[3], 16, -722521979); b = hh(b, c, d, a, k[6], 23, 76029189);
+          a = hh(a, b, c, d, k[9], 4, -640364487); d = hh(d, a, b, c, k[12], 11, -421815835); c = hh(c, d, a, b, k[15], 16, 530742520); b = hh(b, c, d, a, k[2], 23, -995338651);
+          a = ii(a, b, c, d, k[0], 6, -198630844); d = ii(d, a, b, c, k[7], 10, 1126891415); c = ii(c, d, a, b, k[14], 15, -1416354905); b = ii(b, c, d, a, k[5], 21, -57434055);
+          a = ii(a, b, c, d, k[12], 6, 1700485571); d = ii(d, a, b, c, k[3], 10, -1894986606); c = ii(c, d, a, b, k[10], 15, -1051523); b = ii(b, c, d, a, k[1], 21, -2054922799);
+          a = ii(a, b, c, d, k[8], 6, 1873313359); d = ii(d, a, b, c, k[15], 10, -30611744); c = ii(c, d, a, b, k[6], 15, -1560198380); b = ii(b, c, d, a, k[13], 21, 1309151649);
+          a = ii(a, b, c, d, k[4], 6, -145523070); d = ii(d, a, b, c, k[11], 10, -1120210379); c = ii(c, d, a, b, k[2], 15, 718787259); b = ii(b, c, d, a, k[9], 21, -343485551);
+          x[0] = add32(a, x[0]); x[1] = add32(b, x[1]); x[2] = add32(c, x[2]); x[3] = add32(d, x[3]);
+        }
+        function cmn(q, a, b, x, s, t) { a = add32(add32(a, q), add32(x, t)); return add32(a << s | a >>> (32 - s), b); }
+        function ff(a, b, c, d, x, s, t) { return cmn(b & c | ~b & d, a, b, x, s, t); }
+        function gg(a, b, c, d, x, s, t) { return cmn(b & d | c & ~d, a, b, x, s, t); }
+        function hh(a, b, c, d, x, s, t) { return cmn(b ^ c ^ d, a, b, x, s, t); }
+        function ii(a, b, c, d, x, s, t) { return cmn(c ^ (b | ~d), a, b, x, s, t); }
+        function md51(s) {
+          var n = s.length, state = [1732584193, -271733879, -1732584194, 271733878], i;
+          for (i = 64; i <= s.length; i += 64) { md5cycle(state, md5blk(s.substring(i - 64, i))); }
+          s = s.substring(i - 64);
+          var tail = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+          for (i = 0; i < s.length; i++) tail[i >> 2] |= s.charCodeAt(i) << (i % 4 << 3);
+          tail[i >> 2] |= 0x80 << (i % 4 << 3);
+          if (i > 55) { md5cycle(state, tail); tail = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; }
+          tail[14] = n * 8;
+          md5cycle(state, tail);
+          return state;
+        }
+        function md5blk(s) {
+          var md5blks = [], i;
+          for (i = 0; i < 64; i += 4) md5blks[i >> 2] = s.charCodeAt(i) + (s.charCodeAt(i + 1) << 8) + (s.charCodeAt(i + 2) << 16) + (s.charCodeAt(i + 3) << 24);
+          return md5blks;
+        }
+        function rhex(n) { var s = '', j; for (j = 0; j < 4; j++) s += hex_chr[n >> (j * 8 + 4) & 15] + hex_chr[n >> (j * 8) & 15]; return s; }
+        function hex(x) { for (var i = 0; i < x.length; i++) x[i] = rhex(x[i]); return x.join(''); }
+        function add32(a, b) { return a + b & 4294967295; }
+        var hex_chr = '0123456789abcdef'.split('');
+        return hex(md51(s));
       },
     },
 

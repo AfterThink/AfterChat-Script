@@ -4,7 +4,7 @@
 
 AfterChat is a free, open-source **AI chat history exporter** — a userscript that backs up your LLM conversations with one click.
 
-Export chats from **ChatGPT, Gemini, DeepSeek, GLM (Z.ai / ChatGLM)** and 21+ major AI platforms to **Markdown**, preserving **reasoning / thinking** and **citation sources**, for personal archive, migration and offline reading.
+Export chats from **ChatGPT, Gemini, DeepSeek, GLM (Z.ai / ChatGLM)** and 23 major AI platforms to **Markdown**, preserving **reasoning / thinking** and **citation sources**, for personal archive, migration and offline reading.
 
 After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-App-Download), you can also save the current conversation to your AfterChat workspace with one click.
 
@@ -24,9 +24,11 @@ After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-
 | Qianwen | `qianwen.com` |
 | Tencent Yuanbao | `yuanbao.tencent.com` |
 | Tencent Hunyuan | `aistudio.tencent.com` / `aistudio.tencent.ai` |
+| MiniMax | `agent.minimax.io` / `agent.minimaxi.com` |
 | Mistral Le Chat | `chat.mistral.ai` |
 | Sakana AI | `chat.sakana.ai` |
 | Doubao | `doubao.com` |
+| Dola | `dola.com` |
 | Arena AI | `arena.ai` |
 | Tencent IMA | `ima.qq.com` |
 | Z.ai | `chat.z.ai` |
@@ -36,7 +38,7 @@ After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-
 
 ## ✨ Features
 
-- **Multi-platform support**: works with 21 major LLM platforms.
+- **Multi-platform support**: works with 23 major LLM platforms.
 - **Single or batch export**: exports the current conversation or all conversations at once.
 - **Content fidelity**: exports include user messages, AI replies, **reasoning / thinking**, and **citation sources**.
 - **One-click save to AfterChat**: on a conversation detail page, **right-click the button** to save the current conversation directly to your AfterChat workspace.
