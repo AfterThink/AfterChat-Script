@@ -6346,6 +6346,33 @@
     check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
   };
 
+  // ---- Trusted Types 安全写入 ----
+  // 部分站点（如 Google AI Studio）CSP 要求 TrustedHTML，直接 el.innerHTML 会抛
+  // TypeError，导致按钮图标/进度环渲染失败。优先走 Trusted Types policy，
+  // 页面未启用 Trusted Types 时回退为普通赋值。
+  function setInnerHTML(el, html) {
+    if (
+      window.__m365TTFailed !== true
+      && window.trustedTypes
+      && window.trustedTypes.createPolicy
+      && !window.__m365TTPolicy
+    ) {
+      try {
+        window.__m365TTPolicy = window.trustedTypes.createPolicy('m365-inner-html', {
+          createHTML: (s) => s,
+        });
+      } catch (e) {
+        // CSP 禁止创建自定义 policy（如 trusted-types 'none'）：标记后走普通赋值
+        window.__m365TTFailed = true;
+      }
+    }
+    if (window.__m365TTPolicy) {
+      el.innerHTML = window.__m365TTPolicy.createHTML(html);
+    } else {
+      el.innerHTML = html;
+    }
+  }
+
   const RING_SVG_SIZE = 36;
   const RING_CENTER = 18;
   const RING_RADIUS = 15.5;
@@ -6368,7 +6395,7 @@
   function animateRingOnce(ringEl) {
     return new Promise((resolve) => {
       ringEl.style.display = '';
-      ringEl.innerHTML = createRingSVG(0, RING_SVG_SIZE);
+      setInnerHTML(ringEl, createRingSVG(0, RING_SVG_SIZE));
       const path = ringEl.querySelector('circle:last-child');
       if (!path) { resolve(); return; }
       const duration = 500;
@@ -6397,7 +6424,7 @@
       isSingleMode: false,
 
       setIcon(name) {
-        btn.innerHTML = ICONS[name] || ICONS.download;
+        setInnerHTML(btn, ICONS[name] || ICONS.download);
         btn.style.transition = 'none';
         btn.style.opacity = '0.3';
         void btn.offsetHeight;
@@ -6410,7 +6437,7 @@
         if (pct === this._lastPct) return;
         this._lastPct = pct;
         ringEl.style.display = '';
-        ringEl.innerHTML = createRingSVG(pct);
+        setInnerHTML(ringEl, createRingSVG(pct));
       },
 
       setTooltip(text) {
