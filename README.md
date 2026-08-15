@@ -40,6 +40,7 @@ After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-
 
 - **Multi-platform support**: works with 23 major LLM platforms.
 - **Single or batch export**: exports the current conversation or all conversations at once.
+- **Incremental export**: on the list page, batch export skips conversations you've already downloaded (by update-time anchor) and only fetches new/updated ones — dramatically faster on repeat runs.
 - **Content fidelity**: exports include user messages, AI replies, **reasoning / thinking**, and **citation sources**.
 - **One-click save to AfterChat**: on a conversation detail page, **right-click the button** to save the current conversation directly to your AfterChat workspace.
 
@@ -56,7 +57,8 @@ The script shows a circular download button in the bottom-right corner of the pa
 | Action | Where | Result |
 | --- | --- | --- |
 | **Left-click** | Detail page | Export the current conversation (Markdown) |
-| **Left-click** | Default/list page | Fetch all conversations and export as a ZIP |
+| **Left-click** | Default/list page | Incremental export: ZIP with only new/updated conversations (skips already-exported ones) |
+| **Shift + left-click** | Default/list page | Force full export: ZIP with all conversations, ignoring the incremental anchor |
 | **Right-click** | Detail page | Save the current conversation to the AfterChat workspace |
 
 ## ⚠️ Disclaimer

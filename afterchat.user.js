@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.10.1
+// @version      1.11.0
 // @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
 // @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、腾讯混元、MiniMax、Mistral、Sakana AI、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat、Perplexity 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Gemini、DeepSeek、通義千問、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、騰訊元寶、騰訊混元、MiniMax、Mistral、Sakana AI、千問、Arena AI、騰訊 ima、Z.ai、智譜清言、DuckDuckGo AI Chat、Perplexity 的聊天記錄
@@ -132,6 +132,17 @@
 //      认证 token 头+query（localStorage _token）；x-signature = md5(x-timestamp + 固定盐 + body)
 //      （盐与算法从页面 webpack 逆向，cURL 交叉验证）；yy 头实测不校验；msg_type 2 中间消息跳过
 //      国内版仅前端代码确认同构，消息接口未实测（无账号）
+//  1.10.1 (2026-08-14)
+//    - 修复 AI Studio 下载按钮空白：页面 CSP require-trusted-types-for 拦截 innerHTML 写入，
+//      新增 setInnerHTML 走 trustedTypes policy，无 Trusted Types 的平台自动回退普通赋值
+//  1.11.0 (2026-08-14)
+//    - 全部导出改为增量：记录上次导出的时间锚点（localStorage 仅存时间戳，无对话内容），
+//      下次跳过 updatedAt ≤ 锚点的会话，只导新增/更新的；全部成功才推进锚点（有失败保留旧锚点）
+//    - Shift+左键点击按钮 = 强制全量导出（先把锚点重置到最早，走普通流程；失败时锚点保持为空下次仍全量重试）
+//    - ZIP 文件名改时间前缀 YYYYMMDD-HHMMSS-标题.md（本地时间），跨平台/跨批次混排按时间排序；
+//      ZIP 内顺序改为降序（最新在前）；无时间会话回退序号前缀
+//    - AI Studio 列表接口补提取时间戳（item[4][4][0]）；getConversationSortTime 补 kimi/ima/duck 时间字段
+//      锚点缺失或时间拿不到的会话宁重复不漏，始终导出；全跳过时提示“已是最新”
 // =============================================================
 
 (function () {
@@ -149,6 +160,7 @@
     API_PAGE_DELAY: 300,   // 列表分页请求间隔（毫秒）
     API_DELAY: 1200,       // 单条对话导出间隔（毫秒）
     DEBUG_LIMIT: 0,        // 调试限条数，0 或 null 表示不限
+    INCREMENTAL: true,     // 增量导出：跳过 updatedAt ≤ 上次锚点的会话（localStorage 记录，几十字节元数据）
   };
 
   // ---- 通用时间格式化：本地时间 + 数值时区偏移（如 2026-08-05 16:00:53 +08:00） ----
@@ -4172,7 +4184,11 @@
             const title = Array.isArray(item[4]) && typeof item[4][0] === 'string'
               ? item[4][0]
               : '';
-            chats.push({ id, title });
+            // 时间戳：item[4][4][0] = [seconds, nanos]（Google Timestamp 格式），normalizeTimestamp 可解析
+            const tsArr = Array.isArray(item[4]) && Array.isArray(item[4][4])
+              ? item[4][4][0]
+              : null;
+            chats.push({ id, title, updated_at: tsArr });
           }
 
           if (onProgress) onProgress(chats.length);
@@ -6023,6 +6039,9 @@
     packing:     LANG === 'zh' ? '打包 ZIP' : 'Packing ZIP',
     saveAfterChat: LANG === 'zh' ? '保存到 AfterChat' : 'Save to AfterChat',
     singleOnly: LANG === 'zh' ? '请在单条对话页使用' : 'Open one chat first',
+    upToDate: LANG === 'zh' ? '全部已导出 · Shift+点击强制全量' : 'All exported · Shift+click for full',
+    reportSkipped: (m, k) => LANG === 'zh' ? `新增 ${m} 条 · 跳过 ${k} 条` : `Added ${m} · Skipped ${k}`,
+    reportExported: (n) => LANG === 'zh' ? `已导出 ${n} 条` : `Exported ${n}`,
   };
 
   // ---- 通用工具（不要改） ----
@@ -6272,8 +6291,12 @@
       conv?.updated_at,
       conv?.updatedAt,
       conv?.update_time,
+      conv?.updateTime,
+      conv?.update_ts,
+      conv?.lastEdit,
       conv?.created_at_ms,
       conv?.createTimeUtc,
+      conv?.createTime,
       conv?.created_at,
       conv?.create_time,
       conv?.t,
@@ -6285,6 +6308,25 @@
     return null;
   }
 
+  // ---- 增量导出锚点（localStorage，仅存时间戳元数据，不含对话内容） ----
+  function loadExportAnchor(adapterId) {
+    try {
+      const n = Number(localStorage.getItem('m365-export-anchor-' + adapterId));
+      return Number.isFinite(n) && n > 0 ? n : null;
+    } catch (e) { return null; }
+  }
+
+  function saveExportAnchor(adapterId, conversations) {
+    try {
+      let maxT = 0;
+      for (const c of conversations) {
+        const t = getConversationSortTime(c);
+        if (t !== null && t > maxT) maxT = t;
+      }
+      if (maxT > 0) localStorage.setItem('m365-export-anchor-' + adapterId, String(maxT));
+    } catch (e) { /* localStorage 不可用时静默跳过增量 */ }
+  }
+
   function orderConversationsForZip(conversations) {
     const withIndex = conversations.map((conv, index) => ({
       conv,
@@ -6292,19 +6334,31 @@
       time: getConversationSortTime(conv),
     }));
 
-    if (withIndex.every((item) => item.time !== null)) {
-      return withIndex
-        .sort((a, b) => (a.time - b.time) || (a.index - b.index))
-        .map((item) => item.conv);
-    }
-
-    return conversations.slice().reverse();
+    // 统一排序：有时间按时间降序（最新在前），无时间的垫底（保持原相对顺序）
+    return withIndex
+      .sort((a, b) => {
+        if (a.time === null && b.time === null) return a.index - b.index;
+        if (a.time === null) return 1;
+        if (b.time === null) return -1;
+        return (b.time - a.time) || (a.index - b.index);
+      })
+      .map((item) => item.conv);
   }
 
   function makeMarkdownZipFilename(conv, index, total, usedNames) {
-    const width = Math.max(String(total).length, 3);
-    const prefix = String(index + 1).padStart(width, '0');
     const title = sanitizeFilename(conv.title || 'untitled', 100);
+    const ts = getConversationSortTime(conv);
+    let prefix;
+    if (ts !== null) {
+      // 本地时间前缀 YYYYMMDD-HHMMSS：跨平台/跨批次文件名天然按时间排序
+      const d = new Date(ts);
+      const p2 = (n) => String(n).padStart(2, '0');
+      prefix = `${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}-${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}`;
+    } else {
+      // 拿不到时间：回退序号前缀，保证文件名可区分且不撞名
+      const width = Math.max(String(total).length, 3);
+      prefix = String(index + 1).padStart(width, '0');
+    }
     const base = `${prefix}-${title}`;
     let filename = `${base}.md`;
     let n = 2;
@@ -6480,15 +6534,21 @@
         }
       },
 
-      async done() {
+      async done(reportText) {
         if (this.isSingleMode) await animateRingOnce(ringEl);
         state = 'done';
         ui.setIcon('check');
         if (!this.isSingleMode) ui.setProgress(100);
-        tooltipEl.style.display = 'none';
         btn.disabled = false;
         if (doneTimer) clearTimeout(doneTimer);
-        doneTimer = setTimeout(() => { ui.idle(); doneTimer = null; }, 2000);
+        if (reportText) {
+          // 完成汇报：显示 tooltip 3s 后 idle（渐进披露的最后一步）
+          ui.setTooltip(reportText);
+          doneTimer = setTimeout(() => { ui.idle(); doneTimer = null; }, 3000);
+        } else {
+          tooltipEl.style.display = 'none';
+          doneTimer = setTimeout(() => { ui.idle(); doneTimer = null; }, 2000);
+        }
       },
 
       error(errMsg) {
@@ -6513,6 +6573,7 @@
   // 想调导出行为（如文件格式、限速）去改上面的 CONFIG。
   async function startExportProcess(adapter, ui) {
     ui.start();
+    let reportText = null;
 
     try {
       const conversationId = adapter.getCurrentConversationId();
@@ -6553,9 +6614,30 @@
           return;
         }
 
-        const limitedList = (CONFIG.DEBUG_LIMIT > 0 && conversations.length > CONFIG.DEBUG_LIMIT)
-          ? conversations.slice(0, CONFIG.DEBUG_LIMIT)
-          : conversations;
+        // 增量导出：跳过 updatedAt ≤ 上次锚点的会话（只导新增/更新的）
+        // Shift+左键点击会在 onclick 里先把锚点重置到最早，再走本流程：
+        // 锚点不存在 → 不过滤 → 自然全量；导出成功后锚点自动推进到最新
+        let freshList = conversations;
+        if (CONFIG.INCREMENTAL) {
+          const anchor = loadExportAnchor(adapter.id);
+          if (anchor) {
+            freshList = conversations.filter((c) => {
+              const t = getConversationSortTime(c);
+              // 拿不到时间的会话保守处理：宁重复不漏，始终导出
+              return t === null || t > anchor;
+            });
+          }
+        }
+
+        if (!freshList || freshList.length === 0) {
+          // 全部已被增量锚点跳过：走完成汇报路径（tooltip 3s，提示 Shift+点击强制全量）
+          ui.done(TXT.upToDate);
+          return;
+        }
+
+        const limitedList = (CONFIG.DEBUG_LIMIT > 0 && freshList.length > CONFIG.DEBUG_LIMIT)
+          ? freshList.slice(0, CONFIG.DEBUG_LIMIT)
+          : freshList;
         const exportList = limitedList;
         const zipList = orderConversationsForZip(limitedList);
 
@@ -6618,7 +6700,8 @@
             const item = markdownById.get(conv.id);
             if (!item) continue;
             zipFiles.push({
-              name: makeMarkdownZipFilename({ title: item.title, id: item.id }, i, zipList.length, usedZipNames),
+              // 传完整 conv（含时间字段），title 用详情标题：文件名前缀用会话时间
+              name: makeMarkdownZipFilename({ ...conv, title: item.title }, i, zipList.length, usedZipNames),
               content: item.content,
             });
           }
@@ -6635,9 +6718,20 @@
             `${CONFIG.EXPORT_PREFIX}-${adapter.id}-all-${Date.now()}.json`
           );
         }
+
+        // 增量锚点：全部成功才推进（有失败保留旧锚点，下次重试含失败条目；宁重复不漏）
+        if (CONFIG.INCREMENTAL && failCount === 0) {
+          saveExportAnchor(adapter.id, conversations);
+        }
+
+        // 完成汇报：新增 M 条（本次成功导出的），跳过 K 条（增量过滤掉的）；无跳过时只报导出数
+        const skippedCount = conversations.length - freshList.length;
+        reportText = skippedCount > 0
+          ? TXT.reportSkipped(successCount, skippedCount)
+          : TXT.reportExported(successCount);
       }
 
-      ui.done();
+      ui.done(reportText);
     } catch (err) {
       console.error('导出失败:', err);
       ui.error(err.message);
@@ -6840,9 +6934,16 @@
     ui.updateLabel(adapter);
     ui.idle();               // 初始化状态 + 渲染下载图标
 
-    btn.onclick = async () => {
+    btn.onclick = async (e) => {
       if (!ui.isIdle()) return;
       ui.updateLabel(adapter);
+      if (e && e.shiftKey) {
+        // Shift+左键单击 = 强制全量导出：把增量锚点重置到最早，
+        // 然后走普通导出流程（锚点不存在 → 不过滤 → 全量），
+        // 导出结束后 saveExportAnchor 会自动把锚点推进到最新。
+        // 若导出失败锚点保持为空，下次点击仍是全量重试，失败会话不会丢失。
+        try { localStorage.removeItem('m365-export-anchor-' + adapter.id); } catch (e2) { /* ignore */ }
+      }
       await startExportProcess(adapter, ui);
     };
 
