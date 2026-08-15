@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.11.0
+// @version      1.11.2
 // @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
 // @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、腾讯混元、MiniMax、Mistral、Sakana AI、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat、Perplexity 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Gemini、DeepSeek、通義千問、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、騰訊元寶、騰訊混元、MiniMax、Mistral、Sakana AI、千問、Arena AI、騰訊 ima、Z.ai、智譜清言、DuckDuckGo AI Chat、Perplexity 的聊天記錄
@@ -3427,6 +3427,12 @@
       },
 
       _recentBody(convVersion) {
+        // 豆包 IM 翻页协议（对照前端 SDK s2-lib-conversation-service）：
+        // - conv_version 必须是数字：0 = 首屏（direction=3 FROM_LATEST 拉最新），非 0 = 翻页拉更旧（direction=1 OLDER）
+        // - 传字符串 conv_version 会被服务端拒绝（API_712010702 系统内部异常）
+        // - need_coco_* 仅首屏为 true
+        const v = Number(convVersion) || 0;
+        const isFirstPage = v === 0;
         return {
           cmd: 3200,
           uplink_body: {
@@ -3434,13 +3440,13 @@
               limit: 20,
               message_count_per_conv: 10,
               api_version: 1,
-              conv_version: convVersion || 0,
-              direction: 3,
+              conv_version: v,
+              direction: isFirstPage ? 3 : 1,
               option: {
                 not_need_message: true,
                 need_complete_conversation: true,
-                need_coco_conversation: true,
-                need_coco_bot: true,
+                need_coco_conversation: isFirstPage,
+                need_coco_bot: isFirstPage,
                 need_pc_pin_chain: true,
                 pc_pin_query_type: 0,
               },
@@ -3502,6 +3508,7 @@
           const data = await this._post('/im/chain/recent_conv', this._recentBody(convVersion));
           const body = data?.downlink_body?.pull_recent_conv_chain_downlink_body || {};
           const cells = Array.isArray(body.cells) ? body.cells : [];
+          let added = 0;
 
           for (const cell of cells) {
             const conv = cell?.conversation || {};
@@ -3515,11 +3522,13 @@
               update_time: conv.update_time,
               bot_id: conv.bot_id,
             });
+            added++;
             if (allChats.length >= limit) break;
           }
 
           if (onProgress) onProgress(allChats.length);
-          if (!body.has_more || !body.next_conv_version || !cells.length) break;
+          // 无新增说明游标已到底或服务端返回重复页，立即停止防止死循环
+          if (!body.has_more || !body.next_conv_version || !cells.length || !added) break;
           convVersion = body.next_conv_version;
           await sleep(CONFIG.API_PAGE_DELAY);
         }
