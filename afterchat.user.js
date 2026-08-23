@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.11.2
+// @version      1.11.3
 // @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
 // @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、腾讯混元、MiniMax、Mistral、Sakana AI、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat、Perplexity 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Gemini、DeepSeek、通義千問、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、騰訊元寶、騰訊混元、MiniMax、Mistral、Sakana AI、千問、Arena AI、騰訊 ima、Z.ai、智譜清言、DuckDuckGo AI Chat、Perplexity 的聊天記錄
@@ -1828,19 +1828,50 @@
           ? `https://chat.deepseek.com/a/chat/s/${convId}`
           : 'https://chat.deepseek.com';
 
-        // 第一遍：收集所有 SEARCH 结果中的引用
-        const citeMap = new Map();  // cite_index → url
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+
+        // 第一遍：建立全局引用编号映射（按 URL 顺序去重注册）
+        const urlToNum = new Map();  // url → globalNum
+        let nextNum = 1;
+        const getUrlNum = (url) => {
+          if (!url) return null;
+          if (!urlToNum.has(url)) urlToNum.set(url, nextNum++);
+          return urlToNum.get(url);
+        };
+
+        const msgCiteMaps = new Map();  // message_id → { refMap: Map(idx -> num), citeMap: Map(cite_idx -> num) }
+
         for (const msg of messages) {
           if (msg.role !== 'ASSISTANT') continue;
-          for (const frag of (msg.fragments || [])) {
-            if (frag.type === 'SEARCH') {
+          const fragments = msg.fragments || [];
+          const fragMap = new Map(fragments.map((f) => [f.id, f]));
+          const respFrag = fragments.find((f) => f.type === 'RESPONSE');
+          const refMap = new Map();
+          const citeMap = new Map();
+
+          // 1. 解析 respFrag.references（Tool 调用引用，如 TOOL_OPEN）
+          const references = respFrag?.references || msg.references || [];
+          references.forEach((ref, idx) => {
+            const target = fragMap.get(ref?.id);
+            if (target?.type === 'TOOL_OPEN' && target.result?.url) {
+              refMap.set(idx, getUrlNum(target.result.url));
+            } else if (target?.result?.url) {
+              refMap.set(idx, getUrlNum(target.result.url));
+            }
+          });
+
+          // 2. 解析 SEARCH / TOOL_SEARCH 中的 cite_index
+          for (const frag of fragments) {
+            if (frag.type === 'SEARCH' || frag.type === 'TOOL_SEARCH') {
               for (const r of (frag.results || [])) {
-                if (r.cite_index !== undefined && r.cite_index !== null && r.cite_index !== '' && !citeMap.has(r.cite_index)) {
-                  citeMap.set(r.cite_index, r.url || '');
+                if (r.cite_index !== undefined && r.cite_index !== null && r.cite_index !== '' && r.url) {
+                  citeMap.set(String(r.cite_index), getUrlNum(r.url));
                 }
               }
             }
           }
+
+          msgCiteMaps.set(msg.message_id, { refMap, citeMap });
         }
 
         const lines = [];
@@ -1853,9 +1884,6 @@
         lines.push('## Conversation');
         lines.push('');
 
-        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
-
         for (const msg of messages) {
           const fragments = msg.fragments || [];
 
@@ -1863,27 +1891,46 @@
             const reqFrag = fragments.find((f) => f.type === 'REQUEST');
             const text = reqFrag?.content || '';
             if (!text) continue;
-            lines.push('### 🧑‍💻 User');
+            lines.push('### 🧑\u200d💻 User');
             lines.push('');
             lines.push(stripHashes(text));
             lines.push('');
 
           } else if (msg.role === 'ASSISTANT') {
-            const thinkFrag = fragments.find((f) => f.type === 'THINK');
             const respFrag = fragments.find((f) => f.type === 'RESPONSE');
             const responseText = respFrag?.content || '';
             if (!responseText) continue;
 
-            // 替换引用 [citation:N] → [N]
-            const cleaned = responseText.replace(/\[citation:(\d+)\]/g, (_, n) => `[${n}]`);
+            // 收集所有思考过程片段
+            const thoughts = fragments
+              .filter((f) => f.type === 'THINK' && f.content)
+              .map((f) => f.content.trim())
+              .filter(Boolean);
+            const thoughtText = thoughts.join('\n\n');
+
+            const { refMap, citeMap } = msgCiteMaps.get(msg.message_id) || { refMap: new Map(), citeMap: new Map() };
+
+            // 替换引用 [reference:N] 与 [citation:N]
+            let cleaned = responseText;
+            cleaned = cleaned.replace(/\[reference:(\d+)\]/g, (_, nStr) => {
+              const idx = parseInt(nStr, 10);
+              const num = refMap.get(idx);
+              return num ? `[${num}]` : '';
+            });
+            cleaned = cleaned.replace(/\[citation:(\d+)\]/g, (_, nStr) => {
+              const num = citeMap.get(nStr);
+              return num ? `[${num}]` : `[${nStr}]`;
+            });
+            // 去重连续相同的引用标记，如 [1][1] → [1]
+            cleaned = cleaned.replace(/(\[\d+\])(?:\s*\1)+/g, '$1');
 
             lines.push('### 🤖 Assistant');
             lines.push('');
 
-            if (thinkFrag?.content) {
+            if (thoughtText) {
               lines.push('#### 🤔 Thought Process');
               lines.push('');
-              lines.push(stripHashes(thinkFrag.content));
+              lines.push(stripHashes(thoughtText));
               lines.push('');
               lines.push('#### 💡 Response');
               lines.push('');
@@ -1895,14 +1942,14 @@
         }
 
         // References
-        if (citeMap.size > 0) {
-          const sorted = [...citeMap.entries()].sort((a, b) => a[0] - b[0]);
+        if (urlToNum.size > 0) {
+          const sorted = [...urlToNum.entries()].sort((a, b) => a[1] - b[1]);
           lines.push('---');
           lines.push('');
           lines.push('### References');
           lines.push('');
-          for (const [idx, url] of sorted) {
-            if (url) lines.push(`- [${idx}] ${url}`);
+          for (const [url, num] of sorted) {
+            lines.push(`- [${num}] ${url}`);
           }
           lines.push('');
         }
