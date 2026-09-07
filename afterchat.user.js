@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.15.0
+// @version      1.16.0
 // 站点名单统一按“活跃规模 × 生态重要性”排序（≈流量），新增站点请插入到合理位置并同步 @match 及各语言列表
 // @description  Export chat history from ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola 的聊天记录
@@ -169,6 +169,10 @@
 //      单击=按当前起点导出；Shift+单击=全量快键（本次起点=最早，不再删除锚点）
 //      锚点推进到 max(本次下载时刻, 列表最新会话时间)，零新增也推进；有失败保留旧锚点
 //      起点改动一次性、成功自愈；完成汇报复用气泡（详见 docs/start-anchor-export-spec.md）
+//  1.16.0 (2026-09-07)
+//    - duck.ai 支持单条导出：打开会话时 document.title = 会话标题，取它当定位串反查
+//      IndexedDB（saved-chats 按 title 对齐匹配，多条同名取 lastEdit 最新）→ 单条 .md；
+//      首页/未开会话（固定站点标题）仍走全部导出；定位不到报错，绝不静默全量
 // =============================================================
 
 (function () {
@@ -1409,13 +1413,20 @@
     // ═══════════════════════════════════════════════════════
     // 无后端 API：聊天记录全部存在浏览器 IndexedDB（库 savedAIChatData，仓库 saved-chats）。
     // 会话 key = chatId；另有 `__metadata__` 元数据项需跳过。
-    // duck.ai 没有每会话独立 URL（始终 https://duck.ai/），故只支持「导出全部」。
+    // duck.ai 没有每会话独立 URL（始终 https://duck.ai/），但打开会话时 duck 会把
+    // 该会话标题写入 document.title（首页/未开会话时是固定站点名）。
+    // 于是用 document.title 当「定位串」反查 IndexedDB：打开会话=单条导出，首页=全部导出。
     {
       id: 'duck',
       name: 'DuckDuckGo AI Chat',
       detect: () => window.location.hostname === 'duck.ai',
 
-      getCurrentConversationId: () => null,  // 无会话 URL，仅全部导出
+      getCurrentConversationId: () => {
+        const t = (document.title || '').trim();
+        // 首页/未打开任何会话时的固定标题（duck.ai 官方文案，前缀判断即可）
+        if (/^Duck\.ai by DuckDuckGo/i.test(t)) return null;
+        return t ? 't:' + t : null;   // 会话打开中：标题即定位串
+      },
 
       /** 打开 IndexedDB */
       _openDb() {
@@ -1473,12 +1484,46 @@
       async getConversationDetails(id) {
         const db = await this._openDb();
         try {
+          // 单条导出：入参是 't:'+标题 定位串 → 按标题反查
+          if (typeof id === 'string' && id.startsWith('t:')) {
+            const title = id.slice(2);
+            const chat = await this._findByTitle(db, title);
+            if (!chat) {
+              throw new Error('本地记录里找不到标题为「' + title + '」的会话（可能还没保存，先发一条消息再试）');
+            }
+            return chat;
+          }
+          // 全部导出：入参是 chatId（IndexedDB key）
           const chat = await this._get(db, id);
           if (!chat) throw new Error('IndexedDB 中未找到会话 ' + id);
           return chat;
         } finally {
           db.close();
         }
+      },
+
+      /** 标题归一化：两侧用同一规则对齐后再比（去零宽/压缩空白/去省略号尾巴/小写） */
+      _normTitle(s) {
+        return (s || '')
+          .replace(/\u200b/g, '')
+          .replace(/[ \u00a0\t]+/g, ' ')
+          .trim()
+          .replace(/[…]{1,4}$/, '')
+          .toLowerCase();
+      },
+
+      /** 按标题在 saved-chats 里反查会话：对齐后精确匹配；多条同名取 lastEdit 最新 */
+      async _findByTitle(db, title) {
+        const want = this._normTitle(title);
+        if (!want) return null;
+        let best = null;
+        for (const k of await this._allKeys(db)) {
+          const chat = await this._get(db, k);
+          if (!chat) continue;
+          if (this._normTitle(chat.title) !== want) continue;
+          if (!best || (chat.lastEdit || '') > (best.lastEdit || '')) best = chat;
+        }
+        return best;
       },
 
       /** 将 duck.ai 聊天数据转为 Markdown */
