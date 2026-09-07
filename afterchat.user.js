@@ -16,23 +16,23 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.11.3
-// @description  Export chat history from ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
-// @description:zh-CN  一键导出 ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、腾讯混元、MiniMax、Mistral、Sakana AI、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat、Perplexity 的聊天记录
-// @description:zh-TW  一鍵匯出 ChatGPT、Gemini、DeepSeek、通義千問、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、騰訊元寶、騰訊混元、MiniMax、Mistral、Sakana AI、千問、Arena AI、騰訊 ima、Z.ai、智譜清言、DuckDuckGo AI Chat、Perplexity 的聊天記錄
-// @description:ja  ChatGPT、Gemini、DeepSeek、Qwen、Kimi、Doubao、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Sakana AI、Qianwen、Arena AI、Tencent IMA、Z.ai、ChatGLM、DuckDuckGo AI Chat、Perplexity などのチャット履歴をワンクリックで書き出し
-// @description:ko  ChatGPT、Gemini、DeepSeek、Qwen、Kimi、Doubao、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Sakana AI、Qianwen、Arena AI、Tencent IMA、Z.ai、ChatGLM、DuckDuckGo AI Chat、Perplexity  등 LLM 채팅 기록을 원클릭으로 내보내기
-// @description:es  Exporta con un clic el historial de chat de ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat y Perplexity
-// @description:fr  Exportez en un clic l'historique de vos conversations ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat et Perplexity
-// @description:de  Chatverläufe von ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat und Perplexity mit einem Klick exportieren
-// @description:pt-BR  Exporte com um clique o histórico de chats do ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat e Perplexity
-// @description:ru  Экспортируйте в один клик историю чатов ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat и Perplexity
-// @description:it  Esporta con un clic la cronologia delle chat di ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat e Perplexity
-// @description:vi  Xuất lịch sử trò chuyện từ ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat và Perplexity chỉ với một cú nhấp chuột
-// @description:id  Ekspor riwayat chat dari ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, dan Perplexity dengan sekali klik
-// @description:th  ส่งออกประวัติแชทจาก ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat และ Perplexity ด้วยคลิกเดียว
-// @description:tr  ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat ve Perplexity sohbet geçmişini tek tıkla dışa aktarın
-// @description:ar  صدّر سجل المحادثات من ChatGPT وGemini وDeepSeek وQwen وKimi وDoubao وDola وGrok وGoogle AI Studio وMicrosoft Copilot وM365 Copilot وTencent Yuanbao وTencent Hunyuan وMiniMax وMistral وSakana AI وQianwen وArena AI وTencent IMA وZ.ai وChatGLM وDuckDuckGo AI Chat وPerplexity بنقرة واحدة
+// @version      1.15.0
+// @description  Export chat history from Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
+// @description:zh-CN  一键导出 Claude、Monica、Poe、ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、腾讯混元、MiniMax、Mistral、Sakana AI、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat、Perplexity 的聊天记录
+// @description:zh-TW  一鍵匯出 Claude、Monica、Poe、ChatGPT、Gemini、DeepSeek、通義千問、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、騰訊元寶、騰訊混元、MiniMax、Mistral、Sakana AI、千問、Arena AI、騰訊 ima、Z.ai、智譜清言、DuckDuckGo AI Chat、Perplexity 的聊天記錄
+// @description:ja  Claude、Monica、Poe、ChatGPT、Gemini、DeepSeek、Qwen、Kimi、Doubao、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Sakana AI、Qianwen、Arena AI、Tencent IMA、Z.ai、ChatGLM、DuckDuckGo AI Chat、Perplexity などのチャット履歴をワンクリックで書き出し
+// @description:ko  Claude、Monica、Poe、ChatGPT、Gemini、DeepSeek、Qwen、Kimi、Doubao、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Sakana AI、Qianwen、Arena AI、Tencent IMA、Z.ai、ChatGLM、DuckDuckGo AI Chat、Perplexity  등 LLM 채팅 기록을 원클릭으로 내보내기
+// @description:es  Exporta con un clic el historial de chat de Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat y Perplexity
+// @description:fr  Exportez en un clic l'historique de vos conversations Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat et Perplexity
+// @description:de  Chatverläufe von Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat und Perplexity mit einem Klick exportieren
+// @description:pt-BR  Exporte com um clique o histórico de chats do Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat e Perplexity
+// @description:ru  Экспортируйте в один клик историю чатов Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat и Perplexity
+// @description:it  Esporta con un clic la cronologia delle chat di Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat e Perplexity
+// @description:vi  Xuất lịch sử trò chuyện từ Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat và Perplexity chỉ với một cú nhấp chuột
+// @description:id  Ekspor riwayat chat dari Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, dan Perplexity dengan sekali klik
+// @description:th  ส่งออกประวัติแชทจาก Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat และ Perplexity ด้วยคลิกเดียว
+// @description:tr  Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat ve Perplexity sohbet geçmişini tek tıkla dışa aktarın
+// @description:ar  صدّر سجل المحادثات من Claude وMonica وPoe وChatGPT وGemini وDeepSeek وQwen وKimi وDoubao وDola وGrok وGoogle AI Studio وMicrosoft Copilot وM365 Copilot وTencent Yuanbao وTencent Hunyuan وMiniMax وMistral وSakana AI وQianwen وArena AI وTencent IMA وZ.ai وChatGLM وDuckDuckGo AI Chat وPerplexity بنقرة واحدة
 // @author       AfterThink Studio
 // @license      AGPL-3.0
 // @match        https://m365.cloud.microsoft/chat*
@@ -40,6 +40,10 @@
 // @match        https://chat.z.ai/*
 // @match        https://chatglm.cn/*
 // @match        https://duck.ai/*
+// @match        https://claude.ai/*
+// @match        https://claude.com/*
+// @match        https://monica.im/*
+// @match        https://poe.com/*
 // @match        https://chatgpt.com/*
 // @match        https://chat.mistral.ai/*
 // @match        https://chat.sakana.ai/*
@@ -143,6 +147,27 @@
 //      ZIP 内顺序改为降序（最新在前）；无时间会话回退序号前缀
 //    - AI Studio 列表接口补提取时间戳（item[4][4][0]）；getConversationSortTime 补 kimi/ima/duck 时间字段
 //      锚点缺失或时间拿不到的会话宁重复不漏，始终导出；全跳过时提示“已是最新”
+//  1.12.0 (2026-09-07)
+//    - 新增 Claude（claude.ai/claude.com）适配器:
+//      列表 GET /api/organizations/{orgId}/chat_conversations_v2?limit&offset（offset 翻页，has_more 判断）
+//      + 详情 GET .../chat_conversations/{id}?tree=True&rendering_mode=messages&render_all_tools=true&include_inline_comparison=true&consistency=strong
+//      支持思考链、Widget/artifact/file 工具块、附件；tool_use.input 为 JSON 字符串需 parse
+//  1.13.0 (2026-09-07)
+//    - 新增 Poe（poe.com）适配器:
+//      列表 gql chatsHistoryPageQuery + ChatHistoryListWithMessageSearchPaginationQuery（cursor 分页）
+//      + 详情 gql ChatPageQuery（chatCode，消息即 UI 所渲染部分）；请求需 poe-queryname/poe-tag-id 头
+//      会话内捕获 poe-formkey/tchannel/revision；实测 revision 不校验值、formkey/tchannel 可省略
+//  1.14.0 (2026-09-07)
+//    - 新增 Monica（monica.im）适配器:
+//      列表 agent_v1/session.v1.SessionService/ListSessions（limit，返回即全量）
+//      + 详情 api/custom_bot/get_chat_item_list_v2（conversation_id；item_list 倒序按 seq 排；next_offset 翻页）
+//      认证走 session_id cookie；item_type question/reply 区分角色，welcome 哨兵跳过
+//  1.15.0 (2026-09-07)
+//    - 增量导出升级：把隐式锚点显式化、可点改起点
+//      hover 气泡 = “从 {上次导出时刻} 起导出”，点时间可改成任意起点（回导/重导）
+//      单击=按当前起点导出；Shift+单击=全量快键（本次起点=最早，不再删除锚点）
+//      锚点推进到 max(本次下载时刻, 列表最新会话时间)，零新增也推进；有失败保留旧锚点
+//      起点改动一次性、成功自愈；完成汇报复用气泡（详见 docs/start-anchor-export-spec.md）
 // =============================================================
 
 (function () {
@@ -160,7 +185,7 @@
     API_PAGE_DELAY: 300,   // 列表分页请求间隔（毫秒）
     API_DELAY: 1200,       // 单条对话导出间隔（毫秒）
     DEBUG_LIMIT: 0,        // 调试限条数，0 或 null 表示不限
-    INCREMENTAL: true,     // 增量导出：跳过 updatedAt ≤ 上次锚点的会话（localStorage 记录，几十字节元数据）
+    INCREMENTAL: true,     // 增量导出：默认“从上次导出时刻起”，hover 句子可改起点（锚点 localStorage 仅存时间戳）
   };
 
   // ---- 通用时间格式化：本地时间 + 数值时区偏移（如 2026-08-05 16:00:53 +08:00） ----
@@ -6075,6 +6100,757 @@
         return lines.join('\n').replace(/\n{3,}/g, '\n\n');
       },
     },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[claude]  Claude (claude.ai)
+    //  ═══════════════════════════════════════════════════════
+    //  LLM 注意:
+    //  - 详情 API（真实账号实测 2026-09，查询串与前端一致）:
+    //      GET /api/organizations/{orgId}/chat_conversations/{id}?tree=True&rendering_mode=messages&render_all_tools=true&include_inline_comparison=true&consistency=strong
+    //    orgId 从 lastActiveOrg cookie 读，同源请求用会话 cookie 认证，无需额外 token。
+    //  - 列表 API: GET /api/organizations/{orgId}/chat_conversations_v2?limit=30&offset={n}&consistency=eventual
+    //    响应 { data: [{uuid,name,created_at,updated_at,...}], has_more }，offset 翻页（非 GraphQL）。
+    //  - 真实响应里 tool_use.input 是 JSON 字符串（不是对象），一律用 _toolInput() 解析。
+    {
+      id: 'claude',
+      name: 'Claude',
+      detect: () => ['claude.ai', 'claude.com'].includes(window.location.hostname),
+
+      getCurrentConversationId: () => {
+        const m = window.location.pathname.match(/^\/chat\/([^\/?]+)/);
+        const id = m ? m[1] : null;
+        // Claude 对话 ID 是 UUID；/new、/projects 等页面返回 null
+        return id && id.length >= 20 && id.includes('-') ? id : null;
+      },
+
+      /** 从 cookie 读取当前组织 ID（HN 参考脚本用 intercomSettings，留作兜底） */
+      _orgId() {
+        const m = document.cookie.match(/lastActiveOrg=([^;]+)/);
+        if (m && m[1]) return m[1];
+        try { return window.intercomSettings?.lastActiveOrgUuid || ''; } catch { return ''; }
+      },
+
+      /** tool_use.input 可能是对象或 JSON 字符串，统一返回对象 */
+      _toolInput(block) {
+        const raw = block && block.input;
+        if (typeof raw === 'string') {
+          try { return JSON.parse(raw); } catch { return {}; }
+        }
+        return (raw && typeof raw === 'object') ? raw : {};
+      },
+
+      /** 列表 API：chat_conversations_v2，offset 翻页 */
+      async getAllConversations(onProgress) {
+        const orgId = this._orgId();
+        if (!orgId) throw new Error('无法读取 Claude 会话（lastActiveOrg cookie 缺失）——请确认已登录 claude.ai');
+        const all = [];
+        const PAGE = 30; // 与前端一致的分页大小
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        let offset = 0;
+
+        while (all.length < limit) {
+          const url = `/api/organizations/${orgId}/chat_conversations_v2?limit=${PAGE}&offset=${offset}&consistency=eventual`;
+          const r = await fetch(url, {
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+          });
+          if (!r.ok) {
+            const hint = (r.status === 401 || r.status === 403) ? '（会话可能已过期，请刷新并重新登录）' : '';
+            throw new Error(`Claude 列表API ${r.status}: ${r.statusText}${hint}`);
+          }
+          const body = await r.json();
+          const chats = body?.data || [];
+          if (!chats.length) break;
+
+          all.push(...chats.map((c) => ({
+            id: c.uuid,
+            title: c.name || '',
+            created_at: c.created_at,
+            updated_at: c.updated_at,
+          })));
+          if (onProgress) onProgress(all.length);
+
+          if (!body.has_more) break;
+          offset += chats.length;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return all.slice(0, limit);
+      },
+
+      /** 单条对话详情（真实账号实测；查询串与前端一致） */
+      async getConversationDetails(id) {
+        const orgId = this._orgId();
+        if (!orgId) {
+          throw new Error('无法读取 Claude 会话（lastActiveOrg cookie 缺失）——请确认已登录 claude.ai');
+        }
+        const url = `/api/organizations/${orgId}/chat_conversations/${id}?tree=True&rendering_mode=messages&render_all_tools=true&include_inline_comparison=true&consistency=strong`;
+        const r = await fetch(url, {
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!r.ok) {
+          const hint = (r.status === 401 || r.status === 403) ? '（会话可能已过期，请刷新并重新登录）' : '';
+          throw new Error(`Claude 详情API ${r.status}: ${r.statusText}${hint}`);
+        }
+        const body = await r.json();
+        if (!body || !Array.isArray(body.chat_messages)) {
+          throw new Error('Claude 详情API 响应结构异常（chat_messages 缺失，接口可能已变更）');
+        }
+        // 标题归一化：Claude 详情顶层字段叫 name，核心 getChatTitle 只认 title（核心区不改）
+        if (body && !body.title && typeof body.name === 'string') body.title = body.name;
+        return body;
+      },
+
+      /** 将 Claude 聊天数据转为 Markdown */
+      toMarkdown(data, title, convId) {
+        const all = data?.chat_messages || [];
+        if (!all.length) throw new Error('未找到消息数据');
+
+        // 沿当前分支排序：从 current_leaf_message_uuid 沿 parent 链回溯再反转。
+        // 重新生成过的回复只导出屏幕上当前分支（与 MIT 参考项目一致）。
+        const byUuid = new Map(all.map((m) => [m.uuid, m]));
+        let ordered = null;
+        const leaf = data.current_leaf_message_uuid;
+        if (leaf && byUuid.has(leaf)) {
+          const path = [];
+          const seen = new Set();
+          let cur = byUuid.get(leaf);
+          while (cur && !seen.has(cur.uuid)) {
+            seen.add(cur.uuid);
+            path.push(cur);
+            cur = cur.parent_message_uuid ? byUuid.get(cur.parent_message_uuid) : null;
+          }
+          if (path.length) ordered = path.reverse();
+        }
+        if (!ordered) {
+          // 兜底：按 index 排序（分支会话可能不准）
+          ordered = [...all].sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+        }
+
+        // 先把所有 artifact 折叠到最终版本（create/rewrite 全量、update 局部替换）
+        const artifacts = this._collectArtifacts(ordered);
+
+        const lines = [];
+        const model = data.model || 'claude';
+        const convTime = data.created_at || all[0]?.created_at || null;
+        const timeStr = convTime ? formatLocalTime(new Date(convTime)) : 'unknown';
+        const convUrl = convId ? `https://claude.ai/chat/${convId}` : 'https://claude.ai';
+
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `' + model + '`');
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${convUrl}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+
+        for (const m of ordered) {
+          // content 块按顺序交错；thinking / tool_result 不直接输出
+          const thinkParts = [];
+          const bodyParts = [];
+          for (const block of (m.content || [])) {
+            if (block.type === 'thinking' && typeof block.thinking === 'string' && block.thinking.trim()) {
+              thinkParts.push(stripHashes(block.thinking.trim()));
+            } else if (block.type === 'text' && typeof block.text === 'string' && block.text.trim()) {
+              bodyParts.push(stripHashes(block.text.trim()));
+            } else if (block.type === 'tool_use') {
+              const rendered = this._renderToolUse(block, artifacts);
+              if (rendered) bodyParts.push(rendered);
+            }
+          }
+
+          const attachments = this._describeAttachments(m);
+          const body = [attachments, ...bodyParts].filter(Boolean).join('\n\n');
+          if (!body && !thinkParts.length) continue; // 隐藏/系统消息
+
+          const isHuman = m.sender === 'human';
+          lines.push(isHuman ? '### 🧑‍💻 User' : '### 🤖 Assistant');
+          lines.push('');
+
+          if (!isHuman && thinkParts.length) {
+            lines.push('#### 🤔 Thought Process');
+            lines.push('');
+            lines.push(thinkParts.join('\n\n'));
+            lines.push('');
+            lines.push('#### 💡 Response');
+            lines.push('');
+          }
+          if (body) {
+            lines.push(body);
+            lines.push('');
+          }
+
+          // 未完成标记（与 MIT 参考项目一致的两种信号）
+          if (m.truncated) {
+            lines.push('> **Truncated:** 消息在源数据中被截断，可能不完整。');
+            lines.push('');
+          } else if (m.stop_reason === 'user_canceled') {
+            lines.push('> **Interrupted:** 该回复在 Claude 完成前被停止。');
+            lines.push('');
+          }
+        }
+
+        return lines.join('\n');
+      },
+
+      /** 将 artifact（按 id）折叠到最终状态；update 是 old_str→new_str 局部替换 */
+      _collectArtifacts(ordered) {
+        const artifacts = new Map();
+        for (const m of ordered) {
+          for (const block of (m.content || [])) {
+            if (block.type !== 'tool_use' || block.name !== 'artifacts') continue;
+            const input = this._toolInput(block);
+            const id = input.id || '__artifact__';
+            let a = artifacts.get(id);
+            if (!a) { a = { content: '' }; artifacts.set(id, a); }
+
+            if (input.command === 'update') {
+              if (typeof input.old_str === 'string' && typeof input.new_str === 'string') {
+                if (a.content.indexOf(input.old_str) === -1) {
+                  console.warn(`Claude artifact "${a.title || id}" 的 update 无法应用（源文本未找到），内容可能不完整`);
+                } else {
+                  // 用函数替换器，避免 new_str 里的 $& / $` / $' / $$ 被当替换模式
+                  a.content = a.content.replace(input.old_str, () => input.new_str);
+                }
+              }
+            } else if (typeof input.content === 'string') {
+              a.content = input.content; // create / rewrite → 全量
+            }
+            if (input.title) a.title = input.title;
+            if (input.type) a.type = input.type;
+            if (input.language) a.language = input.language;
+            a.lastVersionUuid = input.version_uuid; // 最后一次写赢 → 最终版
+          }
+        }
+        return artifacts;
+      },
+
+      /** 渲染 tool_use 块：只输出 artifact / create_file / visualize 三种内容型工具 */
+      _renderToolUse(block, artifacts) {
+        const input = this._toolInput(block);
+        const name = block.name || '';
+
+        // 围栏长度超过源码里最长的反引号串，避免冲突
+        const fenceFor = (src) => '`'.repeat(Math.max(3, ...(src.match(/`+/g) || []).map((s) => s.length + 1)));
+        const codeBlock = (label, source, lang) => {
+          const fence = fenceFor(source);
+          return `**${label}**\n\n${fence}${lang || ''}\n${source}\n${fence}`;
+        };
+
+        if (name === 'artifacts') {
+          const a = artifacts.get(input.id || '__artifact__');
+          // 只在最后一次编辑处渲染；之前的 create/update/rewrite 块不输出
+          if (!a || input.version_uuid !== a.lastVersionUuid || !a.content) return '';
+          const TYPE = {
+            'application/vnd.ant.react': { lang: 'jsx', label: 'React' },
+            'text/html': { lang: 'html', label: 'HTML' },
+            'image/svg+xml': { lang: 'svg', label: 'SVG' },
+            'application/vnd.ant.mermaid': { lang: 'mermaid', label: 'Mermaid' },
+            'text/markdown': { lang: 'markdown', label: 'Markdown' },
+            'application/vnd.ant.code': { lang: a.language || '', label: a.language || 'Code' },
+          };
+          const t = TYPE[a.type] || { lang: a.language || '', label: a.language || '' };
+          const label = `Artifact: ${a.title || 'untitled'}${t.label ? ` · ${t.label}` : ''}`;
+          return codeBlock(label, a.content, t.lang);
+        }
+
+        if (name === 'create_file' && typeof input.file_text === 'string' && input.file_text) {
+          const file = String(input.path || 'file').split('/').pop();
+          const ext = file.includes('.') ? file.split('.').pop().toLowerCase() : '';
+          const EXT_LANG = {
+            py: 'python', js: 'javascript', jsx: 'jsx', ts: 'typescript', tsx: 'tsx',
+            md: 'markdown', html: 'html', css: 'css', json: 'json', sh: 'bash',
+            yml: 'yaml', yaml: 'yaml', sql: 'sql', java: 'java', rb: 'ruby', go: 'go',
+            rs: 'rust', c: 'c', cpp: 'cpp', txt: '',
+          };
+          return codeBlock(`File: ${file}`, input.file_text, EXT_LANG[ext] ?? '');
+        }
+
+        if (name === 'visualize:show_widget' && typeof input.widget_code === 'string' && input.widget_code.trim()) {
+          const src = input.widget_code;
+          // widget 是独立渲染的 HTML/CSS/JS 片段（真实数据以 < 开头）；JSX 风格时按代码兜底
+          const lang = /^\s*</.test(src) ? 'html' : '';
+          return codeBlock(`Widget: ${input.title || 'untitled'}`, src, lang);
+        }
+
+        return ''; // 其余工具（web_search、bash、display 等）跳过
+      },
+
+      /** 附件 → markdown：图片内嵌、文档链接、文本附件块引用 */
+      _describeAttachments(m) {
+        const toAbsolute = (u) => {
+          if (!u || typeof u !== 'string') return null;
+          try { return new URL(u, 'https://claude.ai').href; } catch { return null; }
+        };
+        const meta = (...bits) => bits.filter(Boolean).join(' · ');
+
+        const parts = [];
+
+        for (const file of (m.files || [])) {
+          const name = file.file_name || 'file';
+
+          if (file.file_kind === 'image') {
+            const url = toAbsolute(file.preview_url || file.preview_asset?.url);
+            const label = `**Attachment: ${meta(name, 'image')}**`;
+            parts.push(url ? `${label}\n\n![${name}](${url})` : label);
+          } else if (file.file_kind === 'document') {
+            const url = toAbsolute(file.document_asset?.url);
+            const pages = file.document_asset?.page_count;
+            const info = meta('document', pages ? `${pages} page${pages === 1 ? '' : 's'}` : null);
+            const nameLink = url ? `[${name}](${url})` : name;
+            parts.push(`**Attachment: ${meta(nameLink, info)}**`);
+          } else {
+            // blob 或未知类型：无可靠 URL
+            parts.push(`**Attachment: ${meta(name, file.file_kind, this._formatBytes(file.size_bytes))}**`);
+          }
+        }
+
+        for (const attachment of (m.attachments || [])) {
+          const name = attachment.file_name || attachment.name || 'attachment';
+          const info = meta(attachment.file_type, this._formatBytes(attachment.file_size));
+          const label = `**Attachment: ${meta(name, info)}**`;
+          const content = typeof attachment.extracted_content === 'string'
+            ? attachment.extracted_content.trim()
+            : '';
+
+          const lines = [label];
+          if (content) {
+            lines.push('');
+            for (const line of content.split('\n')) lines.push(line);
+          }
+          // 整体块引用：附件自己的标题不进大纲
+          parts.push(lines.map((line) => (line ? `> ${line}` : '>')).join('\n'));
+        }
+
+        return parts.join('\n\n');
+      },
+
+      /** 人类可读字节数，如 "4.7 KB" */
+      _formatBytes(n) {
+        if (n == null || isNaN(n)) return null;
+        if (n < 1024) return `${n} B`;
+        if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+        return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[poe]  Poe (poe.com)
+    //  ═══════════════════════════════════════════════════════
+    //  LLM 注意（真实账号实测 2026-09，全部走 /api/gql_POST）:
+    //  - 列表: chatsHistoryPageQuery（首屏 50 条）→ ChatHistoryListWithMessageSearchPaginationQuery
+    //    （{ count, cursor }，cursor = 上一页 pageInfo.endCursor，形如 ":微秒:chatId"），hasNextPage 为 false 结束
+    //  - 详情: ChatPageQuery { chatCode } → chatOfCode.messagesConnection.edges（最近一页）；
+    //    hasPreviousPage 时用 ChatListPaginationQuery { count, cursor: 最老messageId, id: chat节点 } 向前翻全（实测）
+    //  - 请求头: poegraphql + poe-queryname + poe-tag-id 必须；poe-revision 实测任意值均可；
+    //    poe-formkey / poe-tchannel 实测可省略。hash/tag-id 为抓包常量，若后端更新需同步。
+    {
+      id: 'poe',
+      name: 'Poe',
+      detect: () => window.location.hostname === 'poe.com',
+
+      getCurrentConversationId: () => {
+        const m = window.location.pathname.match(/^\/chat\/([a-z0-9]+)/i);
+        return m ? m[1] : null; // Poe chatCode（base36 短码）；/chats 等页面返回 null
+      },
+
+      _ms(v) {
+        const n = Number(v);
+        if (!Number.isFinite(n)) return null;
+        return n > 1e14 ? Math.floor(n / 1000) : n; // Poe 时间戳是微秒
+      },
+
+      _gqlHeaders(queryName, tagId, pg) {
+        // poe-revision 服务端不校验值；buildId 有就拿，没有用占位
+        let rev = 'afterchat';
+        try { rev = window.__NEXT_DATA__?.buildId || rev; } catch { /* 非浏览器环境 */ }
+        return {
+          'content-type': 'application/json',
+          poegraphql: pg,
+          'poe-queryname': queryName,
+          'poe-tag-id': tagId,
+          'poe-revision': rev,
+        };
+      },
+
+      /** 统一 gql_POST 调用（hash 为抓包所得持久化查询常量） */
+      async _gql(queryName, variables, tagId, pg, hash) {
+        const r = await fetch('/api/gql_POST', {
+          method: 'POST',
+          headers: this._gqlHeaders(queryName, tagId, pg),
+          credentials: 'include',
+          body: JSON.stringify({ queryName, variables, extensions: { hash } }),
+        });
+        if (!r.ok) {
+          const hint = (r.status === 401 || r.status === 403) ? '（登录态可能已过期，请刷新页面）' : '';
+          throw new Error(`Poe ${queryName} ${r.status}: ${r.statusText}${hint}`);
+        }
+        const body = await r.json();
+        if (body?.errors?.length) {
+          throw new Error('Poe ' + queryName + ': ' + (body.errors[0]?.message || 'GraphQL error'));
+        }
+        return body;
+      },
+
+      async getAllConversations(onProgress) {
+        const all = [];
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        let cursor = null;
+
+        while (all.length < limit) {
+          // 首页 chatsHistoryPageQuery（无 cursor），后续 ChatHistoryListWithMessageSearchPaginationQuery
+          const isFirst = !cursor;
+          const body = isFirst
+            ? await this._gql(
+                'chatsHistoryPageQuery',
+                { handle: '', useBot: false },
+                '6150ca8d3d6664d4bce8cdf8a92ac5bf',
+                '1',
+                '7f7c6b3d348be34312ad66d53fd7e2b860094fa6caf6cb85321c2b2ae698d357')
+            : await this._gql(
+                'ChatHistoryListWithMessageSearchPaginationQuery',
+                { count: 10, cursor },
+                'c7fb5dc11dde1707fb00eebe7bb04761',
+                '0',
+                '115be578cf6b1914d7139f7258325c5d1418f5e24b104bfe1d639067887974cd');
+          const conn = body?.data?.chats;
+          const edges = conn?.edges || [];
+          if (!edges.length) break;
+
+          for (const e of edges) {
+            const n = e.node || {};
+            if (!n.chatCode) continue;
+            all.push({
+              id: n.chatCode,
+              title: n.title || '',
+              created_at: this._ms(n.creationTime),
+              updated_at: this._ms(n.lastInteractionTime),
+            });
+          }
+          if (onProgress) onProgress(all.length);
+
+          if (!conn?.pageInfo?.hasNextPage) break;
+          cursor = conn.pageInfo.endCursor;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return all.slice(0, limit);
+      },
+
+      async getConversationDetails(id) {
+        const body = await this._gql(
+          'ChatPageQuery',
+          { chatCode: id },
+          'e7bcd0a5b4bf315a62cdc5140c49e278',
+          '1',
+          '1c929ada3d107cd28b4df143bbf7305f51eb6cd9dcf89b6cb3bd6a7cc0112121');
+        const coc = body?.data?.chatOfCode;
+        if (!coc || !Array.isArray(coc.messagesConnection?.edges)) {
+          throw new Error('Poe 详情响应结构异常（chatOfCode.messagesConnection 缺失，接口可能已变更）');
+        }
+
+        // ChatPageQuery 只给「最近一页」；hasPreviousPage 时用 ChatListPaginationQuery 往前翻
+        const conn = coc.messagesConnection;
+        let cursor = conn.pageInfo?.startCursor || null; // 当前最老 messageId
+        let hasPrev = !!conn.pageInfo?.hasPreviousPage;
+        const chatNodeId = coc.id; // base64 "Chat:{chatId}"，如 Q2hhdDoxNDk3NzExODg1
+        let allEdges = [...(conn.edges || [])];
+        let guard = 0;
+        while (hasPrev && cursor && guard < 100) {
+          guard++;
+          const p = await this._gql(
+            'ChatListPaginationQuery',
+            { count: 25, cursor, id: chatNodeId },
+            '1abdd4f1d403008901cdfacd10b95d4f',
+            '1',
+            'a294b112132f513a057b103d9dc2cc777c64a426850411fe9e7b1b822da2e087');
+          const mc = p?.data?.node?.messagesConnection;
+          const edges = mc?.edges || [];
+          if (!edges.length) break;
+          allEdges = [...edges, ...allEdges]; // 返回块内时间升序、越翻越老，往前插
+          hasPrev = !!mc?.pageInfo?.hasPreviousPage;
+          cursor = edges[0]?.node?.messageId ?? null; // 本块最老 messageId 继续翻
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        // 去重 + 按时间升序，拼成完整可见对话
+        const seen = new Set();
+        const merged = [];
+        for (const e of allEdges) {
+          const mid = e?.node?.messageId;
+          if (mid != null) {
+            if (seen.has(mid)) continue;
+            seen.add(mid);
+          }
+          merged.push(e);
+        }
+        merged.sort((a, b) => (Number(a?.node?.creationTime) || 0) - (Number(b?.node?.creationTime) || 0));
+        coc.messagesConnection.edges = merged;
+
+        // 标题归一化：核心 getChatTitle 只认 title（核心区不改）
+        if (!body.title && coc.title) body.title = coc.title;
+        return body;
+      },
+
+      toMarkdown(data, title, convId) {
+        const d = data?.data || {};
+        const coc = d.chatOfCode || {};
+        const viewerUid = d.viewer?.uid;
+        const nodes = (coc.messagesConnection?.edges || [])
+          .map((e) => e.node)
+          .filter((m) => m && typeof m.text === 'string' && m.text.trim());
+        if (!nodes.length) throw new Error('未找到消息数据');
+
+        // Poe 返回已是时间升序；保险起见按 creationTime 升序排
+        const ordered = [...nodes].sort((a, b) => {
+          const ta = Number(a.creationTime) || 0;
+          const tb = Number(b.creationTime) || 0;
+          return ta === tb ? 0 : (ta || 0) - (tb || 0);
+        });
+
+        const lines = [];
+        const timeMs = this._ms(coc.lastInteractionTime) || this._ms(ordered[ordered.length - 1]?.creationTime);
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push(`- **Time:** ${timeMs ? formatLocalTime(new Date(timeMs)) : 'unknown'}`);
+        lines.push(`- **URL:** ${convId ? `https://poe.com/chat/${convId}` : 'https://poe.com'}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+
+        for (const m of ordered) {
+          if (m.isChatAnnouncement) continue;
+          const text = stripHashes(m.text.trim());
+          if (!text) continue;
+          // 本人消息看 authorUser.uid === viewer.uid；其余（bot 或群聊他人）统一按 Assistant 兜底
+          const isSelf = m.authorUser && viewerUid != null && m.authorUser.uid === viewerUid;
+          lines.push(isSelf ? '### \u{1F9D1}\u{200D}\u{1F4BB} User' : '### \u{1F916} Assistant');
+          lines.push('');
+          lines.push(text);
+          lines.push('');
+        }
+
+        return lines.join('\n').replace(/\n{3,}/g, '\n\n');
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[monica]  Monica (monica.im)
+    //  ═══════════════════════════════════════════════════════
+    //  LLM 注意（真实账号实测 2026-09，后端在 api.monica.im，CORS + 同源 session_id cookie 认证）:
+    //  - 列表: POST /agent_v1/session.v1.SessionService/ListSessions  body {limit, search:"", useV2:true}
+    //    → sessions[]（节点 uid=conv:{uuid} / title / updatedAt）。无显式游标：返回条数 < limit 即到底。
+    //  - 详情: POST /api/custom_bot/get_chat_item_list_v2  body {conversation_id, limit, [offset]}
+    //    → data.chat_item_list { total, item_list[], next_offset }。item_list 是**倒序**（新在前），按 seq 升序还原。
+    //    next_offset > 0 时带 offset 继续翻，= 0 到底；item_type: question=用户 / reply=助手（seq1 欢迎语跳过）。
+    {
+      id: 'monica',
+      name: 'Monica',
+      detect: () => /(^|\.)monica\.(im|com)$/.test(window.location.hostname),
+
+      getCurrentConversationId: () => {
+        try {
+          const c = new URLSearchParams(window.location.search).get('convId');
+          return c && c.startsWith('conv:') ? c : null;
+        } catch { return null; }
+      },
+
+      // 真机实测（2026-09）：get_chat_item_list_v2 缺 X-Client-* 头时只回 1 条欢迎语（total 正常但 item_list 截断），
+      // 带 app 同款头才返回完整列表。X-Client-Id 为按安装生成的 uuid：localStorage 持久化复用（服务端按格式校验）。
+      // X-Client-Version 5.4.3 随 app 发版变动，若后端收紧版本需重新抓包更新。
+      _monicaHeaders() {
+        let clientId = '';
+        try {
+          clientId = localStorage.getItem('afterchat-monica-client-id') || '';
+        } catch { /* 隐私模式等场景 localStorage 不可用 */ }
+        if (!clientId) {
+          clientId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : String(Date.now()) + '-' + Math.random().toString(16).slice(2);
+          try { localStorage.setItem('afterchat-monica-client-id', clientId); } catch { /* 同上 */ }
+        }
+        return {
+          'Content-Type': 'application/json',
+          'X-Client-Locale': 'zh_CN',
+          'X-Product-Name': 'Monica',
+          'X-Client-Type': 'web',
+          'X-From-Channel': 'NA',
+          'X-Time-Zone': 'Asia/Shanghai;-480',
+          'X-Client-Version': '5.4.3',
+          'X-Client-Id': clientId,
+        };
+      },
+
+      async _apiPost(path, body) {
+        const r = await fetch('https://api.monica.im' + path, {
+          method: 'POST',
+          headers: this._monicaHeaders(),
+          credentials: 'include',
+          body: JSON.stringify(body),
+        });
+        if (!r.ok) {
+          const hint = (r.status === 401 || r.status === 403) ? '（登录态可能已过期，请刷新页面）' : '';
+          throw new Error(`Monica ${path} ${r.status}: ${r.statusText}${hint}`);
+        }
+        const json = await r.json();
+        if (json && typeof json === 'object' && json.code !== undefined && json.code !== 0) {
+          throw new Error(`Monica ${path}: ${json.msg || json.code}`);
+        }
+        return json;
+      },
+
+      async getAllConversations(onProgress) {
+        const body = await this._apiPost('/agent_v1/session.v1.SessionService/ListSessions', {
+          limit: 100, // 服务端返回即全量（实测 12 条）；无显式游标
+          search: '',
+          useV2: true,
+        });
+        const sessions = body?.sessions || [];
+        if (!sessions.length) throw new Error('Monica 列表为空或结构异常（sessions 缺失）');
+        const all = sessions.map((s) => ({
+          id: s.uid || s.conversationId,
+          title: s.title || '',
+          created_at: s.createdAt || null,
+          updated_at: s.updatedAt || null,
+        })).filter((c) => c.id);
+        if (onProgress) onProgress(all.length);
+        return all;
+      },
+
+      async getConversationDetails(id) {
+        const merged = [];
+        const seen = new Set();
+        let offset = 0;
+        let conv = null;
+        let guard = 0;
+
+        while (guard < 100) {
+          guard++;
+          const params = offset > 0
+            ? { limit: 30, offset, conversation_id: id }
+            : { limit: 30, conversation_id: id };
+          const body = await this._apiPost('/api/custom_bot/get_chat_item_list_v2', params);
+          const list = body?.data?.chat_item_list;
+          if (!list || !Array.isArray(list.item_list)) {
+            throw new Error('Monica 详情结构异常（chat_item_list 缺失，接口可能已变更）');
+          }
+          if (!conv && body?.data?.conversation) conv = body.data.conversation;
+          for (const it of list.item_list || []) {
+            const key = it.item_id || it.id;
+            if (key != null) {
+              if (seen.has(key)) continue;
+              seen.add(key);
+            }
+            merged.push(it);
+          }
+          const nxt = Number(list.next_offset) || 0;
+          if (nxt <= 0) break;
+          offset = nxt;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        if (!merged.length) throw new Error('未找到消息数据');
+        const out = { conversation: conv || {}, chat_item_list: { item_list: merged, total: merged.length } };
+        if (conv?.title) out.title = conv.title; // 供核心 getChatTitle 识别为文件名
+        return out;
+      },
+
+      toMarkdown(data, title, convId) {
+        const conv = data?.conversation || {};
+        const items = data?.chat_item_list?.item_list || [];
+        if (!items.length) throw new Error('未找到消息数据');
+
+        // item_list 倒序（新在前）；按 seq 升序还原真实对话顺序
+        const ordered = [...items].sort((a, b) => (Number(a.seq) || 0) - (Number(b.seq) || 0));
+
+        // 模型名优先取最近一条 assistant 回复的 use_model（如 claude-haiku-4-5）；
+        // 兜底：chat_bot_name 常是泛化的 "monica"（该 conv 对象自身数据不准），退回 chat_bot_uid（如 claude_4_5_haiku）
+        let useModel = '';
+        for (const it of ordered) {
+          if (it.item_type === 'reply' && it.data?.use_model) useModel = it.data.use_model;
+        }
+        let model = useModel || '';
+        if (!model) {
+          const botName = String(conv.chat_bot_name || '');
+          const botUid = String(conv.chat_bot_uid || '');
+          if (botName && botName !== 'monica') model = botName;
+          else if (botUid) model = botUid.replace(/_/g, '-');
+          else model = 'monica';
+        }
+        const lines = [];
+        const timeStr = conv.updated_at ? formatLocalTime(new Date(conv.updated_at)) : 'unknown';
+        // URL 优先当前页面（含正确 bot 路径 + convId）；测试/兜底用 conv.origin
+        let url = '';
+        try {
+          url = typeof location !== 'undefined' && location.href && location.href.includes('monica.') ? location.href : (conv.origin || '');
+        } catch { url = conv.origin || ''; }
+        if (!url) url = 'https://monica.im';
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `' + model + '`');
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${url}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
+        // 搜索引用（与豆包等一致）：不嵌入正文，收集后汇总到对话末尾 ### References。
+        // 每条 reply 的 data.sources[] 有 key（消息内编号）+ data.text（首行形如 [标题](url)；url 含 \u003d/\u0026 类 JSON 二次转义需还原）
+        const unescapeUnicode = (s) => s.replace(/\\u([0-9a-fA-F]{4})/g, (_m, h) => String.fromCharCode(parseInt(h, 16)));
+        const parseSource = (s) => {
+          const first = String(s?.data?.text || '').trim().split('\n')[0];
+          const mm = first.match(/^\[([\s\S]*)\]\((https?:\/\/[^)\s]*)\)/);
+          if (mm) return { title: unescapeUnicode(mm[1]).trim(), url: unescapeUnicode(mm[2]) };
+          return { title: '', url: '' };
+        };
+        const urlToRef = new Map(); // url → 标题（首次出现编号，URL 去重）
+
+        for (const it of ordered) {
+          const kind = it.item_type;
+          if (kind !== 'question' && kind !== 'reply') continue;
+          const content = it.data && typeof it.data.content === 'string' ? it.data.content.trim() : '';
+          if (!content || content.startsWith('__RENDER_')) continue; // 欢迎语/哨兵
+          if (kind === 'reply' && Array.isArray(it.data?.sources)) {
+            const byKey = [...it.data.sources].sort((a, b) => Number(a.key || 0) - Number(b.key || 0));
+            for (const s of byKey) {
+              const { title, url } = parseSource(s);
+              if (url && !urlToRef.has(url)) urlToRef.set(url, title || '');
+            }
+          }
+          const body = stripHashes(content);
+          const isUser = kind === 'question';
+          lines.push(isUser ? '### \u{1F9D1}\u{200D}\u{1F4BB} User' : '### \u{1F916} Assistant');
+          lines.push('');
+          lines.push(body);
+          lines.push('');
+        }
+
+        // ---- References（豆包惯例）----
+        if (urlToRef.size > 0) {
+          lines.push('---');
+          lines.push('');
+          lines.push('### References');
+          lines.push('');
+          let i = 1;
+          for (const [url, refTitle] of urlToRef.entries()) {
+            lines.push(refTitle ? `- [${i}] ${refTitle} ${url}` : `- [${i}] ${url}`);
+            i++;
+          }
+          lines.push('');
+        }
+
+        return lines.join('\n').replace(/\n{3,}/g, '\n\n');
+      },
+    },
   ];
 
 
@@ -6095,8 +6871,8 @@
     packing:     LANG === 'zh' ? '打包 ZIP' : 'Packing ZIP',
     saveAfterChat: LANG === 'zh' ? '保存到 AfterChat' : 'Save to AfterChat',
     singleOnly: LANG === 'zh' ? '请在单条对话页使用' : 'Open one chat first',
-    upToDate: LANG === 'zh' ? '全部已导出 · Shift+点击强制全量' : 'All exported · Shift+click for full',
-    reportSkipped: (m, k) => LANG === 'zh' ? `新增 ${m} 条 · 跳过 ${k} 条` : `Added ${m} · Skipped ${k}`,
+    noNew:       LANG === 'zh' ? '没有新会话 · Shift + 单击全部导出' : 'No new chats · Shift + click for full export',
+    editStart:   LANG === 'zh' ? '点击修改' : 'Click to edit',
     reportExported: (n) => LANG === 'zh' ? `已导出 ${n} 条` : `Exported ${n}`,
   };
 
@@ -6372,15 +7148,36 @@
     } catch (e) { return null; }
   }
 
-  function saveExportAnchor(adapterId, conversations) {
+  function saveExportAnchor(adapterId, conversations, fallbackMs) {
     try {
-      let maxT = 0;
+      let maxT = fallbackMs || 0;   // 兜底：本次运行时刻（点击下载时）
       for (const c of conversations) {
         const t = getConversationSortTime(c);
         if (t !== null && t > maxT) maxT = t;
       }
       if (maxT > 0) localStorage.setItem('m365-export-anchor-' + adapterId, String(maxT));
     } catch (e) { /* localStorage 不可用时静默跳过增量 */ }
+  }
+
+  // ---- 增量导出的“本次起点”（一次性）：从某时刻起导出，仅存内存 ----
+  // exportStartOverrideMs = 用户在 hover 句子里点时间改的起点；导出成功即自愈清空，
+  // 下次回到“上次之后”。锚点仍按 adapter 存 localStorage（几十字节元数据）。
+  let exportStartOverrideMs = null;   // ms | null
+
+  function fmtStartStamp(ms) {
+    const d = new Date(ms);
+    const p2 = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  }
+  function fmtStartInputValue(ms) {
+    const d = new Date(ms);
+    const p2 = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  }
+  function parseStartInput(v) {
+    if (!v) return null;
+    const d = new Date(v);
+    return Number.isFinite(d.getTime()) ? d.getTime() : null;
   }
 
   function orderConversationsForZip(conversations) {
@@ -6451,9 +7248,9 @@
 
   // ---- SVG 图标（不要改，除非换图标样式） ----
   const ICONS = {
-    download: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-    hourglass: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3 L20 3 L14 10 L20 21 L4 21 L10 10 Z"/></svg>',
-    check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    download: '<svg width="18" height="18" viewBox="0 0 24 24" style="width:18px !important;height:18px !important" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+    hourglass: '<svg width="18" height="18" viewBox="0 0 24 24" style="width:18px !important;height:18px !important" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3 L20 3 L14 10 L20 21 L4 21 L10 10 Z"/></svg>',
+    check: '<svg width="18" height="18" viewBox="0 0 24 24" style="width:18px !important;height:18px !important" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
   };
 
   // ---- Trusted Types 安全写入 ----
@@ -6496,7 +7293,7 @@
     const spinAnim = progress < 0
       ? 'animation: m365-spin 1.2s linear infinite; transform-origin: center;'
       : 'transition: stroke-dashoffset 0.3s ease;';
-    return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${RING_SVG_SIZE} ${RING_SVG_SIZE}">
+    return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${RING_SVG_SIZE} ${RING_SVG_SIZE}" style="width:${sz}px !important; height:${sz}px !important;">
       <circle cx="${RING_CENTER}" cy="${RING_CENTER}" r="${RING_RADIUS}" fill="none" stroke="#e8e8e8" stroke-width="2"/>
       <circle cx="${RING_CENTER}" cy="${RING_CENTER}" r="${RING_RADIUS}" fill="none" stroke="#242424" stroke-width="2" stroke-dasharray="${RING_CIRCUMFERENCE}" stroke-dashoffset="${offset}" transform="rotate(-90 ${RING_CENTER} ${RING_CENTER})" style="${spinAnim}"/>
     </svg>`;
@@ -6627,7 +7424,8 @@
   // LLM 注意: 这是核心编排逻辑，所有平台共享一份。
   // 它不知道也无需知道具体平台的 API 细节——那些都在适配器里。
   // 想调导出行为（如文件格式、限速）去改上面的 CONFIG。
-  async function startExportProcess(adapter, ui) {
+  // opts.full：本次强制全量（Shift+单击快键）。
+  async function startExportProcess(adapter, ui, opts) {
     ui.start();
     let reportText = null;
 
@@ -6670,24 +7468,32 @@
           return;
         }
 
-        // 增量导出：跳过 updatedAt ≤ 上次锚点的会话（只导新增/更新的）
-        // Shift+左键点击会在 onclick 里先把锚点重置到最早，再走本流程：
-        // 锚点不存在 → 不过滤 → 自然全量；导出成功后锚点自动推进到最新
+        // 导出范围 = “从某个时刻起，到现在”：
+        //   无锚点（从没导出过）    → 起点=最早 → 自然全量
+        //   默认（句子时间没改过）   → 起点=上次锚点 → 上次之后，精确续导
+        //   句子点时间改过          → 起点=用户改的时刻（回导/重导），一次性，成功即自愈
+        //   opts.full（Shift+单击） → 本次起点=最早 → 全量快键
+        // 拿不到时间的会话保守处理：宁重复不漏，始终导出
+        const runAt = Date.now();    // “本次下载时刻”：锚点下限，保证点完句子时间就前移
         let freshList = conversations;
         if (CONFIG.INCREMENTAL) {
-          const anchor = loadExportAnchor(adapter.id);
-          if (anchor) {
+          const boundary = opts?.full ? null : (exportStartOverrideMs ?? loadExportAnchor(adapter.id));
+          if (boundary !== null) {
             freshList = conversations.filter((c) => {
               const t = getConversationSortTime(c);
-              // 拿不到时间的会话保守处理：宁重复不漏，始终导出
-              return t === null || t > anchor;
+              return t === null || t > boundary;
             });
           }
         }
 
         if (!freshList || freshList.length === 0) {
-          // 全部已被增量锚点跳过：走完成汇报路径（tooltip 3s，提示 Shift+点击强制全量）
-          ui.done(TXT.upToDate);
+          // 起点之后没有内容：没跳过任何东西，锚点可以安全推进到“本次下载时刻”；
+          // 气泡只提示无新内容；用户手改的起点同样自愈（一次性的）
+          if (CONFIG.INCREMENTAL) {
+            saveExportAnchor(adapter.id, conversations, runAt);
+            exportStartOverrideMs = null;
+          }
+          ui.done(TXT.noNew);
           return;
         }
 
@@ -6776,15 +7582,15 @@
         }
 
         // 增量锚点：全部成功才推进（有失败保留旧锚点，下次重试含失败条目；宁重复不漏）
+        // 起点改动也是“一次性”：成功即自愈，下次句子回到“上次之后”
+        // 锚点下限取本次运行时刻：点完下载，hover 句子里的时间就前移
         if (CONFIG.INCREMENTAL && failCount === 0) {
-          saveExportAnchor(adapter.id, conversations);
+          saveExportAnchor(adapter.id, conversations, runAt);
+          exportStartOverrideMs = null;
         }
 
-        // 完成汇报：新增 M 条（本次成功导出的），跳过 K 条（增量过滤掉的）；无跳过时只报导出数
-        const skippedCount = conversations.length - freshList.length;
-        reportText = skippedCount > 0
-          ? TXT.reportSkipped(successCount, skippedCount)
-          : TXT.reportExported(successCount);
+        // 完成汇报：只报成功条数；起点之后没有内容时上面已经用 noNew 提前返回
+        reportText = TXT.reportExported(successCount);
       }
 
       ui.done(reportText);
@@ -6965,12 +7771,10 @@
     btn.onmouseenter = () => {
       btn.style.background = '#f5f5f5';
       btn.style.borderColor = '#d0d0d0';
-      if (tooltip.textContent) tooltip.style.display = '';
     };
     btn.onmouseleave = () => {
       btn.style.background = '#ffffff';
       btn.style.borderColor = '#e0e0e0';
-      tooltip.style.display = 'none';
     };
 
     wrapper.appendChild(ringEl);
@@ -6982,25 +7786,141 @@
     if (!document.getElementById('m365-style-anim')) {
       const s = document.createElement('style');
       s.id = 'm365-style-anim';
-      s.textContent = `@keyframes m365-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
+      // 防御性规则：部分站点（如 poe.com）全局 svg 规则会改图标/圆环尺寸（!important 优先级最稳）
+      s.textContent =
+        `@keyframes m365-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+#m365-export-btn svg { width: 18px !important; height: 18px !important; max-width: none !important; }
+#m365-ring svg { width: 36px !important; height: 36px !important; max-width: none !important; }`;
       document.head.appendChild(s);
+    }
+
+    if (!document.getElementById('m365-style-tooltip')) {
+      // 增量导出提示里的“可点时间”与内联编辑器样式
+      const st = document.createElement('style');
+      st.id = 'm365-style-tooltip';
+      st.textContent =
+        `#m365-export-tooltip .m365-start { border-bottom: 1px dashed #b0b0b0; cursor: text; font-weight: 600; }
+#m365-export-tooltip .m365-start:hover { background: #f2f2f2; }
+#m365-export-tooltip .m365-start.m365-pending { color: #8a6d00; border-bottom-color: #c9a227; }
+#m365-export-tooltip input.m365-time-input { font: 12px "Segoe Sans","Segoe UI",sans-serif; width: 158px; padding: 1px 4px; border: 1px solid #ccc; border-radius: 5px; color: #242424; background: #fff; }`;
+      document.head.appendChild(st);
     }
 
     const ui = createController(btn, ringEl, tooltip);
     ui.updateLabel(adapter);
     ui.idle();               // 初始化状态 + 渲染下载图标
 
+    // ---- 增量导出提示：列表页 idle 时，tooltip 变成一行可交互的话 ----
+    //   · 无锚点 → “导出全部聊天”
+    //   · 有锚点 → “从 YYYY-MM-DD HH:mm 起导出”，点时间可改成任意起点
+    //   单击按钮 = 按这句话导出；Shift+单击 = 全量快键。
+    const HIDE_DELAY = 250;
+    let bubbleTimer = null;
+    let hoverInside = false;
+    let editingStart = false;
+
+    function anchorMs() {
+      return CONFIG.INCREMENTAL ? loadExportAnchor(adapter.id) : null;
+    }
+    function canSentence() {
+      return ui.isIdle() && !ui.isSingleMode && CONFIG.INCREMENTAL;
+    }
+    function buildSentenceBubble() {
+      tooltip.textContent = '';
+      const anchor = anchorMs();
+      if (!anchor) {
+        tooltip.style.pointerEvents = 'none';
+        tooltip.textContent = TXT.exportAll;
+        return;
+      }
+      tooltip.style.pointerEvents = 'auto';
+      const t = fmtStartStamp(exportStartOverrideMs ?? anchor);
+      if (LANG === 'zh') tooltip.appendChild(document.createTextNode('从 '));
+      else tooltip.appendChild(document.createTextNode('Export from '));
+      const span = document.createElement('span');
+      span.className = 'm365-start' + (exportStartOverrideMs !== null ? ' m365-pending' : '');
+      span.textContent = t;
+      span.title = TXT.editStart;
+      tooltip.appendChild(span);
+      if (LANG === 'zh') tooltip.appendChild(document.createTextNode(' 起导出'));
+    }
+    function showBubble() {
+      if (!ui.isIdle()) return;
+      if (editingStart) return;                 // 编辑器开着，别覆盖
+      tooltip.style.display = 'block';
+      if (canSentence()) {
+        buildSentenceBubble();
+      } else {
+        if (!tooltip.textContent) tooltip.textContent = ui.isSingleMode ? TXT.exportSingle : TXT.exportAll;
+        tooltip.style.pointerEvents = 'none';
+      }
+    }
+    function scheduleBubbleHide() {
+      clearTimeout(bubbleTimer);
+      bubbleTimer = setTimeout(() => {
+        if (editingStart || !ui.isIdle()) return;   // 编辑/导出/汇报期间不打断
+        tooltip.style.display = 'none';
+      }, HIDE_DELAY);
+    }
+    function openStartEditor() {
+      const anchor = anchorMs();
+      if (!anchor || editingStart) return;
+      editingStart = true;
+      tooltip.textContent = '';
+      const input = document.createElement('input');
+      input.type = 'datetime-local';
+      input.className = 'm365-time-input';
+      input.value = fmtStartInputValue(exportStartOverrideMs ?? anchor);
+      input.max = fmtStartInputValue(Date.now());
+      tooltip.appendChild(input);
+      tooltip.style.display = 'block';
+      tooltip.style.pointerEvents = 'auto';
+      input.focus();
+
+      const finalize = (apply) => {
+        if (!editingStart) return;
+        if (apply) {
+          const ms = parseStartInput(input.value);
+          if (ms !== null) exportStartOverrideMs = ms;
+        }
+        editingStart = false;
+        if (canSentence()) buildSentenceBubble();
+        else tooltip.textContent = '';
+        if (!hoverInside) tooltip.style.display = 'none';
+      };
+      input.addEventListener('change', () => finalize(true));
+      input.addEventListener('blur', () => finalize(true));
+      input.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape') finalize(false);   // 取消本次修改
+      });
+    }
+
+    // hover 热区 = 容器（按钮 + 气泡）；移开留 250ms 宽容，编辑中/导出中/汇报中不消失
+    container.addEventListener('mouseenter', () => {
+      hoverInside = true;
+      clearTimeout(bubbleTimer);
+      if (ui.isIdle()) {
+        ui.updateLabel(adapter);
+        showBubble();
+      } else if (tooltip.textContent) {
+        tooltip.style.display = 'block';           // 导出进度/汇报照常可读
+      }
+    });
+    container.addEventListener('mouseleave', () => {
+      hoverInside = false;
+      if (ui.isIdle()) scheduleBubbleHide();
+    });
+    tooltip.addEventListener('click', (e) => {
+      if (!canSentence()) return;
+      const target = e.target;
+      if (target && target.classList && target.classList.contains('m365-start')) openStartEditor();
+    });
+
     btn.onclick = async (e) => {
       if (!ui.isIdle()) return;
       ui.updateLabel(adapter);
-      if (e && e.shiftKey) {
-        // Shift+左键单击 = 强制全量导出：把增量锚点重置到最早，
-        // 然后走普通导出流程（锚点不存在 → 不过滤 → 全量），
-        // 导出结束后 saveExportAnchor 会自动把锚点推进到最新。
-        // 若导出失败锚点保持为空，下次点击仍是全量重试，失败会话不会丢失。
-        try { localStorage.removeItem('m365-export-anchor-' + adapter.id); } catch (e2) { /* ignore */ }
-      }
-      await startExportProcess(adapter, ui);
+      // 单击 = 按句子起点导出；Shift+单击 = 全量快键（本次起点=最早）
+      await startExportProcess(adapter, ui, { full: !!(e && e.shiftKey) });
     };
 
     btn.oncontextmenu = async (e) => {

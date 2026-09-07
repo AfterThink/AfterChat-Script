@@ -4,7 +4,7 @@
 
 AfterChat is a free, open-source **AI chat history exporter** — a userscript that backs up your LLM conversations with one click.
 
-Export chats from **ChatGPT, Gemini, DeepSeek, GLM (Z.ai / ChatGLM)** and 23 major AI platforms to **Markdown**, preserving **reasoning / thinking** and **citation sources**, for personal archive, migration and offline reading.
+Export chats from **ChatGPT, Claude, Gemini, DeepSeek, GLM** and 26 major AI platforms to **Markdown**, preserving **reasoning / thinking** and **citation sources**, for personal archive, migration and offline reading.
 
 After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-App-Download), you can also save the current conversation to your AfterChat workspace with one click.
 
@@ -13,6 +13,7 @@ After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-
 | Platform | Site |
 | --- | --- |
 | ChatGPT | `chatgpt.com` |
+| Claude | `claude.ai` |
 | Google Gemini | `gemini.google.com` |
 | Google AI Studio | `aistudio.google.com` |
 | M365 Copilot | `m365.cloud.microsoft` |
@@ -35,10 +36,12 @@ After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-
 | ChatGLM | `chatglm.cn` |
 | DuckDuckGo AI Chat | `duck.ai` |
 | Perplexity | `perplexity.ai` |
+| Poe | `poe.com` |
+| Monica | `monica.im` |
 
 ## ✨ Features
 
-- **Multi-platform support**: works with 23 major LLM platforms.
+- **Multi-platform support**: works with 26 major LLM platforms.
 - **Single or batch export**: exports the current conversation or all conversations at once.
 - **Incremental export**: on the list page, batch export skips conversations you've already downloaded (by update-time anchor) and only fetches new/updated ones — dramatically faster on repeat runs.
 - **Content fidelity**: exports include user messages, AI replies, **reasoning / thinking**, and **citation sources**.

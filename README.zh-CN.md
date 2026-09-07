@@ -4,7 +4,7 @@
 
 AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工具**。
 
-一键将 **ChatGPT、Gemini、DeepSeek、GLM（Z.ai / 智谱清言）** 等 23 个主流 AI 平台的聊天记录导出为 **Markdown 文件**，完整保留**思考过程（reasoning / thinking）**与**引用来源**，方便个人备份、迁移与离线阅读。
+一键将 **ChatGPT、Claude, Gemini、DeepSeek、GLM** 等 26 个主流 AI 平台的聊天记录导出为 **Markdown 文件**，完整保留**思考过程（reasoning / thinking）**与**引用来源**，方便个人备份、迁移与离线阅读。
 
 安装 [AfterChat 客户端](https://github.com/AfterThink/AfterChat-App-Download)后，支持一键保存当前对话到 AfterChat 工作区。
 
@@ -13,6 +13,7 @@ AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工�
 | 平台 | 站点 |
 | --- | --- |
 | ChatGPT | `chatgpt.com` |
+| Claude | `claude.ai` |
 | Google Gemini | `gemini.google.com` |
 | Google AI Studio | `aistudio.google.com` |
 | M365 Copilot | `m365.cloud.microsoft` |
@@ -35,10 +36,12 @@ AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工�
 | 智谱清言（ChatGLM） | `chatglm.cn` |
 | DuckDuckGo AI Chat | `duck.ai` |
 | Perplexity | `perplexity.ai` |
+| Poe | `poe.com` |
+| Monica | `monica.im` |
 
 ## ✨ 功能特性
 
-- **多平台适配**：支持 23 个主流 LLM 平台。
+- **多平台适配**：支持 26 个主流 LLM 平台。
 - **单条 / 批量导出**：同时支持导出当前对话和全部对话。
 - **增量导出**：列表页批量导出默认跳过已下载过的对话（按更新时间锚点），只拉取新增/更新的——重复导出大幅提速。
 - **内容保真**：导出内容包含用户消息、AI 回复、**思考过程（reasoning / thinking）**，以及**引用来源**。
