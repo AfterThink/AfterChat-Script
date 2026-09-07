@@ -4,7 +4,7 @@
 
 AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工具**。
 
-一键将 **ChatGPT、Claude, Gemini、DeepSeek、GLM** 等 26 个主流 AI 平台的聊天记录导出为 **Markdown 文件**，完整保留**思考过程（reasoning / thinking）**与**引用来源**，方便个人备份、迁移与离线阅读。
+一键将 **ChatGPT、Claude、Gemini、DeepSeek、GLM** 等 26 个主流 AI 平台的聊天记录导出为 **Markdown 文件**，完整保留**思考过程（reasoning / thinking）**与**引用来源**，方便个人备份、迁移与离线阅读。
 
 安装 [AfterChat 客户端](https://github.com/AfterThink/AfterChat-App-Download)后，支持一键保存当前对话到 AfterChat 工作区。
 
