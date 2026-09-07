@@ -4,7 +4,7 @@
 
 AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工具**。
 
-一键将 **ChatGPT、Claude、Gemini、DeepSeek、GLM** 等 26 个主流 AI 平台的聊天记录导出为 **Markdown 文件**，完整保留**思考过程（reasoning / thinking）**与**引用来源**，方便个人备份、迁移与离线阅读。
+一键将 **ChatGPT、Claude、Gemini、DeepSeek、GLM、千问** 等 26 个主流 AI 平台的聊天记录导出为 **Markdown 文件**，完整保留**思考过程（reasoning / thinking）**与**引用来源**，方便个人备份、迁移与离线阅读。
 
 安装 [AfterChat 客户端](https://github.com/AfterThink/AfterChat-App-Download)后，支持一键保存当前对话到 AfterChat 工作区。
 
@@ -15,29 +15,29 @@ AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工�
 | ChatGPT | `chatgpt.com` |
 | Claude | `claude.ai` |
 | Google Gemini | `gemini.google.com` |
-| Google AI Studio | `aistudio.google.com` |
-| M365 Copilot | `m365.cloud.microsoft` |
-| Microsoft Copilot | `copilot.microsoft.com` |
 | Grok (xAI) | `x.com/i/grok` |
 | DeepSeek | `chat.deepseek.com` |
-| Qwen（通义千问） | `chat.qwen.ai` |
+| Microsoft Copilot | `copilot.microsoft.com` |
+| M365 Copilot | `m365.cloud.microsoft` |
+| Perplexity | `perplexity.ai` |
 | Kimi | `kimi.com` |
+| 豆包 | `doubao.com` |
+| 智谱清言（ChatGLM） | `chatglm.cn` |
+| Z.ai（GLM） | `chat.z.ai` |
+| Qwen（通义千问） | `chat.qwen.ai` |
 | 千问 | `qianwen.com` |
+| Poe | `poe.com` |
 | 腾讯元宝 | `yuanbao.tencent.com` |
 | 腾讯混元 | `aistudio.tencent.com` / `aistudio.tencent.ai` |
 | MiniMax | `agent.minimax.io` / `agent.minimaxi.com` |
 | Mistral Le Chat | `chat.mistral.ai` |
-| Sakana AI | `chat.sakana.ai` |
-| 豆包 | `doubao.com` |
-| Dola | `dola.com` |
-| Arena AI | `arena.ai` |
-| 腾讯 ima | `ima.qq.com` |
-| Z.ai（GLM） | `chat.z.ai` |
-| 智谱清言（ChatGLM） | `chatglm.cn` |
-| DuckDuckGo AI Chat | `duck.ai` |
-| Perplexity | `perplexity.ai` |
-| Poe | `poe.com` |
 | Monica | `monica.im` |
+| Google AI Studio | `aistudio.google.com` |
+| DuckDuckGo AI Chat | `duck.ai` |
+| 腾讯 ima | `ima.qq.com` |
+| Sakana AI | `chat.sakana.ai` |
+| Arena AI | `arena.ai` |
+| Dola | `dola.com` |
 
 ## ✨ 功能特性
 

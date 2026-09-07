@@ -4,7 +4,7 @@
 
 AfterChat is a free, open-source **AI chat history exporter** — a userscript that backs up your LLM conversations with one click.
 
-Export chats from **ChatGPT, Claude, Gemini, DeepSeek, GLM** and 26 major AI platforms to **Markdown**, preserving **reasoning / thinking** and **citation sources**, for personal archive, migration and offline reading.
+Export chats from **ChatGPT, Claude, Gemini, DeepSeek, GLM, Qwen** and 26 major AI platforms to **Markdown**, preserving **reasoning / thinking** and **citation sources**, for personal archive, migration and offline reading.
 
 After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-App-Download), you can also save the current conversation to your AfterChat workspace with one click.
 
@@ -15,29 +15,29 @@ After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-
 | ChatGPT | `chatgpt.com` |
 | Claude | `claude.ai` |
 | Google Gemini | `gemini.google.com` |
-| Google AI Studio | `aistudio.google.com` |
-| M365 Copilot | `m365.cloud.microsoft` |
-| Microsoft Copilot | `copilot.microsoft.com` |
 | Grok (xAI) | `x.com/i/grok` |
 | DeepSeek | `chat.deepseek.com` |
-| Qwen | `chat.qwen.ai` |
+| Microsoft Copilot | `copilot.microsoft.com` |
+| M365 Copilot | `m365.cloud.microsoft` |
+| Perplexity | `perplexity.ai` |
 | Kimi | `kimi.com` |
+| Doubao | `doubao.com` |
+| ChatGLM | `chatglm.cn` |
+| Z.ai | `chat.z.ai` |
+| Qwen | `chat.qwen.ai` |
 | Qianwen | `qianwen.com` |
+| Poe | `poe.com` |
 | Tencent Yuanbao | `yuanbao.tencent.com` |
 | Tencent Hunyuan | `aistudio.tencent.com` / `aistudio.tencent.ai` |
 | MiniMax | `agent.minimax.io` / `agent.minimaxi.com` |
 | Mistral Le Chat | `chat.mistral.ai` |
-| Sakana AI | `chat.sakana.ai` |
-| Doubao | `doubao.com` |
-| Dola | `dola.com` |
-| Arena AI | `arena.ai` |
-| Tencent IMA | `ima.qq.com` |
-| Z.ai | `chat.z.ai` |
-| ChatGLM | `chatglm.cn` |
-| DuckDuckGo AI Chat | `duck.ai` |
-| Perplexity | `perplexity.ai` |
-| Poe | `poe.com` |
 | Monica | `monica.im` |
+| Google AI Studio | `aistudio.google.com` |
+| DuckDuckGo AI Chat | `duck.ai` |
+| Tencent IMA | `ima.qq.com` |
+| Sakana AI | `chat.sakana.ai` |
+| Arena AI | `arena.ai` |
+| Dola | `dola.com` |
 
 ## ✨ Features
 

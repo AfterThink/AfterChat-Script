@@ -17,53 +17,54 @@
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
 // @version      1.15.0
-// @description  Export chat history from Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, Perplexity
-// @description:zh-CN  一键导出 Claude、Monica、Poe、ChatGPT、Gemini、DeepSeek、通义千问、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、腾讯元宝、腾讯混元、MiniMax、Mistral、Sakana AI、千问、Arena AI、腾讯 ima、Z.ai、智谱清言、DuckDuckGo AI Chat、Perplexity 的聊天记录
-// @description:zh-TW  一鍵匯出 Claude、Monica、Poe、ChatGPT、Gemini、DeepSeek、通義千問、Kimi、豆包、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、騰訊元寶、騰訊混元、MiniMax、Mistral、Sakana AI、千問、Arena AI、騰訊 ima、Z.ai、智譜清言、DuckDuckGo AI Chat、Perplexity 的聊天記錄
-// @description:ja  Claude、Monica、Poe、ChatGPT、Gemini、DeepSeek、Qwen、Kimi、Doubao、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Sakana AI、Qianwen、Arena AI、Tencent IMA、Z.ai、ChatGLM、DuckDuckGo AI Chat、Perplexity などのチャット履歴をワンクリックで書き出し
-// @description:ko  Claude、Monica、Poe、ChatGPT、Gemini、DeepSeek、Qwen、Kimi、Doubao、Dola、Grok、Google AI Studio、Microsoft Copilot、M365 Copilot、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Sakana AI、Qianwen、Arena AI、Tencent IMA、Z.ai、ChatGLM、DuckDuckGo AI Chat、Perplexity  등 LLM 채팅 기록을 원클릭으로 내보내기
-// @description:es  Exporta con un clic el historial de chat de Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat y Perplexity
-// @description:fr  Exportez en un clic l'historique de vos conversations Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat et Perplexity
-// @description:de  Chatverläufe von Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat und Perplexity mit einem Klick exportieren
-// @description:pt-BR  Exporte com um clique o histórico de chats do Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat e Perplexity
-// @description:ru  Экспортируйте в один клик историю чатов Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat и Perplexity
-// @description:it  Esporta con un clic la cronologia delle chat di Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat e Perplexity
-// @description:vi  Xuất lịch sử trò chuyện từ Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat và Perplexity chỉ với một cú nhấp chuột
-// @description:id  Ekspor riwayat chat dari Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat, dan Perplexity dengan sekali klik
-// @description:th  ส่งออกประวัติแชทจาก Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat และ Perplexity ด้วยคลิกเดียว
-// @description:tr  Claude, Monica, Poe, ChatGPT, Gemini, DeepSeek, Qwen, Kimi, Doubao, Dola, Grok, Google AI Studio, Microsoft Copilot, M365 Copilot, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Sakana AI, Qianwen, Arena AI, Tencent IMA, Z.ai, ChatGLM, DuckDuckGo AI Chat ve Perplexity sohbet geçmişini tek tıkla dışa aktarın
-// @description:ar  صدّر سجل المحادثات من Claude وMonica وPoe وChatGPT وGemini وDeepSeek وQwen وKimi وDoubao وDola وGrok وGoogle AI Studio وMicrosoft Copilot وM365 Copilot وTencent Yuanbao وTencent Hunyuan وMiniMax وMistral وSakana AI وQianwen وArena AI وTencent IMA وZ.ai وChatGLM وDuckDuckGo AI Chat وPerplexity بنقرة واحدة
+// 站点名单统一按“活跃规模 × 生态重要性”排序（≈流量），新增站点请插入到合理位置并同步 @match 及各语言列表
+// @description  Export chat history from ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola
+// @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola 的聊天记录
+// @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola 的聊天記錄
+// @description:ja  ChatGPT、Claude、Gemini、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、Doubao、ChatGLM、Z.ai、Qwen、Qianwen、Poe、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、Tencent IMA、Sakana AI、Arena AI、Dola などのチャット履歴をワンクリックで書き出し
+// @description:ko  ChatGPT、Claude、Gemini、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、Doubao、ChatGLM、Z.ai、Qwen、Qianwen、Poe、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、Tencent IMA、Sakana AI、Arena AI、Dola  등 LLM 채팅 기록을 원클릭으로 내보내기
+// @description:es  Exporta con un clic el historial de chat de ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI y Dola
+// @description:fr  Exportez en un clic l'historique de vos conversations ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI et Dola
+// @description:de  Chatverläufe von ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI und Dola mit einem Klick exportieren
+// @description:pt-BR  Exporte com um clique o histórico de chats do ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI e Dola
+// @description:ru  Экспортируйте в один клик историю чатов ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI и Dola
+// @description:it  Esporta con un clic la cronologia delle chat di ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI e Dola
+// @description:vi  Xuất lịch sử trò chuyện từ ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI và Dola chỉ với một cú nhấp chuột
+// @description:id  Ekspor riwayat chat dari ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, dan Dola dengan sekali klik
+// @description:th  ส่งออกประวัติแชทจาก ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI และ Dola ด้วยคลิกเดียว
+// @description:tr  ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI ve Dola sohbet geçmişini tek tıkla dışa aktarın
+// @description:ar  صدّر سجل المحادثات من ChatGPT وClaude وGemini وGrok وDeepSeek وMicrosoft Copilot وM365 Copilot وPerplexity وKimi وDoubao وChatGLM وZ.ai وQwen وQianwen وPoe وTencent Yuanbao وTencent Hunyuan وMiniMax وMistral وMonica وGoogle AI Studio وDuckDuckGo AI Chat وTencent IMA وSakana AI وArena AI وDola بنقرة واحدة
 // @author       AfterThink Studio
 // @license      AGPL-3.0
-// @match        https://m365.cloud.microsoft/chat*
-// @match        https://ima.qq.com/*
-// @match        https://chat.z.ai/*
-// @match        https://chatglm.cn/*
-// @match        https://duck.ai/*
+// @match        https://chatgpt.com/*
 // @match        https://claude.ai/*
 // @match        https://claude.com/*
-// @match        https://monica.im/*
-// @match        https://poe.com/*
-// @match        https://chatgpt.com/*
-// @match        https://chat.mistral.ai/*
-// @match        https://chat.sakana.ai/*
+// @match        https://gemini.google.com/*
+// @match        https://x.com/i/grok*
 // @match        https://chat.deepseek.com/*
+// @match        https://copilot.microsoft.com/*
+// @match        https://m365.cloud.microsoft/chat*
+// @match        https://www.perplexity.ai/*
+// @match        https://www.kimi.com/*
+// @match        https://www.doubao.com/*
+// @match        https://chatglm.cn/*
+// @match        https://chat.z.ai/*
 // @match        https://chat.qwen.ai/*
 // @match        https://www.qianwen.com/*
+// @match        https://poe.com/*
 // @match        https://yuanbao.tencent.com/*
-// @match        https://copilot.microsoft.com/*
+// @match        https://agent.minimax.io/*
+// @match        https://agent.minimaxi.com/*
+// @match        https://chat.mistral.ai/*
+// @match        https://monica.im/*
 // @match        https://aistudio.google.com/*
 // @match        https://aistudio.tencent.com/*
 // @match        https://aistudio.tencent.ai/*
-// @match        https://x.com/i/grok*
-// @match        https://gemini.google.com/*
-// @match        https://www.kimi.com/*
-// @match        https://www.doubao.com/*
-// @match        https://www.dola.com/*
+// @match        https://duck.ai/*
+// @match        https://ima.qq.com/*
+// @match        https://chat.sakana.ai/*
 // @match        https://arena.ai/*
-// @match        https://www.perplexity.ai/*
-// @match        https://agent.minimax.io/*
-// @match        https://agent.minimaxi.com/*
+// @match        https://www.dola.com/*
 // @icon         https://avatars.githubusercontent.com/u/266756423?s=400&u=d38fce2849e95af734f50228d5195fcdf1c7719e&v=4
 // @grant        none
 // @run-at       document-idle
