@@ -16,23 +16,22 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.16.0
-// 站点名单统一按“活跃规模 × 生态重要性”排序（≈流量），新增站点请插入到合理位置并同步 @match 及各语言列表
-// @description  Export chat history from ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola
-// @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola 的聊天记录
-// @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola 的聊天記錄
-// @description:ja  ChatGPT、Claude、Gemini、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、Doubao、ChatGLM、Z.ai、Qwen、Qianwen、Poe、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、Tencent IMA、Sakana AI、Arena AI、Dola などのチャット履歴をワンクリックで書き出し
-// @description:ko  ChatGPT、Claude、Gemini、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、Doubao、ChatGLM、Z.ai、Qwen、Qianwen、Poe、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、Tencent IMA、Sakana AI、Arena AI、Dola  등 LLM 채팅 기록을 원클릭으로 내보내기
-// @description:es  Exporta con un clic el historial de chat de ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI y Dola
-// @description:fr  Exportez en un clic l'historique de vos conversations ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI et Dola
-// @description:de  Chatverläufe von ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI und Dola mit einem Klick exportieren
-// @description:pt-BR  Exporte com um clique o histórico de chats do ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI e Dola
-// @description:ru  Экспортируйте в один клик историю чатов ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI и Dola
-// @description:it  Esporta con un clic la cronologia delle chat di ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI e Dola
-// @description:vi  Xuất lịch sử trò chuyện từ ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI và Dola chỉ với một cú nhấp chuột
-// @description:id  Ekspor riwayat chat dari ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, dan Dola dengan sekali klik
-// @description:th  ส่งออกประวัติแชทจาก ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI และ Dola ด้วยคลิกเดียว
-// @description:tr  ChatGPT, Claude, Gemini, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI ve Dola sohbet geçmişini tek tıkla dışa aktarın
+// @version      1.17.5
+// @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola
+// @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola 的聊天记录
+// @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola 的聊天記錄
+// @description:ja  ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、Doubao、ChatGLM、Z.ai、Qwen、Qianwen、Poe、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、Tencent IMA、Sakana AI、Arena AI、Dola などのチャット履歴をワンクリックで書き出し
+// @description:ko  ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、Doubao、ChatGLM、Z.ai、Qwen、Qianwen、Poe、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、Tencent IMA、Sakana AI、Arena AI、Dola  등 LLM 채팅 기록을 원클릭으로 내보내기
+// @description:es  Exporta con un clic el historial de chat de ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI y Dola
+// @description:fr  Exportez en un clic l'historique de vos conversations ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI et Dola
+// @description:de  Chatverläufe von ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI und Dola mit einem Klick exportieren
+// @description:pt-BR  Exporte com um clique o histórico de chats do ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI e Dola
+// @description:ru  Экспортируйте в один клик историю чатов ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI и Dola
+// @description:it  Esporta con un clic la cronologia delle chat di ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI e Dola
+// @description:vi  Xuất lịch sử trò chuyện từ ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI và Dola chỉ với một cú nhấp chuột
+// @description:id  Ekspor riwayat chat dari ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, dan Dola dengan sekali klik
+// @description:th  ส่งออกประวัติแชทจาก ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI และ Dola ด้วยคลิกเดียว
+// @description:tr  ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI ve Dola sohbet geçmişini tek tıkla dışa aktarın
 // @description:ar  صدّر سجل المحادثات من ChatGPT وClaude وGemini وGrok وDeepSeek وMicrosoft Copilot وM365 Copilot وPerplexity وKimi وDoubao وChatGLM وZ.ai وQwen وQianwen وPoe وTencent Yuanbao وTencent Hunyuan وMiniMax وMistral وMonica وGoogle AI Studio وDuckDuckGo AI Chat وTencent IMA وSakana AI وArena AI وDola بنقرة واحدة
 // @author       AfterThink Studio
 // @license      AGPL-3.0
@@ -40,6 +39,8 @@
 // @match        https://claude.ai/*
 // @match        https://claude.com/*
 // @match        https://gemini.google.com/*
+// @match        https://www.google.com/search*
+// @match        https://www.google.com/ai*
 // @match        https://x.com/i/grok*
 // @match        https://chat.deepseek.com/*
 // @match        https://copilot.microsoft.com/*
@@ -87,7 +88,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // =============================================================
-//  📜 Changelog（完整版见仓库根 CHANGELOG.md）
+//  📜 Changelog 
 // =============================================================
 //  1.1.0 (2026-08-05)
 //    - 新增 arena.ai 适配器：battle / side-by-side / direct-chat / agent
@@ -173,6 +174,33 @@
 //    - duck.ai 支持单条导出：打开会话时 document.title = 会话标题，取它当定位串反查
 //      IndexedDB（saved-chats 按 title 对齐匹配，多条同名取 lastEdit 最新）→ 单条 .md；
 //      首页/未开会话（固定站点标题）仍走全部导出；定位不到报错，绝不静默全量
+//  1.17.0 (2026-09-08)
+//    - 新增 Google AI Mode（www.google.com/ai → /search?udm=50 AI 模式）适配器：
+//      列表 AimThreadsService/ListThreads（mtid + mstk + q 元数据）
+//      + 详情隐藏 iframe 导航线程页（fetch 拿不到个性化内容，必须真导航）+ DOM 提取
+//      （段落/小节标题/嵌套列表/表格/引用 chip→[N] References）；支持单条/全部导出；
+//      单条导出缺精确时间时回查 ListThreads 补 updatedMs
+//    - Gemini 导出补 Time：每回合自带时间戳 turn[4]=[秒,纳秒]，取最新回合作为最后活跃时间
+//  1.17.1 (2026-09-08)
+//    - 列表页 Shift 悬停预览全量快键：按住 Shift 悬停按钮时，气泡从“从 {时间} 起导出”
+//      临时换成“Shift + 单击全部导出”，松开即恢复；无锚点/编辑中不切换（详见 spec）
+//  1.17.2 (2026-09-08)
+//    - 修复 Perplexity（pplx）详情接口失效：补齐站点新增的客户端校验请求头
+//      （X-Perplexity-Request-Reason: view-thread、X-Perplexity-Request-Endpoint、
+//      X-Request-ID 等及 credentials: 'include'），解决 /rest/thread/{uuid} 报 403 问题
+//  1.17.3 (2026-09-08)
+//    - 修复 duck.ai 新聊天/首页状态误识别为单条会话报错：
+//      放宽首页固定标题判断（支持中文等本地化站点标题 /^Duck\.ai.*DuckDuckGo/i），
+//      并增加模式卡片入口 [data-testid="mode-entry-points"] DOM 检查，返回 null 走全部导出；
+//      watchURL 增加会话 ID 变更检查，在无 URL 变化的 SPA 中即时刷新按钮状态
+//  1.17.4 (2026-09-08)
+//    - 修复 duck.ai 普通回复（无思考链/引用，parts 为空）漏导出助手内容：
+//      _assistantParts 增加 msg.content 回退，保证纯文本回答完整导出
+//  1.17.5 (2026-09-08)
+//    - 修复 duck.ai 批量下载每次全量导出（增量过滤失效）：
+//      Duck.ai IndexedDB 中 lastEdit 为原生 Date 实例，normalizeTimestamp 补充 Date 对象
+//      （及 getTime() 接口）毫秒解析；解决时间被判为 null 导致全部会话被强制全量导出的问题；
+//      _findByTitle 比较 lastEdit 同样使用 normalizeTimestamp 归一化时间戳
 // =============================================================
 
 (function () {
@@ -1422,10 +1450,24 @@
       detect: () => window.location.hostname === 'duck.ai',
 
       getCurrentConversationId: () => {
+        // 1. 若处于未开始对话的新聊天/首页状态（存在模式卡片入口），视为首页（全部导出）
+        try {
+          if (
+            typeof document !== 'undefined' &&
+            document.querySelector &&
+            document.querySelector('[data-testid="mode-entry-points"]')
+          ) {
+            return null;
+          }
+        } catch (_) {}
+
         const t = (document.title || '').trim();
-        // 首页/未打开任何会话时的固定标题（duck.ai 官方文案，前缀判断即可）
-        if (/^Duck\.ai by DuckDuckGo/i.test(t)) return null;
-        return t ? 't:' + t : null;   // 会话打开中：标题即定位串
+        // 2. 首页/未打开任何会话时的固定标题（各语言版本均为 Duck.ai 开头并包含 DuckDuckGo，
+        //    如 EN: Duck.ai by DuckDuckGo. Private AI chat. Free.
+        //    或 ZH: Duck.ai 是由 DuckDuckGo 提供的免费人工智能聊天/私聊工具。）
+        if (!t || /^Duck\.ai.*DuckDuckGo/i.test(t)) return null;
+
+        return 't:' + t;   // 会话打开中：标题即定位串
       },
 
       /** 打开 IndexedDB */
@@ -1521,7 +1563,9 @@
           const chat = await this._get(db, k);
           if (!chat) continue;
           if (this._normTitle(chat.title) !== want) continue;
-          if (!best || (chat.lastEdit || '') > (best.lastEdit || '')) best = chat;
+          const tCur = normalizeTimestamp(chat.lastEdit) || 0;
+          const tBest = normalizeTimestamp(best?.lastEdit) || 0;
+          if (!best || tCur > tBest) best = chat;
         }
         return best;
       },
@@ -1653,6 +1697,9 @@
           }
           // tool-invocation 等中间产物跳过
         }
+        if (!responseText && msg?.content) {
+          responseText = msg.content.trim();
+        }
         return { thoughts, sources, responseText };
       },
     },
@@ -1673,11 +1720,26 @@
         return match ? match[1] : null;
       },
 
-      _threadHeaders() {
-        return {
+      _threadHeaders(url) {
+        const fullUrl = url
+          ? (url.startsWith('http') ? url : (typeof window !== 'undefined' && window.location?.origin ? window.location.origin : 'https://www.perplexity.ai') + url)
+          : '';
+        const headers = {
+          'accept': 'application/json',
           'x-app-apiclient': 'default',
           'x-app-apiversion': '2.18',
+          'x-request-id':
+            typeof crypto !== 'undefined' && crypto.randomUUID
+              ? crypto.randomUUID()
+              : Math.random().toString(36).slice(2) + Date.now().toString(36),
+          'x-perplexity-request-reason': 'view-thread',
+          'x-perplexity-request-endpoint': fullUrl,
         };
+        try {
+          const activeAccount = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('pplx-active-account') : null;
+          if (activeAccount) headers['x-pplx-account'] = activeAccount;
+        } catch (_) {}
+        return headers;
       },
 
       /** 详情接口查询串（与站点前端一致的最小参数集） */
@@ -1734,7 +1796,10 @@
 
         for (let i = 0; i < 200; i++) {
           const url = `/rest/thread/${id}?` + this._threadQuery(limit, offset, fromFirst);
-          const r = await fetch(url, { headers: this._threadHeaders() });
+          const r = await fetch(url, {
+            headers: this._threadHeaders(url),
+            credentials: 'include',
+          });
           if (!r.ok) throw new Error(`API ${r.status}: ${r.statusText}`);
           body = await r.json();
           allEntries.push(...(body.entries || []));
@@ -5156,7 +5221,16 @@
         const data = await this._rpc('hNvQHb', proto, '/app/' + id);
         // 标题优先用列表缓存，否则查列表接口（详情接口不含标题）
         const title = (this._titleCache && this._titleCache[id]) || await this._lookupTitle(id);
-        return { turns: (data && data[0]) || [], title };
+        // 时间：每个回合自带时间戳 turn[4]=[秒,纳秒]，最新回合的即最后活跃时间（详情接口就有，无需回查列表）
+        const turns = (data && data[0]) || [];
+        let updatedMs = null;
+        if (turns.length) {
+          const ts = turns[0][4];
+          if (Array.isArray(ts) && typeof ts[0] === 'number') {
+            updatedMs = ts[0] * 1000 + Math.floor((ts[1] || 0) / 1e6);
+          }
+        }
+        return { turns, title, updatedMs };
       },
 
       /** 将 Gemini 对话数据转为 Markdown */
@@ -5189,7 +5263,7 @@
         lines.push('## Metadata');
         lines.push('');
         lines.push('- **Model:** `' + model + '`');
-        lines.push('- **Time:** unknown');
+        lines.push('- **Time:** ' + ((data && data.updatedMs) ? formatLocalTime(new Date(data.updatedMs)) : 'unknown'));
         lines.push(`- **URL:** ${convUrl}`);
         lines.push('');
         lines.push('## Conversation');
@@ -5266,6 +5340,448 @@
           }
         }
 
+        return lines.join('\n');
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[gaim]  Google AI Mode (google.com/ai)
+    // ═══════════════════════════════════════════════════════
+    // www.google.com/ai 会跳转到 /search?udm=50（AI 模式），左侧“线程”即对话历史。
+    //   - 列表：AimThreadsService/ListThreads（GET /httpservice/web/...，返回 [线程, 游标, flag]）
+    //   - 详情：无 JSON 接口。线程对话由服务端渲染在
+    //     /search?udm=50&mtid=<id>&mstk=<token>&csuir=1&q=<标题>&atvm=2&aep=26
+    //     页面里（fetch 请求拿不到个性化内容，必须真导航），故用隐藏 iframe 导航 + DOM 提取。
+    //   正文语义块：div.n6owBd（段落）/ div.otQkpb（小节标题→加粗）/ ul.KsbFXc（列表）/
+    //   table.NRefec（表格）；引用 chip（span.WBgIic）内嵌 a.PMDqCb → [N] 汇总 References。
+    {
+      id: 'gaim',
+      name: 'Google AI Mode',
+      detect: () => {
+        try {
+          if (window.location.hostname !== 'www.google.com') return false;
+          const p = window.location.pathname;
+          if (p.startsWith('/ai')) return true; // google.com/ai 入口（未跳转时兜底）
+          if (p.startsWith('/search') || p === '/') {
+            return new URLSearchParams(window.location.search).get('udm') === '50';
+          }
+        } catch (e) { /* ignore */ }
+        return false;
+      },
+
+      getCurrentConversationId: () => {
+        try {
+          const m = new URLSearchParams(window.location.search).get('mtid');
+          return m ? m : null; // AI 模式首页/新对话无 mtid → 全部导出
+        } catch (e) { return null; }
+      },
+
+      /** 列表元数据缓存：mtid -> { title, mstk, createdMs, updatedMs } */
+      _threadsMeta: new Map(),
+
+      /** 调 ListThreads：reqpld=[游标,null,0]，第一页传 null */
+      async _listThreads(cursor) {
+        const reqpld = cursor ? `[null,${JSON.stringify(cursor)},0]` : '[null,null,0]';
+        const url = '/httpservice/web/AimThreadsService/ListThreads?aep=26&udm=50&reqpld='
+          + encodeURIComponent(reqpld) + '&msc=gwsclient&opi=89978449';
+        const resp = await fetch(url, { credentials: 'include' });
+        if (!resp.ok) throw new Error(`ListThreads ${resp.status}: ${resp.statusText}`);
+        const text = await resp.text();
+        return JSON.parse(text.replace(/^\)\]\}['"]?\s*\n?/, ''));
+      },
+
+      /** 解析 ListThreads 响应 → { threads:[{id,title,mstk,createdMs,updatedMs}], cursor } */
+      _parseThreadList(raw) {
+        const list = Array.isArray(raw) && Array.isArray(raw[0]) ? raw[0] : [];
+        const threads = [];
+        for (const c of list) {
+          if (!Array.isArray(c)) continue;
+          const kv = {};
+          const metaPairs = Array.isArray(c[22]) ? c[22] : [];
+          for (const pair of metaPairs) {
+            if (Array.isArray(pair) && pair.length >= 2) kv[pair[0]] = pair[1];
+          }
+          // 线程条目形如 [ [mstkToken, mtid], 标题, …, [秒,纳秒]创建, [秒,纳秒]更新, …, metaPairs, …]
+          const id = kv.mtid || (Array.isArray(c[0]) ? c[0][1] : '') || '';
+          if (!id) continue;
+          const title = (typeof c[1] === 'string' && c[1].trim()) || '';
+          const toMs = (t) => (Array.isArray(t)
+            ? t[0] * 1000 + Math.floor((t[1] || 0) / 1e6)
+            : null);
+          threads.push({
+            id,
+            title,
+            mstk: kv.mstk || (Array.isArray(c[0]) ? c[0][0] : '') || '',
+            createdMs: toMs(c[5]),
+            updatedMs: toMs(c[6]),
+          });
+        }
+        const cursor = (Array.isArray(raw) && typeof raw[1] === 'string' && raw[1]) ? raw[1] : null;
+        return { threads, cursor };
+      },
+
+      async getAllConversations(onProgress) {
+        const all = [];
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        let cursor = null;
+        for (let i = 0; i < 50; i++) {
+          const raw = await this._listThreads(cursor);
+          const { threads, cursor: next } = this._parseThreadList(raw);
+          for (const t of threads) {
+            if (this._threadsMeta.has(t.id)) {
+              // 只补缺字段，不重复 push
+              const prev = this._threadsMeta.get(t.id);
+              this._threadsMeta.set(t.id, { ...prev, ...t });
+              continue;
+            }
+            this._threadsMeta.set(t.id, t);
+            all.push({
+              id: t.id,
+              title: t.title,
+              updateTimeUtc: t.updatedMs,
+              t: t.updatedMs,
+            });
+          }
+          if (onProgress) onProgress(all.length);
+          if (!next) break;
+          cursor = next;
+          if (all.length >= limit) break;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+        return all.slice(0, limit);
+      },
+
+      /** 拼线程页 URL（mtid + mstk + q + atvm/aep 是服务端渲染线程对话的必要参数） */
+      _threadUrl(id, meta) {
+        const base = new URL('https://www.google.com/search');
+        base.searchParams.set('udm', '50');
+        base.searchParams.set('mtid', id);
+        base.searchParams.set('csuir', '1');
+        if (meta.mstk) base.searchParams.set('mstk', meta.mstk);
+        if (meta.title) base.searchParams.set('q', meta.title);
+        base.searchParams.set('atvm', '2');
+        base.searchParams.set('aep', '26');
+        return base.href;
+      },
+
+      /** 找某线程元数据：先查缓存；当前页就是该线程时从 URL 抄参数 */
+      _metaOf(id) {
+        const cached = this._threadsMeta.get(String(id));
+        if (cached) return cached;
+        try {
+          if (this.getCurrentConversationId() === String(id)) {
+            const qs = new URLSearchParams(window.location.search);
+            return {
+              id: String(id),
+              title: qs.get('q') || '',
+              mstk: qs.get('mstk') || '',
+              createdMs: null,
+              updatedMs: null,
+            };
+          }
+        } catch (e) { /* ignore */ }
+        return null;
+      },
+
+      /** 翻 ListThreads 找某线程元数据（含精确时间），找不到返回 null；顺带填充缓存 */
+      async _lookupMeta(id) {
+        const s = String(id);
+        const cached = this._threadsMeta.get(s);
+        if (cached && cached.updatedMs) return cached;
+        let cursor = null;
+        for (let i = 0; i < 50; i++) {
+          const raw = await this._listThreads(cursor);
+          const { threads, cursor: next } = this._parseThreadList(raw);
+          for (const t of threads) this._threadsMeta.set(t.id, t);
+          const hit = this._threadsMeta.get(s);
+          if (hit) return hit;
+          if (!next) break;
+          cursor = next;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+        return null;
+      },
+
+      /** 本轮包含几个用户提问 = 渲染了几个对话回合 */
+      _countTurns(doc) {
+        try {
+          let n = 0;
+          for (const el of doc.querySelectorAll('div.CKgc1d')) {
+            if (!(el.parentElement && el.parentElement.closest('div.CKgc1d')) && el.querySelector('h2.iMqumd')) n++;
+          }
+          return n;
+        } catch (e) { return 0; }
+      },
+
+      /** 隐藏 iframe 打开线程页并解析（fetch 拿不到 AI 模式个性化正文，必须真导航） */
+      _loadOneThreadDoc(url) {
+        return new Promise((resolve, reject) => {
+          let settled = false;
+          const frame = document.createElement('iframe');
+          frame.style.cssText = 'display:none;width:1px;height:1px;border:0;';
+          frame.setAttribute('tabindex', '-1');
+          frame.setAttribute('aria-hidden', 'true');
+          const cleanup = () => { try { frame.remove(); } catch (e) { /* ignore */ } };
+          const done = (fn, v) => { if (settled) return; settled = true; cleanup(); fn(v); };
+          const deadAt = Date.now() + 30000;
+          const poll = () => {
+            let doc = null;
+            try { doc = frame.contentDocument; } catch (e) { /* 跨域/未就绪 */ }
+            if (doc && this._countTurns(doc) > 0) {
+              clearInterval(iv);
+              done(resolve, doc);
+              return;
+            }
+            if (Date.now() > deadAt) {
+              clearInterval(iv);
+              done(reject, new Error('线程页等待对话内容超时'));
+            }
+          };
+          const iv = setInterval(poll, 400);
+          frame.addEventListener('load', () => poll());
+          try { document.body.appendChild(frame); } catch (e) { clearInterval(iv); done(reject, e); return; }
+          frame.src = url;
+          setTimeout(() => { clearInterval(iv); done(reject, new Error('线程页导航超时')); }, 32000);
+        });
+      },
+
+      /** 打开线程页（带重试：偶发返回无内容的降级页/风控页，间隔重试） */
+      async _openThreadDoc(id, meta) {
+        const url = this._threadUrl(id, meta);
+        let lastErr = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          if (attempt) await sleep(2500 * attempt);
+          try {
+            const doc = await this._loadOneThreadDoc(url);
+            return this._parseThreadDoc(doc, url, meta);
+          } catch (e) { lastErr = e; }
+        }
+        throw lastErr || new Error('无法加载线程页');
+      },
+
+      /** 从线程页 DOM 提取对话 → 归一化数据 */
+      _parseThreadDoc(doc, url, meta) {
+        const messages = [];
+        for (const el of doc.querySelectorAll('div.CKgc1d')) {
+          if (el.parentElement && el.parentElement.closest('div.CKgc1d')) continue; // 只要最外层回合
+          const h2 = el.querySelector('h2.iMqumd');
+          const userText = h2 ? h2.textContent.replace(/^您说：/, '').trim() : '';
+          if (userText) messages.push({ role: 'user', text: userText });
+          const bodyMd = this._extractAnswerMd(el);
+          if (bodyMd) messages.push({ role: 'assistant', text: bodyMd });
+        }
+        if (!messages.length) throw new Error('线程内容为空');
+        return {
+          id: meta.id || String(url.match(/mtid=([^&]+)/)?.[1] || ''),
+          title: meta.title || (messages[0]?.text) || 'untitled',
+          model: 'Gemini (AI Mode)',
+          url,
+          timeMs: meta.updatedMs || meta.createdMs || null,
+          messages,
+        };
+      },
+
+      /** 回合内全部 pWvJNd 正文 → markdown 字符串（引用跨块连续编号，末尾汇总 References） */
+      _extractAnswerMd(turnEl) {
+        const refs = [];
+        const blocks = [];
+        for (const pWvJNd of turnEl.querySelectorAll('div.pWvJNd')) {
+          blocks.push(...this._bodyBlocks(pWvJNd, refs));
+        }
+        if (!blocks.length) return '';
+        const chunks = [];
+        for (const b of blocks) {
+          const piece = b.type === 'table' || b.type === 'list' ? b.md : b.text;
+          if (piece) chunks.push(piece);
+        }
+        let md = chunks.join('\n\n');
+        if (refs.length) {
+          md += '\n\n#### References\n\n';
+          md += refs
+            .map((r) => (r.title ? `- [${r.n}] ${r.title} ${r.url}` : `- [${r.n}] ${r.url}`))
+            .join('\n');
+        }
+        return md.trim();
+      },
+
+      /** 收集 pWvJNd 内的顶层内容块（段落/小节标题/列表/表格），引用写进 refs */
+      _bodyBlocks(pWvJNd, refs) {
+        const blocks = [];
+        const ALLOW = 'div.n6owBd.awi2gc, div.otQkpb, ul.KsbFXc, table.NRefec';
+        for (const el of pWvJNd.querySelectorAll(ALLOW)) {
+          if (el.closest('.DBd2Wb, .RkJvxe')) continue;   // 复制/分享/反馈等 UI
+          if (blocks.some((b) => b.dom && b.dom.contains(el))) continue; // 嵌套块
+          if (el.tagName === 'UL' && el.closest('li')) continue; // 由外层列表递归
+          if (el.tagName === 'TABLE' && el.closest('li, div.n6owBd')) continue; // 表格在段落内罕见，跳过避免与段落串扰
+          if (el.classList.contains('otQkpb') && el.closest('div.n6owBd, li')) continue;
+          if (el.classList.contains('n6owBd') && el.closest('li')) continue;
+          let b = null;
+          if (el.classList.contains('otQkpb')) {
+            const t = this._inline(el, refs);
+            if (t) {
+              const bold = (t.startsWith('**') && t.endsWith('**')) ? t : '**' + t + '**';
+              b = { type: 'heading', text: bold };
+            }
+          } else if (el.tagName === 'TABLE') {
+            const md = this._tableMd(el, refs);
+            if (md) b = { type: 'table', md };
+          } else if (el.tagName === 'UL') {
+            const md = this._listMd(el, 0, refs);
+            if (md) b = { type: 'list', md };
+          } else {
+            const t = this._inline(el, refs);
+            if (t) b = { type: 'para', text: t };
+          }
+          if (b) { b.dom = el; blocks.push(b); }
+        }
+        return blocks;
+      },
+
+      /** 纯文本（只收文本节点，跳过 script/style） */
+      _textOf(el) {
+        if (!el) return '';
+        const acc = [];
+        const walk = (n) => {
+          n.childNodes.forEach((c) => {
+            if (c.nodeType === 3) { acc.push(c.textContent); return; }
+            if (c.nodeType !== 1) return;
+            const tag = c.tagName;
+            if (tag === 'SCRIPT' || tag === 'STYLE') return;
+            walk(c);
+          });
+        };
+        walk(el);
+        return acc.join('').replace(/\s+/g, ' ').trim();
+      },
+
+      /** 行内序列化：strong→**；引用 chip→[N] 并登记 refs；普通 a→纯文本 */
+      _inline(root, refs) {
+        const parts = [];
+        const walk = (el) => {
+          el.childNodes.forEach((n) => {
+            if (n.nodeType === 3) { parts.push(n.textContent); return; }
+            if (n.nodeType !== 1) return;
+            const tag = n.tagName;
+            const cls = String(n.className || '');
+            if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'SVG') return;
+            if (tag === 'STRONG' || tag === 'B') {
+              const t = this._textOf(n);
+              if (t && !/^[\s\p{P}\p{S}]+$/u.test(t)) parts.push('**' + t + '**');
+              else parts.push(t);
+              return;
+            }
+            if (tag === 'SPAN' && cls.includes('WBgIic')) {
+              // 引用 chip：读站点名 + a.PMDqCb 链接；无链接的纯图标 chip 静默丢弃
+              const label = this._textOf(n.querySelector('.QNca8b'));
+              for (const a of n.querySelectorAll('a.PMDqCb')) {
+                const href = (a.getAttribute('href') || '').split('#')[0];
+                if (!href) continue;
+                refs.push({ n: refs.length + 1, title: label, url: href });
+                parts.push('[' + refs.length + ']');
+              }
+              return;
+            }
+            if (tag === 'A') {
+              // 引用锚文本/普通链接：正文优先可读性，链接不内嵌（编号引用已由 chip 表达）
+              const t = this._textOf(n);
+              if (t) parts.push(t);
+              return;
+            }
+            if (tag === 'BR') { parts.push(' '); return; }
+            walk(n);
+          });
+        };
+        walk(root);
+        let s = parts.join('').replace(/[ \t\r\n]+/g, ' ');
+        // 收敛 chip 编号前的空格：`…文本。 [1]` → `…文本。[1]`
+        s = s.replace(/ +(?=\[\d+\])/g, '');
+        return s.trim();
+      },
+
+      /** 表格 → 管道表格 */
+      _tableMd(table, refs) {
+        const rows = [...table.querySelectorAll('tr')];
+        const grids = rows.map((tr) => [...tr.children]
+          .map((td) => this._inline(td, refs).replace(/\|/g, '\\|')));
+        const cols = Math.max(0, ...grids.map((r) => r.length));
+        const norm = (r) => { const a = r.slice(); while (a.length < cols) a.push(''); return a; };
+        const g = grids.map(norm);
+        const lines = [];
+        if (g.length) {
+          lines.push('| ' + g[0].join(' | ') + ' |');
+          lines.push('| ' + Array(cols).fill('---').join(' | ') + ' |');
+          for (let i = 1; i < g.length; i++) lines.push('| ' + g[i].join(' | ') + ' |');
+        }
+        return lines.join('\n');
+      },
+
+      /** 嵌套列表 → markdown 无序列表 */
+      _listMd(ul, depth, refs) {
+        const lines = [];
+        const pad = '  '.repeat(depth);
+        for (const li of ul.children) {
+          if (li.tagName !== 'LI') continue;
+          const sub = [...li.children].filter((c) => c.tagName === 'UL' || c.tagName === 'OL');
+          const wrap = document.createElement('span');
+          for (const c of li.childNodes) {
+            if (c.nodeType === 1 && (c.tagName === 'UL' || c.tagName === 'OL')) continue;
+            wrap.appendChild(c.cloneNode(true));
+          }
+          const text = this._inline(wrap, refs);
+          if (text) lines.push(pad + '- ' + text);
+          for (const s of sub) {
+            const inner = this._listMd(s, depth + 1, refs);
+            if (inner) inner.split('\n').forEach((l) => lines.push(l));
+          }
+        }
+        return lines.join('\n');
+      },
+
+      async getConversationDetails(id) {
+        id = String(id);
+        let meta = this._metaOf(id);
+        if (!meta || !meta.updatedMs) {
+          // 当前页 URL 没有精确时间：回头查一次 ListThreads 补齐（标题/时间/mstk）
+          const found = await this._lookupMeta(id);
+          if (found) meta = meta ? { ...meta, ...found } : found;
+        }
+        if (!meta) throw new Error('缺少线程元数据（请先刷新 AI 模式页面再导出）');
+        if (this.getCurrentConversationId() === id && this._countTurns(document) > 0) {
+          // 单条导出且当前页就是该线程：直接解析当前 DOM，省一次导航
+          return this._parseThreadDoc(document, window.location.href, meta);
+        }
+        return this._openThreadDoc(id, meta);
+      },
+
+      /** 将 AI Mode 对话转为 Markdown */
+      toMarkdown(data, title, convId) {
+        const messages = (data && data.messages) || [];
+        if (!messages.length) throw new Error('未找到消息数据');
+        const model = (data && data.model) || 'Gemini (AI Mode)';
+        const timeMs = (data && data.timeMs) || null;
+        const convUrl = (data && data.url) || `https://www.google.com/search?udm=50&mtid=${convId || ''}`;
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, (m, c) => {
+          const inner = c.trim();
+          return '**' + inner + (inner.endsWith('**') ? '' : '**');
+        });
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `' + model + '`');
+        lines.push('- **Time:** ' + (timeMs ? formatLocalTime(new Date(timeMs)) : 'unknown'));
+        lines.push(`- **URL:** ${convUrl}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+        for (const m of messages) {
+          const text = String(m.text || '').trim();
+          if (!text) continue;
+          lines.push(m.role === 'user' ? '### 🧑‍💻 User' : '### 🤖 Assistant');
+          lines.push('');
+          lines.push(stripHashes(text));
+          lines.push('');
+        }
         return lines.join('\n');
       },
     },
@@ -6918,6 +7434,7 @@
     saveAfterChat: LANG === 'zh' ? '保存到 AfterChat' : 'Save to AfterChat',
     singleOnly: LANG === 'zh' ? '请在单条对话页使用' : 'Open one chat first',
     noNew:       LANG === 'zh' ? '没有新会话 · Shift + 单击全部导出' : 'No new chats · Shift + click for full export',
+    shiftFull:   LANG === 'zh' ? '全部导出' : 'Full export',
     editStart:   LANG === 'zh' ? '点击修改' : 'Click to edit',
     reportExported: (n) => LANG === 'zh' ? `已导出 ${n} 条` : `Exported ${n}`,
   };
@@ -7142,6 +7659,14 @@
 
   function normalizeTimestamp(value) {
     if (value === null || value === undefined || value === '') return null;
+    if (value instanceof Date || Object.prototype.toString.call(value) === '[object Date]') {
+      const ms = value.getTime();
+      return Number.isFinite(ms) ? ms : null;
+    }
+    if (typeof value === 'object' && typeof value?.getTime === 'function') {
+      const ms = value.getTime();
+      return Number.isFinite(ms) ? ms : null;
+    }
     if (Array.isArray(value) && value.length > 0) {
       const seconds = Number(value[0]);
       const nanos = Number(value[1] || 0);
@@ -7686,10 +8211,14 @@
   // 如果平台不是 SPA，这段无副作用；如果是，少了它按钮模式就不刷新。
   function watchURL(ui, adapter) {
     let lastUrl = window.location.href;
+    let lastConvId = adapter?.getCurrentConversationId ? adapter.getCurrentConversationId() : null;
 
     function checkURL() {
-      if (window.location.href === lastUrl) return;
-      lastUrl = window.location.href;
+      const currentUrl = window.location.href;
+      const currentConvId = adapter?.getCurrentConversationId ? adapter.getCurrentConversationId() : null;
+      if (currentUrl === lastUrl && currentConvId === lastConvId) return;
+      lastUrl = currentUrl;
+      lastConvId = currentConvId;
       if (!ui.isIdle()) return;
       ui.updateLabel(adapter);
     }
@@ -7864,6 +8393,7 @@
     let bubbleTimer = null;
     let hoverInside = false;
     let editingStart = false;
+    let shiftDown = false;             // 按住 Shift 悬停时，句子换成全量快键提示
 
     function anchorMs() {
       return CONFIG.INCREMENTAL ? loadExportAnchor(adapter.id) : null;
@@ -7877,6 +8407,12 @@
       if (!anchor) {
         tooltip.style.pointerEvents = 'none';
         tooltip.textContent = TXT.exportAll;
+        return;
+      }
+      // 按住 Shift：本次单击 = 全量快键，提示跟着换成全量文案（松开即弹回）
+      if (shiftDown) {
+        tooltip.style.pointerEvents = 'none';
+        tooltip.textContent = TXT.shiftFull;
         return;
       }
       tooltip.style.pointerEvents = 'auto';
@@ -7908,6 +8444,20 @@
         tooltip.style.display = 'none';
       }, HIDE_DELAY);
     }
+    function refreshBubbleForShift() {
+      if (!hoverInside || editingStart || !ui.isIdle()) return;
+      clearTimeout(bubbleTimer);
+      tooltip.style.display = 'block';
+      if (canSentence()) buildSentenceBubble();
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Shift' && !shiftDown) { shiftDown = true; refreshBubbleForShift(); }
+    });
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'Shift' && shiftDown) { shiftDown = false; refreshBubbleForShift(); }
+    });
+    // 焦点离开页面时浏览器会丢 modifier 状态，重置避免“卡在全量提示”
+    window.addEventListener('blur', () => { shiftDown = false; });
     function openStartEditor() {
       const anchor = anchorMs();
       if (!anchor || editingStart) return;
@@ -7942,8 +8492,9 @@
     }
 
     // hover 热区 = 容器（按钮 + 气泡）；移开留 250ms 宽容，编辑中/导出中/汇报中不消失
-    container.addEventListener('mouseenter', () => {
+    container.addEventListener('mouseenter', (e) => {
       hoverInside = true;
+      shiftDown = !!e.shiftKey;          // 可能按住 Shift 后才移入页面，keydown 未必触发过
       clearTimeout(bubbleTimer);
       if (ui.isIdle()) {
         ui.updateLabel(adapter);
