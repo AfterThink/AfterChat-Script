@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.17.5
+// @version      1.18.3
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola 的聊天記錄
@@ -41,10 +41,12 @@
 // @match        https://gemini.google.com/*
 // @match        https://www.google.com/search*
 // @match        https://www.google.com/ai*
-// @match        https://x.com/i/grok*
+// @match        https://x.com/*
+// @match        https://grok.com/*
 // @match        https://chat.deepseek.com/*
 // @match        https://copilot.microsoft.com/*
-// @match        https://m365.cloud.microsoft/chat*
+// @match        https://copilot.cloud.microsoft/*
+// @match        https://m365.cloud.microsoft/*
 // @match        https://www.perplexity.ai/*
 // @match        https://www.kimi.com/*
 // @match        https://www.doubao.com/*
@@ -201,6 +203,25 @@
 //      Duck.ai IndexedDB 中 lastEdit 为原生 Date 实例，normalizeTimestamp 补充 Date 对象
 //      （及 getTime() 接口）毫秒解析；解决时间被判为 null 导致全部会话被强制全量导出的问题；
 //      _findByTitle 比较 lastEdit 同样使用 normalizeTimestamp 归一化时间戳
+//  1.18.0 (2026-09-11)
+//    - 新增 Grok.com（grok.com）官方 Web 端适配器：
+//      列表 GET /rest/app-chat/conversations（分页）+ 详情 response-node 响应拓扑树
+//      + load-responses 批量拉正文，按时间正序还原多轮对话，解析 <grok:render> 引用卡片
+//    - Google AI 模式（gaim）支持未登录/临时搜索会话直接从当前 DOM 导出；
+//      引用统一归集为文末 ### References，与豆包/DeepSeek 金标准对齐
+//  1.18.1 (2026-09-12)
+//    - M365 Copilot 域名迁移：m365.cloud.microsoft → copilot.cloud.microsoft
+//      新增新域 @match/detect/详情导出 URL，保留旧域 m365.cloud.microsoft 作兜底；
+//      E2E/金标准/Python 脚本/文档同步更新；
+//      localStorage 锚点按源隔离，新域首次全量后自动恢复增量
+//  1.18.2 (2026-09-12)
+//    - 修复 Kimi 导出消息顺序错位：createTime 为微秒精度，被 Date.parse 截断到毫秒后
+//      同轮 user/assistant 判等，稳定排序保留接口「最新在前」顺序，assistant 错位
+//      到 user 之前；新增 _sortTime 以亚毫秒精度排序，金标准快照同步重刷
+//  1.18.3 (2026-09-12)
+//    - 修复 Perplexity 全量导出“点完直接对号”：站点弃用 /rest/thread/list_recent
+//      （恒返回 []），会话列表改走 GraphQL SidebarRecentThreadsRelayQuery
+//      （persisted query，取 entryId/name/updatedAt）；E2E 新增列表接口回归断言
 // =============================================================
 
 (function () {
@@ -263,7 +284,8 @@
     {
       id: 'm365',
       name: 'M365 Copilot',
-      detect: () => window.location.hostname === 'm365.cloud.microsoft',
+      detect: () => window.location.hostname === 'copilot.cloud.microsoft'
+        || window.location.hostname === 'm365.cloud.microsoft',
 
       getCurrentConversationId: () => {
         const match = window.location.pathname.match(/^\/chat\/conversation\/([^\/?]+)/);
@@ -327,8 +349,8 @@
           ? formatLocalTime(new Date(createTimeMs))
           : 'unknown';
         const convUrl = convId
-          ? `https://m365.cloud.microsoft/chat/conversation/${convId}?auth=2`
-          : 'https://m365.cloud.microsoft';
+          ? `https://copilot.cloud.microsoft/chat/conversation/${convId}?auth=2`
+          : 'https://copilot.cloud.microsoft';
 
         const lines = [];
         lines.push(`# ${title}`);
@@ -1768,21 +1790,48 @@
         return isNaN(d.getTime()) ? null : d;
       },
 
-      async getAllConversations(onProgress) {
-        const r = await fetch('/rest/thread/list_recent?exclude_asi=false&version=2.18&source=default');
+      /** GraphQL 端点（Apollo persisted query）：会话列表等 */
+      async _gql(operationName, variables, sha256Hash) {
+        const headers = { 'content-type': 'application/json', 'accept': '*/*' };
+        try {
+          const activeAccount = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('pplx-active-account') : null;
+          if (activeAccount) headers['x-pplx-account'] = activeAccount;
+        } catch (_) {}
+        const r = await fetch('/rest/perplexity_ask/graphql', {
+          method: 'POST',
+          headers,
+          credentials: 'include',
+          body: JSON.stringify({
+            operationName,
+            variables,
+            extensions: { persistedQuery: { version: 1, sha256Hash } },
+          }),
+        });
         if (!r.ok) throw new Error(`API ${r.status}: ${r.statusText}`);
-        const body = await r.json();
-        const list = Array.isArray(body) ? body : [];
+        const data = await r.json();
+        if (data?.errors?.length) throw new Error(`GraphQL: ${data.errors[0]?.message || 'unknown error'}`);
+        return data;
+      },
+
+      // 站点已从 /rest/thread/list_recent 切到 GraphQL（SidebarRecentThreadsRelayQuery，
+      // Apollo persisted query）；旧接口现在恒返回 []，导致全部导出得到 0 条、
+      // startExportProcess 直接走 ui.done()，表现就是“点完直接对号”。
+      // 该连接只有 edges、无 pageInfo，after 游标也被忽略，故用较大的 first 一次取回。
+      async getAllConversations(onProgress) {
+        const HASH = '54fe025c6b86507e78086a4a1b11a39818b6102d3d7fb7bc6bf9f36f06c6669e';
+        const data = await this._gql('SidebarRecentThreadsRelayQuery', { first: 100 }, HASH);
+        const edges = data?.data?.viewer?.sidebarRecentThreads?.threads?.edges || [];
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
-        const result = list
-          .slice(0, limit)
-          .map((t) => ({
-            id: t.uuid || '',
-            title: (t.title || '').trim(),
-            updated_at: t.updated_at,
-            status: t.status,
+        const result = edges
+          .map((e) => e?.node || {})
+          .map((n) => ({
+            id: n.entryId || '',
+            title: (n.name || '').trim(),
+            updated_at: n.updatedAt,
+            status: n.status,
           }))
-          .filter((c) => c.id);
+          .filter((c) => c.id)
+          .slice(0, limit);
         if (onProgress) onProgress(result.length);
         return result;
       },
@@ -3413,6 +3462,19 @@
         return parts.join('\n\n').trim();
       },
 
+      // Kimi 的 createTime 是微秒精度（如 2026-08-01T15:48:56.072365Z），
+      // 而 Date.parse 只保留毫秒：同一轮的 user/assistant 仅差几微秒会被判为相等，
+      // 稳定排序便保留接口“最新在前”的原始顺序，导致 assistant 错位到 user 前面。
+      // 这里把小数秒一并换算成亚毫秒，保证同轮也能按真实先后排序。
+      _sortTime(value) {
+        const m = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:?\d{2})?$/.exec(String(value || ''));
+        if (!m) return null;
+        const base = Date.parse(m[1] + (m[3] || 'Z'));
+        if (!Number.isFinite(base)) return null;
+        const frac = m[2] ? Number('0.' + m[2]) : 0;
+        return base + frac * 1000;
+      },
+
       _citationUrl(ref) {
         const item = ref?.items?.[0];
         return item?.search?.base?.url || item?.searchResult?.base?.url || item?.base?.url || '';
@@ -3441,11 +3503,7 @@
         const messagesRaw = data?.messagesResp?.messages || data?.messages || [];
         const messages = [...messagesRaw]
           .filter((m) => m?.role && m.role !== 'system')
-          .sort((a, b) => {
-            const at = Date.parse(a.createTime || '') || 0;
-            const bt = Date.parse(b.createTime || '') || 0;
-            return at - bt;
-          });
+          .sort((a, b) => (this._sortTime(a.createTime) ?? 0) - (this._sortTime(b.createTime) ?? 0));
 
         const timeStr = chat.createTime
           ? formatLocalTime(new Date(chat.createTime))
@@ -4883,6 +4941,7 @@
       id: 'grok',
       name: 'Grok',
       detect: () => window.location.hostname === 'x.com',
+      isPageSupported: () => window.location.pathname.startsWith('/i/grok'),
 
       _headers() {
         let ct0 = '';
@@ -5073,6 +5132,173 @@
         }
 
         return lines.join('\n');
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[grokcom]  Grok Web (grok.com)
+    // ═══════════════════════════════════════════════════════
+    // API 说明：
+    //   - 列表：GET /rest/app-chat/conversations?pageSize=60
+    //   - 节点：GET /rest/app-chat/conversations/{id}/response-node
+    //   - 详情：POST /rest/app-chat/conversations/{id}/load-responses
+    // 认证：同域 Cookie（credentials: 'include' 自动发送），无需额外 header。
+    {
+      id: 'grokcom',
+      name: 'Grok',
+      detect: () => window.location.hostname === 'grok.com',
+
+      getCurrentConversationId() {
+        const m = window.location.pathname.match(/\/c\/([a-zA-Z0-9-]+)/);
+        return m ? m[1] : null;
+      },
+
+      async getAllConversations(onProgress) {
+        const allChats = [];
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        const resp = await fetch('/rest/app-chat/conversations?pageSize=60', { credentials: 'include' });
+        if (!resp.ok) throw new Error(`Grok 列表请求失败: HTTP ${resp.status}`);
+        const data = await resp.json();
+        const list = data?.conversations || [];
+        for (const c of list) {
+          allChats.push({
+            id: c.conversationId,
+            title: c.title || 'untitled',
+            createTimeUtc: c.createTime ? new Date(c.createTime).getTime() : Date.now(),
+            updateTimeUtc: c.modifyTime ? new Date(c.modifyTime).getTime() : Date.now(),
+          });
+        }
+        if (onProgress) onProgress(allChats.length);
+        return allChats.slice(0, limit);
+      },
+
+      async getConversationDetails(id) {
+        // 1. 获取 responseNode 树（确定消息节点拓扑与顺序）
+        const nodeResp = await fetch(`/rest/app-chat/conversations/${id}/response-node`, { credentials: 'include' });
+        if (!nodeResp.ok) throw new Error(`Grok response-node 请求失败: HTTP ${nodeResp.status}`);
+        const nodeData = await nodeResp.json();
+        const nodes = nodeData?.responseNodes || [];
+        const responseIds = nodes.map((n) => n.responseId).filter(Boolean);
+        if (!responseIds.length) throw new Error('对话未包含消息节点');
+
+        // 2. load-responses 批量获取详情
+        const loadResp = await fetch(`/rest/app-chat/conversations/${id}/load-responses`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ responseIds }),
+        });
+        if (!loadResp.ok) throw new Error(`Grok load-responses 请求失败: HTTP ${loadResp.status}`);
+        const loadData = await loadResp.json();
+        const rawResponses = loadData?.responses || [];
+
+        // 按 responseNode 顺序对齐返回
+        const map = new Map(rawResponses.map((r) => [r.responseId, r]));
+        const ordered = [];
+        for (const n of nodes) {
+          const r = map.get(n.responseId);
+          if (r) ordered.push(r);
+        }
+
+        // 尝试获取对话标题等元数据
+        let metaTitle = '';
+        try {
+          const metaResp = await fetch(`/rest/app-chat/conversations_v2/${id}?includeWorkspaces=true&includeTaskResult=true`, { credentials: 'include' });
+          if (metaResp.ok) {
+            const metaJson = await metaResp.json();
+            metaTitle = metaJson?.conversation?.title || '';
+          }
+        } catch (e) { /* ignore */ }
+
+        return {
+          conversation_id: id,
+          title: metaTitle || ordered[0]?.message || 'untitled',
+          createTime: ordered[0]?.createTime,
+          responses: ordered,
+        };
+      },
+
+      toMarkdown(data, title, convId) {
+        convId = convId || data?.conversation_id || 'test-id';
+        const responses = data?.responses || [];
+        if (!responses.length) throw new Error('未找到消息数据');
+
+        const model = responses.find((r) => r.model)?.model || 'Grok';
+        const firstTime = responses[0]?.createTime ? new Date(responses[0].createTime) : new Date();
+        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, (m, c) => {
+          const inner = c.trim();
+          return '**' + inner + (inner.endsWith('**') ? '' : '**');
+        });
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push(`- **Model:** \`${model}\``);
+        lines.push(`- **Time:** ${formatLocalTime(firstTime)}`);
+        lines.push(`- **URL:** https://grok.com/c/${convId}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        const allRefs = [];
+        const cardUrlMap = new Map();
+
+        for (const r of responses) {
+          const isUser = r.sender === 'human' || r.sender === 'user';
+          const text = String(r.message || '').trim();
+
+          if (isUser) {
+            lines.push('### 🧑‍💻 User');
+            lines.push('');
+            lines.push(stripHashes(text));
+            lines.push('');
+            continue;
+          }
+
+          // 收集 cardAttachmentsJson
+          const rawCards = (r.cardAttachmentsJson || r.card_attachments || [])
+            .map((c) => {
+              if (typeof c === 'object' && c !== null) return c;
+              try { return JSON.parse(c); } catch { return null; }
+            })
+            .filter(Boolean);
+
+          for (const card of rawCards) {
+            if (card && card.id && card.url) {
+              cardUrlMap.set(String(card.id), card.url);
+            }
+          }
+
+          let body = text.replace(/<grok:render\s+card_id="([^"]+)"[^>]*>.*?<\/grok:render>/gs, (m, cardId) => `[[CITE:${cardId}]]`);
+
+          body = body.replace(/\[\[CITE:([^\]]+)\]\]/g, (m, cardId) => {
+            const url = cardUrlMap.get(String(cardId)) || '';
+            let idx = allRefs.findIndex((ref) => ref.url === url);
+            if (idx === -1) {
+              idx = allRefs.length;
+              allRefs.push({ n: idx + 1, url });
+            }
+            return `[${idx + 1}]`;
+          });
+
+          lines.push('### 🤖 Assistant');
+          lines.push('');
+          lines.push(stripHashes(body));
+          lines.push('');
+        }
+
+        if (allRefs.length > 0) {
+          lines.push('---');
+          lines.push('');
+          lines.push('### References');
+          lines.push('');
+          for (const ref of allRefs) {
+            lines.push(ref.url ? `- [${ref.n}] ${ref.url}` : `- [${ref.n}]`);
+          }
+          lines.push('');
+        }
+
+        return lines.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
       },
     },
 
@@ -5369,11 +5595,16 @@
         return false;
       },
 
-      getCurrentConversationId: () => {
+      getCurrentConversationId() {
         try {
           const m = new URLSearchParams(window.location.search).get('mtid');
-          return m ? m : null; // AI 模式首页/新对话无 mtid → 全部导出
+          if (m) return m;
+          // 未登录或新对话/随便聊聊：若页面已渲染对话回合，识别为当前单条会话
+          if (typeof document !== 'undefined' && this._countTurns && this._countTurns(document) > 0) {
+            return 'current';
+          }
         } catch (e) { return null; }
+        return null;
       },
 
       /** 列表元数据缓存：mtid -> { title, mstk, createdMs, updatedMs } */
@@ -5502,12 +5733,15 @@
         return null;
       },
 
-      /** 本轮包含几个用户提问 = 渲染了几个对话回合 */
+      /** 本轮包含几个用户提问/回答 = 渲染了几个对话回合 */
       _countTurns(doc) {
         try {
+          if (!doc) return 0;
           let n = 0;
           for (const el of doc.querySelectorAll('div.CKgc1d')) {
-            if (!(el.parentElement && el.parentElement.closest('div.CKgc1d')) && el.querySelector('h2.iMqumd')) n++;
+            if (!(el.parentElement && el.parentElement.closest('div.CKgc1d'))) {
+              if (el.querySelector('h2.iMqumd') || el.querySelector('div.pWvJNd') || el.querySelector('div.n6owBd')) n++;
+            }
           }
           return n;
         } catch (e) { return 0; }
@@ -5561,22 +5795,27 @@
 
       /** 从线程页 DOM 提取对话 → 归一化数据 */
       _parseThreadDoc(doc, url, meta) {
+        meta = meta || {};
         const messages = [];
+        const fallbackQ = meta.title || (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('q') : '') || '';
         for (const el of doc.querySelectorAll('div.CKgc1d')) {
           if (el.parentElement && el.parentElement.closest('div.CKgc1d')) continue; // 只要最外层回合
           const h2 = el.querySelector('h2.iMqumd');
-          const userText = h2 ? h2.textContent.replace(/^您说：/, '').trim() : '';
+          let userText = h2 ? h2.textContent.replace(/^您说：/, '').trim() : '';
+          if (!userText && messages.length === 0 && fallbackQ) {
+            userText = fallbackQ;
+          }
           if (userText) messages.push({ role: 'user', text: userText });
           const bodyMd = this._extractAnswerMd(el);
           if (bodyMd) messages.push({ role: 'assistant', text: bodyMd });
         }
         if (!messages.length) throw new Error('线程内容为空');
         return {
-          id: meta.id || String(url.match(/mtid=([^&]+)/)?.[1] || ''),
-          title: meta.title || (messages[0]?.text) || 'untitled',
+          id: meta.id || String(url.match(/mtid=([^&]+)/)?.[1] || 'current'),
+          title: meta.title || (messages[0]?.text) || fallbackQ || 'untitled',
           model: 'Gemini (AI Mode)',
-          url,
-          timeMs: meta.updatedMs || meta.createdMs || null,
+          url: url || (typeof window !== 'undefined' ? window.location.href : ''),
+          timeMs: meta.updatedMs || meta.createdMs || Date.now(),
           messages,
         };
       },
@@ -5596,7 +5835,7 @@
         }
         let md = chunks.join('\n\n');
         if (refs.length) {
-          md += '\n\n#### References\n\n';
+          md += '\n\n### References\n\n';
           md += refs
             .map((r) => (r.title ? `- [${r.n}] ${r.title} ${r.url}` : `- [${r.n}] ${r.url}`))
             .join('\n');
@@ -5738,7 +5977,18 @@
       },
 
       async getConversationDetails(id) {
-        id = String(id);
+        id = String(id || 'current');
+        if (id === 'current' || (this.getCurrentConversationId() === id && this._countTurns(document) > 0)) {
+          // 单条导出且当前页已有对话（含未登录/随便聊聊新搜索场景）：直接解析当前 DOM，无需网络接口
+          let meta = this._metaOf(id) || {
+            id,
+            title: new URLSearchParams(window.location.search).get('q') || document.title || '当前对话',
+            mstk: '',
+            createdMs: Date.now(),
+            updatedMs: Date.now(),
+          };
+          return this._parseThreadDoc(document, window.location.href, meta);
+        }
         let meta = this._metaOf(id);
         if (!meta || !meta.updatedMs) {
           // 当前页 URL 没有精确时间：回头查一次 ListThreads 补齐（标题/时间/mstk）
@@ -5746,10 +5996,6 @@
           if (found) meta = meta ? { ...meta, ...found } : found;
         }
         if (!meta) throw new Error('缺少线程元数据（请先刷新 AI 模式页面再导出）');
-        if (this.getCurrentConversationId() === id && this._countTurns(document) > 0) {
-          // 单条导出且当前页就是该线程：直接解析当前 DOM，省一次导航
-          return this._parseThreadDoc(document, window.location.href, meta);
-        }
         return this._openThreadDoc(id, meta);
       },
 
@@ -5759,7 +6005,7 @@
         if (!messages.length) throw new Error('未找到消息数据');
         const model = (data && data.model) || 'Gemini (AI Mode)';
         const timeMs = (data && data.timeMs) || null;
-        const convUrl = (data && data.url) || `https://www.google.com/search?udm=50&mtid=${convId || ''}`;
+        const convUrl = (data && data.url) || (convId && convId !== 'current' ? `https://www.google.com/search?udm=50&mtid=${convId}` : (typeof window !== 'undefined' ? window.location.href : 'https://www.google.com/search?udm=50'));
         const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, (m, c) => {
           const inner = c.trim();
           return '**' + inner + (inner.endsWith('**') ? '' : '**');
@@ -5774,14 +6020,38 @@
         lines.push('');
         lines.push('## Conversation');
         lines.push('');
+
+        const allRefs = [];
         for (const m of messages) {
-          const text = String(m.text || '').trim();
+          let text = String(m.text || '').trim();
           if (!text) continue;
+          if (m.role === 'assistant') {
+            const refMatch = text.match(/\n\n(?:#{1,4}\s+|\*\*)References(?:\*\*|)?\s*\n+([\s\S]*)$/i);
+            if (refMatch) {
+              text = text.slice(0, refMatch.index).trim();
+              const refLines = refMatch[1].trim().split(/\r?\n/).filter((l) => l.trim().startsWith('- '));
+              for (const l of refLines) {
+                if (!allRefs.includes(l.trim())) allRefs.push(l.trim());
+              }
+            }
+          }
           lines.push(m.role === 'user' ? '### 🧑‍💻 User' : '### 🤖 Assistant');
           lines.push('');
           lines.push(stripHashes(text));
           lines.push('');
         }
+
+        if (allRefs.length > 0) {
+          lines.push('---');
+          lines.push('');
+          lines.push('### References');
+          lines.push('');
+          for (const r of allRefs) {
+            lines.push(r);
+          }
+          lines.push('');
+        }
+
         return lines.join('\n');
       },
     },
@@ -7892,7 +8162,7 @@
   // ---- 按钮状态控制器（不要改） ----
   // LLM 注意: 这是 UI 状态机，startExportProcess 依赖它的生命周期。
   // 改它的接口 = 核心导出流程也要跟着改。
-  function createController(btn, ringEl, tooltipEl) {
+  function createController(btn, ringEl, tooltipEl, container) {
     let state = 'idle';
     let doneTimer = null;
     /** @type {PlatformAdapter|null} */
@@ -7900,6 +8170,16 @@
 
     const ui = {
       isSingleMode: false,
+
+      /** 控制导出按钮在特定页面路由下的显隐（如 Twitter 离开 Grok 页面时隐藏） */
+      updateVisibility(adapter) {
+        if (adapter) _adapter = adapter;
+        if (!_adapter) return;
+        const target = container || document.getElementById('m365-export-container');
+        if (!target) return;
+        const supported = typeof _adapter.isPageSupported === 'function' ? _adapter.isPageSupported() : true;
+        target.style.display = supported ? '' : 'none';
+      },
 
       setIcon(name) {
         setInnerHTML(btn, ICONS[name] || ICONS.download);
@@ -8216,6 +8496,7 @@
     function checkURL() {
       const currentUrl = window.location.href;
       const currentConvId = adapter?.getCurrentConversationId ? adapter.getCurrentConversationId() : null;
+      if (ui.updateVisibility) ui.updateVisibility(adapter);
       if (currentUrl === lastUrl && currentConvId === lastConvId) return;
       lastUrl = currentUrl;
       lastConvId = currentConvId;
@@ -8381,7 +8662,8 @@
       document.head.appendChild(st);
     }
 
-    const ui = createController(btn, ringEl, tooltip);
+    const ui = createController(btn, ringEl, tooltip, container);
+    if (ui.updateVisibility) ui.updateVisibility(adapter);
     ui.updateLabel(adapter);
     ui.idle();               // 初始化状态 + 渲染下载图标
 

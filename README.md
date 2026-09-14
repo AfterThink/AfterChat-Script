@@ -13,7 +13,7 @@ English | [简体中文](./README.zh-CN.md)
 
 AfterChat is a free, open-source **AI chat exporter / conversation backup tool**.
 
-Export chats from **ChatGPT, Claude, Gemini, DeepSeek, GLM, Qwen** and 27 major AI platforms to **Markdown files** with one click, fully preserving **reasoning / thinking** and **citation sources** for personal backup, migration and offline reading.
+Export chats from **ChatGPT, Claude, Gemini, DeepSeek, GLM, Qwen** and 28 major AI platforms to **Markdown files** with one click, fully preserving **reasoning / thinking** and **citation sources** for personal backup, migration and offline reading.
 
 After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-App-Download), you can also save the current conversation to your AfterChat workspace with one click.
 
@@ -25,10 +25,11 @@ After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-
 | Claude | `claude.ai` |
 | Google Gemini | `gemini.google.com` |
 | Google AI Mode | `google.com/ai` |
-| Grok (xAI) | `x.com/i/grok` |
+| Grok (X) | `x.com/i/grok` |
+| Grok | `grok.com` |
 | DeepSeek | `chat.deepseek.com` |
 | Microsoft Copilot | `copilot.microsoft.com` |
-| M365 Copilot | `m365.cloud.microsoft` |
+| M365 Copilot | `copilot.cloud.microsoft` |
 | Perplexity | `perplexity.ai` |
 | Kimi | `kimi.com` |
 | Doubao | `doubao.com` |
@@ -57,7 +58,7 @@ After installing Violentmonkey ([Chrome](https://chrome.google.com/webstore/deta
 
 ## Features
 
-- **Multi-platform support**: works with 27 major LLM platforms.
+- **Multi-platform support**: works with 28 major LLM platforms.
 - **Single or batch export**: exports the current conversation or all conversations at once.
 - **Incremental export**: on the list page, batch export skips conversations you've already downloaded (by update-time anchor) and only fetches new/updated ones — dramatically faster on repeat runs.
 - **Content fidelity**: exports include user messages, AI replies, **reasoning / thinking**, and **citation sources**.
