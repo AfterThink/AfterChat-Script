@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.18.3
+// @version      1.18.4
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola 的聊天記錄
@@ -222,6 +222,10 @@
 //    - 修复 Perplexity 全量导出“点完直接对号”：站点弃用 /rest/thread/list_recent
 //      （恒返回 []），会话列表改走 GraphQL SidebarRecentThreadsRelayQuery
 //      （persisted query，取 entryId/name/updatedAt）；E2E 新增列表接口回归断言
+//  1.18.4 (2026-09-17)
+//    - 修复 Google AI 模式（gaim）导出公式混乱与无障碍读屏器杂音：
+//      精准识别 [data-xpm-latex] 提取原始 LaTeX 源码，区分行内公式（$...$）与
+//      独立块级/对齐公式（$$...$$）；支持 code 标签；彻底消除读屏器描述及 MathML 字符伪影
 // =============================================================
 
 (function () {
@@ -5833,7 +5837,7 @@
           const piece = b.type === 'table' || b.type === 'list' ? b.md : b.text;
           if (piece) chunks.push(piece);
         }
-        let md = chunks.join('\n\n');
+        let md = chunks.join('\n\n').replace(/\n{3,}/g, '\n\n');
         if (refs.length) {
           md += '\n\n### References\n\n';
           md += refs
@@ -5876,7 +5880,22 @@
         return blocks;
       },
 
-      /** 纯文本（只收文本节点，跳过 script/style） */
+      /** 解码 HTML 实体 & 规范化 LaTeX */
+      _formatLatex(raw) {
+        if (!raw) return '';
+        let latex = String(raw)
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .trim();
+        // 规范化 \^{x} 为 \hat{x}
+        latex = latex.replace(/\\\^\{([^}]+)\}/g, '\\hat{$1}');
+        return latex;
+      },
+
+      /** 纯文本（只收文本节点，跳过 script/style/svg/math/公式容器） */
       _textOf(el) {
         if (!el) return '';
         const acc = [];
@@ -5885,7 +5904,10 @@
             if (c.nodeType === 3) { acc.push(c.textContent); return; }
             if (c.nodeType !== 1) return;
             const tag = c.tagName;
-            if (tag === 'SCRIPT' || tag === 'STYLE') return;
+            if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'SVG' || tag === 'MATH') return;
+            if (c.hasAttribute?.('data-xpm-copy-root') || c.classList?.contains('mTEjhd') || c.classList?.contains('cPGBZb')) {
+              return;
+            }
             walk(c);
           });
         };
@@ -5893,7 +5915,7 @@
         return acc.join('').replace(/\s+/g, ' ').trim();
       },
 
-      /** 行内序列化：strong→**；引用 chip→[N] 并登记 refs；普通 a→纯文本 */
+      /** 行内序列化：公式处理；strong→**；code→`；引用 chip→[N] 并登记 refs；普通 a→纯文本 */
       _inline(root, refs) {
         const parts = [];
         const walk = (el) => {
@@ -5903,12 +5925,50 @@
             const tag = n.tagName;
             const cls = String(n.className || '');
             if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'SVG') return;
+
+            // 1. 数学公式（span.mTEjhd 行内, span.cPGBZb 块级, 或任意 data-xpm-copy-root / [data-xpm-latex]）
+            if (cls.includes('mTEjhd') || cls.includes('cPGBZb') || n.hasAttribute('data-xpm-copy-root') || n.hasAttribute('data-xpm-latex')) {
+              const img = n.hasAttribute('data-xpm-latex') ? n : n.querySelector('[data-xpm-latex]');
+              if (img) {
+                const raw = img.getAttribute('data-xpm-latex') || '';
+                const latex = this._formatLatex(raw);
+                const isBlock = cls.includes('cPGBZb') ||
+                  (n.style && n.style.display && n.style.display.includes('flex') && !cls.includes('mTEjhd')) ||
+                  /\\begin\{(aligned|matrix|cases|gather|align)\}/.test(latex);
+                if (isBlock) {
+                  parts.push('\n\n$$\n' + latex + '\n$$\n\n');
+                } else {
+                  parts.push('$' + latex + '$');
+                }
+                return;
+              }
+            }
+
+            // 独立 <math> 兜底
+            if (tag === 'MATH') {
+              const texAnno = n.querySelector?.('annotation[encoding="application/x-tex"], annotation[encoding="LaTeX"]');
+              if (texAnno && texAnno.textContent) {
+                parts.push('$' + this._formatLatex(texAnno.textContent) + '$');
+              }
+              return;
+            }
+
+            // 2. 行内代码
+            if (tag === 'CODE') {
+              const t = this._textOf(n);
+              if (t) parts.push('`' + t + '`');
+              return;
+            }
+
+            // 3. 加粗
             if (tag === 'STRONG' || tag === 'B') {
               const t = this._textOf(n);
               if (t && !/^[\s\p{P}\p{S}]+$/u.test(t)) parts.push('**' + t + '**');
               else parts.push(t);
               return;
             }
+
+            // 4. 引用 chip
             if (tag === 'SPAN' && cls.includes('WBgIic')) {
               // 引用 chip：读站点名 + a.PMDqCb 链接；无链接的纯图标 chip 静默丢弃
               const label = this._textOf(n.querySelector('.QNca8b'));
@@ -5920,18 +5980,30 @@
               }
               return;
             }
+
+            // 5. 链接
             if (tag === 'A') {
               // 引用锚文本/普通链接：正文优先可读性，链接不内嵌（编号引用已由 chip 表达）
               const t = this._textOf(n);
               if (t) parts.push(t);
               return;
             }
-            if (tag === 'BR') { parts.push(' '); return; }
+
+            // 6. 换行
+            if (tag === 'BR') { parts.push('\n'); return; }
+
             walk(n);
           });
         };
         walk(root);
-        let s = parts.join('').replace(/[ \t\r\n]+/g, ' ');
+
+        let s = parts.join('');
+        // 将行内的连续水平空白缩减为一个空格（保留换行）
+        s = s.replace(/[^\S\r\n]+/g, ' ');
+        // 去除每行首尾空格
+        s = s.split('\n').map((line) => line.trim()).join('\n');
+        // 连续 3 个及以上换行收敛为 2 个
+        s = s.replace(/\n{3,}/g, '\n\n');
         // 收敛 chip 编号前的空格：`…文本。 [1]` → `…文本。[1]`
         s = s.replace(/ +(?=\[\d+\])/g, '');
         return s.trim();
