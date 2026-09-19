@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.18.4
+// @version      1.18.8
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola 的聊天記錄
@@ -226,6 +226,35 @@
 //    - 修复 Google AI 模式（gaim）导出公式混乱与无障碍读屏器杂音：
 //      精准识别 [data-xpm-latex] 提取原始 LaTeX 源码，区分行内公式（$...$）与
 //      独立块级/对齐公式（$$...$$）；支持 code 标签；彻底消除读屏器描述及 MathML 字符伪影
+//  1.18.5 (2026-09-19)
+//    - 修复 Qwen 导出丢失思考过程、且可能把思维链混入回复正文：
+//      content_list 现按 phase 分派（think/thinking_summary → Thought Process，
+//      answer → 正文，web_search/image_gen_tool/空 → 工具过程不输出）；
+//      thinking_summary 正文取自 extra.summary_title/summary_thought（item.content 为空）；
+//      同时消除非 answer 空项造成的正文前多余空行
+//  1.18.6 (2026-09-19)
+//    - 修复 Qwen 井号转加粗会误伤代码块：stripHashes 改为围栏感知，
+//      ``` / ~~~ 围栏内的 # 注释/代码原样保留（此前会被改成 **注释**）
+//  1.18.7 (2026-09-19)
+//    - 重构：stripHashes 收敛为模块级唯一实现（此前 27 个适配器各写一份：26 份
+//      `const stripHashes` + aistudio 一份名叫 convertHeadings 的内联实现，
+//      并漂移成 4 种不一致实现：朴素包裹 / null 安全 / 末尾守卫 / 围栏感知，
+//      同一个输入在不同适配器下产出不同 Markdown）
+//    - 修复 aistudio：代码块内的 # 注释被改写成加粗（其 convertHeadings 注释
+//      写着“代码块内的不转”，实现里却没有围栏判断）
+//    - aistudio：Time 恒为“导出当下”（new Date()），
+//      改为取对话自身时间戳 arr[4][4][0]，快照不再每次生成都变
+//    - 标题现在【整条】加粗：吸收标题内原有的 **（行内代码除外），避免内外层 **
+//      同级交错导致强调不全 / 残留可见星号
+//  1.18.8 (2026-09-19)
+//    - 修复 arena agent 模式导出报 “messages block not found”：RSC payload 键序变化，
+//      messages 不再是所在对象首键，且页面 i18n 也有同名 "messages" 键（值为对象，非数组）；
+//      _parseAgentRsc 改为定位 `"messages":[` 并逐候选括号配平解析，
+//      _extractBalancedJson 泛化为同时支持 { / [
+//    - 修复 arena E2E：金标准文件名映射错误，side-by-side / direct-chat 一直只告警未比对；
+//      启用此前被注释掉的 agent 模式；修正 References 结构断言（### 而非 ##）；
+//      比对前预置 arena_models.json 全量注册表（页面 initialModels 只含当前可选模型，
+//      历史会话旧模型会退回 UUID）；debug userscript 改写临时目录并跑完清理
 // =============================================================
 
 (function () {
@@ -257,6 +286,48 @@
     return date.getFullYear() + '-' + p2(date.getMonth() + 1) + '-' + p2(date.getDate())
       + ' ' + p2(date.getHours()) + ':' + p2(date.getMinutes()) + ':' + p2(date.getSeconds())
       + ' ' + offStr;
+  }
+
+  // ---- 通用：Markdown 井号标题 → 加粗（唯一实现，勿在各适配器里再内联副本） ----
+  // 规则见 docs/ChatFormat.md 消息体规则：`# 标题` → `**标题**`
+  //   1. 代码围栏（``` / ~~~）内部原样保留，否则会破坏 Python/Shell 的 `# 注释`
+  //   2. 入参为 null/undefined 时返回空串（历史上有适配器因直接 .replace 而抛错）
+  //   3. 标题整体加粗：标题内原有的 `**` 会被吸收掉。
+  //      否则外层 `**` 与内层 `**` 同级交错，CommonMark 会错配定界符，
+  //      导致整条标题强调不全、甚至残留可见的 `**`（如 `## 方案一：**“…”**`）。
+  //      整条加粗后内层加粗本就是冗余的，直接去掉最干净。
+  //      但行内代码（`...`）里的 `**` 不是强调（如 glob `**/*.js`），必须原样保留。
+  function stripHashes(text) {
+    if (text === null || text === undefined) return '';
+    let inFence = false;
+    let fenceMark = '';
+    return String(text)
+      .split('\n')
+      .map((line) => {
+        const trimmed = line.trimStart();
+        const mark = trimmed.startsWith('```') ? '```'
+          : trimmed.startsWith('~~~') ? '~~~'
+            : '';
+        if (inFence) {
+          if (mark === fenceMark) inFence = false;
+          return line;
+        }
+        if (mark) {
+          inFence = true;
+          fenceMark = mark;
+          return line;
+        }
+        return line.replace(/^#{1,6}\s+(.+)$/, (match, content) => {
+          // 吸收标题内的 `**`（行内代码段除外），使整条标题落在一个加粗里
+          const merged = content
+            .split(/(`+[^`]*`+)/)
+            .map((seg, i) => (i % 2 ? seg : seg.replace(/\*\*/g, '')))
+            .join('');
+          const inner = merged.trim();
+          return inner ? '**' + inner + '**' : match;
+        });
+      })
+      .join('\n');
   }
 
   // =============================================================
@@ -370,8 +441,6 @@
 
         const messages = rcr.messages || [];
 
-        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         // ---- 第一遍：收集引用，按 URL 去重全局编号 ----
         const urlToNum = new Map();  // URL → 编号
@@ -683,8 +752,6 @@
         lines.push('## Conversation');
         lines.push('');
 
-        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         // ---- 第一遍：收集每条消息的引用编号 [N](@ref) → 全局编号（按 URL 去重） ----
         const msgCiteMap = new Map();  // msgIndex → Map<localNum, globalNum>
@@ -970,8 +1037,6 @@
         lines.push('## Conversation');
         lines.push('');
 
-        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         // ---- 第一遍：引用编号【turnNsearchM】→ 全局编号（按 URL 去重） ----
         const msgCiteMap = new Map();  // msgId → Map<refId, globalNum>
@@ -1296,8 +1361,6 @@
         lines.push('## Conversation');
         lines.push('');
 
-        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         // ---- 第一遍：收集引用编号【turnNsearchM】→ 全局编号（按 URL 去重） ----
         const msgCiteMap = new Map();  // 消息下标 → Map<refKey, globalNum>
@@ -1618,8 +1681,6 @@
         lines.push('## Conversation');
         lines.push('');
 
-        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         // ---- 第一遍：收集每条助手消息的引用 <citation src="1,2"> → 全局编号（按 URL 去重） ----
         const msgCiteMap = new Map();  // 消息下标 → Map<localNum, globalNum>
@@ -1881,8 +1942,6 @@
           ? `https://www.perplexity.ai/search/${convId}`
           : 'https://www.perplexity.ai';
 
-        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         const lines = [];
         lines.push('## Metadata');
@@ -2017,7 +2076,6 @@
           ? `https://chat.deepseek.com/a/chat/s/${convId}`
           : 'https://chat.deepseek.com';
 
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         // 第一遍：建立全局引用编号映射（按 URL 顺序去重注册）
         const urlToNum = new Map();  // url → globalNum
@@ -2231,8 +2289,6 @@
         lines.push('## Conversation');
         lines.push('');
 
-        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         for (const msg of messages) {
           if (msg.role === 'user') {
@@ -2244,30 +2300,63 @@
             lines.push('');
 
           } else if (msg.role === 'assistant') {
-            const reasoningContent = msg.reasoning_content || '';
-            let responseText = '';
+            const thoughts = [];
+            const responses = [];
+            const pushUnique = (arr, text) => {
+              const t = (text || '').trim();
+              if (t && !arr.includes(t)) arr.push(t);
+            };
+
+            // 兼容旧字段：reasoning_content 非空时视为思考
+            pushUnique(thoughts, msg.reasoning_content);
 
             if (msg.content_list && Array.isArray(msg.content_list)) {
-              responseText = msg.content_list.map((item) => item.content || '').join('\n');
+              for (const item of msg.content_list) {
+                const phase = String(item.phase || '').toLowerCase();
+                if (phase === 'think') {
+                  // 完整思维链：正文直接在 content
+                  pushUnique(thoughts, item.content);
+                } else if (phase === 'thinking_summary') {
+                  // 摘要形态：content 为空，内容在 extra.summary_title / extra.summary_thought
+                  const extra = item.extra || {};
+                  const titleArr = Array.isArray(extra.summary_title?.content) ? extra.summary_title.content : [];
+                  const thoughtArr = Array.isArray(extra.summary_thought?.content) ? extra.summary_thought.content : [];
+                  const parts = [];
+                  if (titleArr.length) parts.push(`**${titleArr.join(' ')}**`);
+                  for (const line of thoughtArr) {
+                    const t = String(line || '').trim();
+                    if (t) parts.push(`- ${t}`);
+                  }
+                  if (parts.length) pushUnique(thoughts, parts.join('\n'));
+                } else if (phase === 'answer') {
+                  pushUnique(responses, item.content);
+                }
+                // 其它 phase（web_search / image_gen_tool / 空）属于工具过程，不输出
+              }
             } else {
-              responseText = msg.content || '';
+              pushUnique(responses, msg.content);
             }
 
-            if (!responseText) continue;
+            if (thoughts.length === 0 && responses.length === 0) continue;
 
             lines.push('### 🤖 Assistant');
             lines.push('');
 
-            if (reasoningContent) {
+            if (thoughts.length) {
               lines.push('#### 🤔 Thought Process');
               lines.push('');
-              lines.push(stripHashes(reasoningContent));
+              lines.push(stripHashes(thoughts.join('\n\n')));
               lines.push('');
-              lines.push('#### 💡 Response');
-              lines.push('');
+              if (responses.length) {
+                lines.push('#### 💡 Response');
+                lines.push('');
+              }
             }
 
-            lines.push(stripHashes(responseText));
+            if (responses.length) {
+              lines.push(stripHashes(responses.join('\n\n')));
+            }
+
             lines.push('');
           }
         }
@@ -2665,7 +2754,6 @@
           ? formatLocalTime(new Date(Number(session.created_at)))
           : 'unknown';
         const convUrl = convId ? `https://www.qianwen.com/chat/${convId}` : 'https://www.qianwen.com';
-        const stripHashes = (s) => String(s || '').replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
         const refs = [];
         const refKeyToNum = new Map();
         const urlToNum = new Map();
@@ -2940,7 +3028,6 @@
         const url = agentId && conversationId
           ? `https://yuanbao.tencent.com/chat/${agentId}/${conversationId}`
           : 'https://yuanbao.tencent.com';
-        const stripHashes = (s) => String(s || '').replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
         const refMap = new Map();
 
         const lines = [];
@@ -3261,7 +3348,6 @@
         const url = agentId && conversationId
           ? `https://${this._siteHost()}/chat/${agentId}/${conversationId}`
           : `https://${this._siteHost()}`;
-        const stripHashes = (s) => String(s || '').replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
         const refMap = new Map();
 
         const lines = [];
@@ -3514,7 +3600,6 @@
           : 'unknown';
         const convUrl = convId ? `https://www.kimi.com/chat/${convId}` : 'https://www.kimi.com';
         const modelName = chat?.lastRequest?.scenario || 'Kimi';
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
         const citeMap = { urlToNum: new Map(), nextNum: 1 };
 
         const lines = [];
@@ -3871,7 +3956,6 @@
         const convUrl = convId ? `https://${this._siteHost()}/chat/${convId}` : `https://${this._siteHost()}`;
         const modelName = conv?.conv_extra?.inner_bot_name || conv?.tags?.[0]
           || (this._siteHost().endsWith('dola.com') ? 'Dola' : '豆包');
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
         const urlToRef = new Map();
 
         const lines = [];
@@ -4133,7 +4217,6 @@
           : 'unknown';
         const convUrl = convId ? `https://${this._siteHost()}/mavis?id=${convId}` : `https://${this._siteHost()}`;
         const modelName = session?.model?.model_id || session?.model?.provider_id || 'MiniMax';
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         const lines = [];
         lines.push('## Metadata');
@@ -4345,8 +4428,6 @@
           ? `https://copilot.microsoft.com/chats/${convId}`
           : 'https://copilot.microsoft.com';
 
-        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         const lines = [];
         lines.push('## Metadata');
@@ -4467,7 +4548,8 @@
       toMarkdown(data, title, convId) {
         const messages = data?.messages || [];
         const modelName = data?.modelName || 'Gemini';
-        const timeStr = formatLocalTime(new Date());
+        const ms = normalizeTimestamp(data?.updated_at);
+        const timeStr = ms ? formatLocalTime(new Date(ms)) : 'unknown';
         // 保留 /u/<n>/ 前缀，保证点开 URL 落在正确的 Google 账号上
         const authUser = this._authUserFromUrl();
         const base = authUser && authUser !== '0'
@@ -4485,18 +4567,14 @@
         lines.push('## Conversation');
         lines.push('');
 
+        // 消息体中的 # 标题 → **加粗**（共享实现，含代码围栏感知；勿在此另写一份）
+        const convertParts = (parts) => parts.map(p => ({ ...p, text: stripHashes(p.text) }));
+
         for (let i = 0; i < messages.length; i++) {
           const msg = messages[i];
           const prev = i > 0 ? messages[i-1] : null;
           const isContinuedModel = (msg.role === 'model' || msg.role === 'assistant') && prev && (prev.role === 'model' || prev.role === 'assistant');
 
-          // 消息体中的 # 标题 → **加粗**（代码块内的不转）
-          function convertHeadings(text) {
-            return text.replace(/^(#{1,6})\s+(.+)$/gm, (m, hashes, content) => '**' + content.trim() + '**');
-          }
-          function convertParts(parts) {
-            return parts.map(p => ({ ...p, text: convertHeadings(p.text) }));
-          }
           const tp = convertParts(msg.parts.filter(p => p.type === 'thought'));
           const tx = convertParts(msg.parts.filter(p => p.type === 'text'));
 
@@ -4720,7 +4798,10 @@
           this._scanAllStrings(arr, messages);
         }
 
-        return { messages, modelName, title, promptId: id };
+        // arr[4][4][0] = [seconds, nanos]（Google Timestamp），与 getAllConversations 取的是同一字段
+        const updatedAt = Array.isArray(arr[4]) && Array.isArray(arr[4][4]) ? arr[4][4][0] : null;
+
+        return { messages, modelName, title, promptId: id, updated_at: updatedAt };
       },
 
       /** 兜底：全量扫描所有长文本 */
@@ -4863,11 +4944,6 @@
           ? `https://chatgpt.com/c/${convId}`
           : 'https://chatgpt.com';
 
-        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, (m, c) => {
-          const inner = c.trim();
-          return '**' + inner + (inner.endsWith('**') ? '' : '**');
-        });
         // 去掉 canvas 标记行（:::writing{...} 等）
         const stripCanvas = (s) => s.split('\n').filter((l) => !/^:::/.test(l.trim())).join('\n');
         const clean = (s) => stripCanvas(stripHashes(s)).trim();
@@ -5075,11 +5151,6 @@
           ? `https://x.com/i/grok?conversation=${convId}`
           : 'https://x.com/i/grok';
 
-        // markdown 井号标题 → 加粗（若标题行本身已被 ** 包裹则不重复包裹）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, (m, c) => {
-          const inner = c.trim();
-          return '**' + inner + (inner.endsWith('**') ? '' : '**');
-        });
 
         const lines = [];
         lines.push('## Metadata');
@@ -5229,10 +5300,6 @@
 
         const model = responses.find((r) => r.model)?.model || 'Grok';
         const firstTime = responses[0]?.createTime ? new Date(responses[0].createTime) : new Date();
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, (m, c) => {
-          const inner = c.trim();
-          return '**' + inner + (inner.endsWith('**') ? '' : '**');
-        });
 
         const lines = [];
         lines.push('## Metadata');
@@ -5483,11 +5550,6 @@
           ? `https://gemini.google.com/app/${convId}`
           : 'https://gemini.google.com/app';
 
-        // markdown 井号标题 → 加粗（若标题行本身已被 ** 包裹则不重复包裹）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, (m, c) => {
-          const inner = c.trim();
-          return '**' + inner + (inner.endsWith('**') ? '' : '**');
-        });
 
         const lines = [];
         lines.push('## Metadata');
@@ -6078,10 +6140,6 @@
         const model = (data && data.model) || 'Gemini (AI Mode)';
         const timeMs = (data && data.timeMs) || null;
         const convUrl = (data && data.url) || (convId && convId !== 'current' ? `https://www.google.com/search?udm=50&mtid=${convId}` : (typeof window !== 'undefined' ? window.location.href : 'https://www.google.com/search?udm=50'));
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, (m, c) => {
-          const inner = c.trim();
-          return '**' + inner + (inner.endsWith('**') ? '' : '**');
-        });
 
         const lines = [];
         lines.push('## Metadata');
@@ -6277,18 +6335,27 @@
         };
       },
 
-      /** 解析 Next.js RSC（Flight）payload：取 {"messages":[...]} 块并解析 $id 引用
-       * 注意：Flight 的 T chunk 会粘在前一个 chunk 内容末尾（不换行），且内容长度按字节计 */
+      /** 解析 Next.js RSC（Flight）payload：取 messages 数组并解析 $id 引用
+       * 注意 1：不能假设 messages 是所在对象的首键（实测键序会变），故直接定位 `"messages":[`；
+       *         页面 i18n 也有 "messages" 键（值为对象），必须只认后面紧跟 `[` 的那个。
+       * 注意 2：Flight 的 T chunk 会粘在前一个 chunk 内容末尾（不换行），且内容长度按字节计 */
       _parseAgentRsc(flight) {
         const text = String(flight);
         const bytes = new TextEncoder().encode(text);
         const decoder = new TextDecoder('utf-8');
 
-        // 1. 定位 {"messages" JSON 块
-        const start = text.indexOf('{"messages"');
-        if (start < 0) throw new Error('agent RSC: messages block not found');
-        const jsonStr = this._extractBalancedJson(text, start);
-        const raw = JSON.parse(jsonStr);
+        // 1. 定位并解析 messages 数组字面量
+        const reMsgs = /"messages"\s*:\s*\[/g;
+        let messages = null;
+        let mm;
+        while ((mm = reMsgs.exec(text))) {
+          const arrStart = mm.index + mm[0].length - 1; // 指向 '['
+          try {
+            const parsed = JSON.parse(this._extractBalancedJson(text, arrStart));
+            if (Array.isArray(parsed)) { messages = parsed; break; }
+          } catch (e) { /* 不是消息数组，继续找下一个候选 */ }
+        }
+        if (!messages) throw new Error('agent RSC: messages block not found');
 
         // 2. 扫描所有 `id:T<hex>,` 文本 chunk（任意位置，含粘在行中的）
         const tChunks = new Map();
@@ -6323,12 +6390,14 @@
           return value;
         };
 
-        const resolved = resolve(raw);
-        return Array.isArray(resolved.messages) ? resolved.messages : [];
+        const resolved = resolve(messages);
+        return Array.isArray(resolved) ? resolved : [];
       },
 
-      /** 从 start 起提取配平的 JSON 对象 */
+      /** 从 start 起提取配平的 JSON 块（start 处须为 '{' 或 '['） */
       _extractBalancedJson(s, start) {
+        const open = s[start];
+        const close = open === '[' ? ']' : '}';
         let depth = 0, inStr = false, esc = false;
         for (let i = start; i < s.length; i++) {
           const c = s[i];
@@ -6339,8 +6408,8 @@
             continue;
           }
           if (c === '"') { inStr = true; continue; }
-          if (c === '{') depth++;
-          else if (c === '}') {
+          if (c === open) depth++;
+          else if (c === close) {
             depth--;
             if (depth === 0) return s.slice(start, i + 1);
           }
@@ -6350,7 +6419,6 @@
 
       /** 将 Arena 数据转为 Markdown（契约见 docs/ChatFormat.arena.md） */
       toMarkdown(data, title, convId) {
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
         const mode = this._detectMode(data);
 
         const lines = [];
@@ -6792,7 +6860,6 @@
         const updatedAt = data?.chat?.updatedAt || data?.updatedAt;
         const timeStr = updatedAt ? formatLocalTime(new Date(updatedAt)) : 'unknown';
         const url = id ? `https://chat.mistral.ai/chat/${id}` : 'https://chat.mistral.ai';
-        const stripHashes = (s) => String(s || '').replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         const allRefs = [];
         const seenUrls = new Set();
@@ -6956,7 +7023,6 @@
           ? formatLocalTime(new Date(data.updatedAt))
           : 'unknown';
         const url = id ? `https://chat.sakana.ai/conversation/${id}` : 'https://chat.sakana.ai';
-        const stripHashes = (s) => String(s || '').replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         const lines = [];
         lines.push('## Metadata');
@@ -7150,8 +7216,6 @@
         lines.push('## Conversation');
         lines.push('');
 
-        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         for (const m of ordered) {
           // content 块按顺序交错；thinking / tool_result 不直接输出
@@ -7527,8 +7591,6 @@
         lines.push('## Conversation');
         lines.push('');
 
-        // markdown 井号标题 → 加粗（保留突出感，不破坏标题层级）
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
 
         for (const m of ordered) {
           if (m.isChatAnnouncement) continue;
@@ -7706,7 +7768,6 @@
         lines.push('## Conversation');
         lines.push('');
 
-        const stripHashes = (s) => s.replace(/^#{1,6}\s+(.+)$/gm, '**$1**');
         // 搜索引用（与豆包等一致）：不嵌入正文，收集后汇总到对话末尾 ### References。
         // 每条 reply 的 data.sources[] 有 key（消息内编号）+ data.text（首行形如 [标题](url)；url 含 \u003d/\u0026 类 JSON 二次转义需还原）
         const unescapeUnicode = (s) => s.replace(/\\u([0-9a-fA-F]{4})/g, (_m, h) => String.fromCharCode(parseInt(h, 16)));
