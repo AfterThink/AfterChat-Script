@@ -15,7 +15,7 @@ AfterChat is a free, open-source **AI chat exporter / conversation backup tool**
 
 Export chats from **ChatGPT, Claude, Gemini, DeepSeek, GLM, Qwen** and 28 major AI platforms to **Markdown files** with one click, fully preserving **reasoning / thinking** and **citation sources** for personal backup, migration and offline reading.
 
-After installing the [AfterChat client](https://github.com/AfterThink/AfterChat-App-Download), you can also save the current conversation to your AfterChat workspace with one click.
+After installing the [AfterChat Desktop App](https://github.com/AfterThink/AfterChat-App-Download), you can also save the current conversation to your AfterChat workspace with one click.
 
 ## Supported Platforms
 
@@ -80,6 +80,11 @@ The script shows a circular download button in the bottom-right corner of the pa
 Your privacy matters. The script does not collect any information from you.
 
 The script runs with `@grant none`, sends no data to any third party, and exported files are only stored locally.
+
+## Related Projects
+
+- [AfterChat-Converter](https://github.com/AfterThink/AfterChat-Converter): batch-convert official exports and third-party client backups (Claude/Qwen official exports, Cherry Studio, RikkaHub, etc.) into Markdown, the same format this script exports.
+- [AfterChat Desktop App](https://github.com/AfterThink/AfterChat-App-Download): manage your conversations and build a knowledge base locally.
 
 ## About
 
