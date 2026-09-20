@@ -11,8 +11,6 @@
 
 <p align="center">English | <a href="./README.zh-CN.md">简体中文</a></p>
 
-English | [简体中文](./README.zh-CN.md)
-
 AfterChat is a free, open-source **AI chat exporter / conversation backup tool**.
 
 Export chats from **ChatGPT, Claude, Gemini, DeepSeek, GLM, Qwen** and 28 major AI platforms to **Markdown files** with one click, fully preserving **reasoning / thinking** and **citation sources** for personal backup, migration and offline reading.
