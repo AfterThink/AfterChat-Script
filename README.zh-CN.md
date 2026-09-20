@@ -1,4 +1,4 @@
-# AfterChat — LLM 对话导出器
+<h1 align="center">AfterChat — LLM 对话导出器</h1>
 
 <p align="center">
   <a href="https://greasyfork.org/zh-CN/scripts/589622-afterchat-llm-chat-exporter">
@@ -9,7 +9,7 @@
   </a>
 </p>
 
-[English](./README.md) | 简体中文
+<p align="center"> <a href="./README.md">English</a> | 简体中文</p>
 
 AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工具**。
 

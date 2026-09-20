@@ -1,4 +1,4 @@
-# AfterChat — LLM Chat Exporter
+<h1 align="center">AfterChat — LLM Chat Exporter</h1>
 
 <p align="center">
   <a href="https://greasyfork.org/en/scripts/589622-afterchat-llm-chat-exporter">
@@ -8,6 +8,8 @@
     <img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License: AGPL-3.0" />
   </a>
 </p>
+
+<p align="center">English | <a href="./README.zh-CN.md">简体中文</a></p>
 
 English | [简体中文](./README.zh-CN.md)
 
