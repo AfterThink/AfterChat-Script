@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.18.8
+// @version      1.18.9
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola 的聊天記錄
@@ -1953,7 +1953,41 @@
         lines.push('## Conversation');
         lines.push('');
 
-        for (const entry of entries) {
+        // ---- 第一遍：收集各 entry 引用 [N]，建立全局递增映射（按 URL 去重） ----
+        const entryCiteMap = new Map(); // entryIndex -> Map<localNum, globalNum>
+        const urlToNum = new Map();      // url -> globalNum
+        const allRefs = [];              // array of { num, url }
+        let nextNum = 1;
+
+        for (let i = 0; i < entries.length; i++) {
+          const entry = entries[i];
+          const mb = entry?.blocks?.find((b) => b.markdown_block && b.intended_usage === 'ask_text');
+          const answer = mb?.markdown_block?.answer || '';
+          if (!answer) continue;
+
+          const wrBlock = entry?.blocks?.find((b) => b.web_result_block);
+          const webResults = wrBlock?.web_result_block?.web_results || [];
+          const citedNums = [...new Set(
+            [...answer.matchAll(/\[(\d+)\]/g)].map((m) => Number(m[1]))
+          )].filter((n) => Number.isInteger(n) && n >= 1 && n <= webResults.length)
+            .sort((a, b) => a - b);
+
+          const localMap = new Map();
+          for (const n of citedNums) {
+            const w = webResults[n - 1];
+            if (!w?.url) continue;
+            if (!urlToNum.has(w.url)) {
+              const gNum = nextNum++;
+              urlToNum.set(w.url, gNum);
+              allRefs.push({ num: gNum, url: w.url });
+            }
+            localMap.set(n, urlToNum.get(w.url));
+          }
+          entryCiteMap.set(i, localMap);
+        }
+
+        for (let i = 0; i < entries.length; i++) {
+          const entry = entries[i];
           const userText = entry?.query_str || '';
           if (userText) {
             lines.push('### 🧑‍💻 User');
@@ -1966,30 +2000,27 @@
           const answer = mb?.markdown_block?.answer || '';
           if (!answer) continue;
 
+          const localMap = entryCiteMap.get(i) || new Map();
+          const cleanAnswer = answer.replace(/\[(\d+)\]/g, (orig, numStr) => {
+            const gNum = localMap.get(Number(numStr));
+            return gNum !== undefined ? `[${gNum}]` : orig;
+          });
+
           lines.push('### 🤖 Assistant');
           lines.push('');
-          lines.push(stripHashes(answer));
+          lines.push(stripHashes(cleanAnswer));
           lines.push('');
+        }
 
-          // 引用：[N] → web_results[N-1].url（每个 entry 独立编号）
-          const wrBlock = entry?.blocks?.find((b) => b.web_result_block);
-          const webResults = wrBlock?.web_result_block?.web_results || [];
-          const citedNums = [...new Set(
-            [...answer.matchAll(/\[(\d+)\]/g)].map((m) => Number(m[1]))
-          )].filter((n) => Number.isInteger(n) && n >= 1 && n <= webResults.length)
-            .sort((a, b) => a - b);
-
-          if (citedNums.length > 0) {
-            lines.push('---');
-            lines.push('');
-            lines.push('### References');
-            lines.push('');
-            for (const n of citedNums) {
-              const w = webResults[n - 1];
-              if (w?.url) lines.push(`- [${n}] ${w.url}`);
-            }
-            lines.push('');
+        if (allRefs.length > 0) {
+          lines.push('---');
+          lines.push('');
+          lines.push('### References');
+          lines.push('');
+          for (const ref of allRefs) {
+            lines.push(`- [${ref.num}] ${ref.url}`);
           }
+          lines.push('');
         }
 
         return lines.join('\n');
@@ -3028,7 +3059,34 @@
         const url = agentId && conversationId
           ? `https://yuanbao.tencent.com/chat/${agentId}/${conversationId}`
           : 'https://yuanbao.tencent.com';
-        const refMap = new Map();
+        // ---- 第一遍：收集各轮引用 [citation:N]，建立全局递增映射（按 URL 去重） ----
+        const msgCiteMap = new Map(); // convIndex -> Map<localIndex, globalNum>
+        const urlToNum = new Map();   // url -> globalNum
+        const allRefs = [];           // array of { num, title, url }
+        let nextNum = 1;
+
+        for (let i = 0; i < convs.length; i++) {
+          const conv = convs[i];
+          if (String(conv.speaker || '').toLowerCase() === 'human') continue;
+          const parts = this._speechParts(conv);
+          if (!parts.text && !parts.thought) continue;
+          // 本轮内部按 ref.index 去重（deepSearch 与 searchGuid 会重复附带相同 index 的 docs）
+          const convRefs = new Map();
+          for (const ref of parts.refs) {
+            if (!ref?.url) continue;
+            if (!convRefs.has(ref.index)) convRefs.set(ref.index, ref);
+          }
+          const localMap = new Map();
+          for (const [idx, ref] of convRefs.entries()) {
+            if (!urlToNum.has(ref.url)) {
+              const num = nextNum++;
+              urlToNum.set(ref.url, num);
+              allRefs.push({ num, title: ref.title || '', url: ref.url });
+            }
+            localMap.set(idx, urlToNum.get(ref.url));
+          }
+          msgCiteMap.set(i, localMap);
+        }
 
         const lines = [];
         lines.push('## Metadata');
@@ -3040,21 +3098,24 @@
         lines.push('## Conversation');
         lines.push('');
 
-        for (const conv of convs) {
+        for (let i = 0; i < convs.length; i++) {
+          const conv = convs[i];
           const role = String(conv.speaker || '').toLowerCase() === 'human' ? 'user' : 'assistant';
           const parts = this._speechParts(conv);
           if (!parts.text && !parts.thought) continue;
-          for (const ref of parts.refs) {
-            if (!refMap.has(ref.index)) refMap.set(ref.index, ref);
-          }
           if (role === 'user') {
             lines.push('### 🧑‍💻 User');
             lines.push('');
             lines.push(stripHashes(parts.text));
             lines.push('');
           } else {
-            const responseText = stripHashes(parts.text.replace(/\[citation:(\d+)\]/g, '[$1]'));
-            const thoughtText = stripHashes(parts.thought.replace(/\[citation:(\d+)\]/g, '[$1]'));
+            const citeMap = msgCiteMap.get(i) || new Map();
+            const replacer = (_, idxStr) => {
+              const n = citeMap.get(Number(idxStr));
+              return n !== undefined ? `[${n}]` : `[${idxStr}]`;
+            };
+            const responseText = stripHashes(parts.text.replace(/\[citation:(\d+)\]/g, replacer));
+            const thoughtText = stripHashes(parts.thought.replace(/\[citation:(\d+)\]/g, replacer));
             lines.push('### 🤖 Assistant');
             lines.push('');
             if (thoughtText) {
@@ -3074,13 +3135,13 @@
           }
         }
 
-        if (refMap.size > 0) {
+        if (allRefs.length > 0) {
           lines.push('---');
           lines.push('');
           lines.push('### References');
           lines.push('');
-          for (const [idx, ref] of [...refMap.entries()].sort((a, b) => a[0] - b[0])) {
-            lines.push(ref.title ? `- [${idx}] ${ref.title} ${ref.url}` : `- [${idx}] ${ref.url}`);
+          for (const ref of allRefs) {
+            lines.push(ref.title ? `- [${ref.num}] ${ref.title} ${ref.url}` : `- [${ref.num}] ${ref.url}`);
           }
           lines.push('');
         }
@@ -3348,7 +3409,7 @@
         const url = agentId && conversationId
           ? `https://${this._siteHost()}/chat/${agentId}/${conversationId}`
           : `https://${this._siteHost()}`;
-        const refMap = new Map();
+        const urlToRef = new Map(); // url -> title
 
         const lines = [];
         lines.push('## Metadata');
@@ -3366,7 +3427,7 @@
           const fallback = (conv.displayPrompt || '').trim();
           if (!parts.text && !parts.thought && !fallback) continue;
           for (const ref of parts.refs) {
-            if (!refMap.has(ref.index)) refMap.set(ref.index, ref);
+            if (ref?.url && !urlToRef.has(ref.url)) urlToRef.set(ref.url, ref.title || '');
           }
           if (role === 'user') {
             const body = stripHashes(parts.text || fallback);
@@ -3398,13 +3459,15 @@
           }
         }
 
-        if (refMap.size > 0) {
+        if (urlToRef.size > 0) {
           lines.push('---');
           lines.push('');
           lines.push('### References');
           lines.push('');
-          for (const [idx, ref] of [...refMap.entries()].sort((a, b) => a[0] - b[0])) {
-            lines.push(ref.title ? `- [${idx}] ${ref.title} ${ref.url}` : `- [${idx}] ${ref.url}`);
+          let i = 1;
+          for (const [refUrl, refTitle] of urlToRef.entries()) {
+            lines.push(refTitle ? `- [${i}] ${refTitle} ${refUrl}` : `- [${i}] ${refUrl}`);
+            i++;
           }
           lines.push('');
         }
@@ -6141,6 +6204,32 @@
         const timeMs = (data && data.timeMs) || null;
         const convUrl = (data && data.url) || (convId && convId !== 'current' ? `https://www.google.com/search?udm=50&mtid=${convId}` : (typeof window !== 'undefined' ? window.location.href : 'https://www.google.com/search?udm=50'));
 
+        // ---- 第一遍：解析各 Assistant 消息尾部的 References，建立全局递增编号 ----
+        const msgRefMap = new Map(); // msgIndex -> Map<localNum, globalNum>
+        const allRefs = [];           // array of { num, text }
+        let nextGlobalNum = 1;
+
+        for (let i = 0; i < messages.length; i++) {
+          const m = messages[i];
+          if (m?.role !== 'assistant') continue;
+          const text = String(m?.text || '').trim();
+          const refMatch = text.match(/\n\n(?:#{1,4}\s+|\*\*)References(?:\*\*|)?\s*\n+([\s\S]*)$/i);
+          if (!refMatch) continue;
+          const localMap = new Map();
+          const refLines = refMatch[1].trim().split(/\r?\n/).filter((l) => l.trim().startsWith('- '));
+          for (const l of refLines) {
+            const mLine = l.trim().match(/^-\s*\[(\d+)\]\s*(.*)$/);
+            if (mLine) {
+              const localNum = Number(mLine[1]);
+              const rest = mLine[2].trim();
+              const gNum = nextGlobalNum++;
+              allRefs.push({ num: gNum, text: rest });
+              localMap.set(localNum, gNum);
+            }
+          }
+          msgRefMap.set(i, localMap);
+        }
+
         const lines = [];
         lines.push('## Metadata');
         lines.push('');
@@ -6151,17 +6240,20 @@
         lines.push('## Conversation');
         lines.push('');
 
-        const allRefs = [];
-        for (const m of messages) {
-          let text = String(m.text || '').trim();
+        for (let i = 0; i < messages.length; i++) {
+          const m = messages[i];
+          let text = String(m?.text || '').trim();
           if (!text) continue;
           if (m.role === 'assistant') {
             const refMatch = text.match(/\n\n(?:#{1,4}\s+|\*\*)References(?:\*\*|)?\s*\n+([\s\S]*)$/i);
             if (refMatch) {
               text = text.slice(0, refMatch.index).trim();
-              const refLines = refMatch[1].trim().split(/\r?\n/).filter((l) => l.trim().startsWith('- '));
-              for (const l of refLines) {
-                if (!allRefs.includes(l.trim())) allRefs.push(l.trim());
+              const localMap = msgRefMap.get(i);
+              if (localMap && localMap.size > 0) {
+                text = text.replace(/\[(\d+)\]/g, (orig, numStr) => {
+                  const gNum = localMap.get(Number(numStr));
+                  return gNum !== undefined ? `[${gNum}]` : orig;
+                });
               }
             }
           }
@@ -6177,7 +6269,7 @@
           lines.push('### References');
           lines.push('');
           for (const r of allRefs) {
-            lines.push(r);
+            lines.push(`- [${r.num}] ${r.text}`);
           }
           lines.push('');
         }
