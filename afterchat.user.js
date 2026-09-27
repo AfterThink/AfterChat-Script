@@ -16,23 +16,23 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.18.9
-// @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola
-// @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola 的聊天记录
-// @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola 的聊天記錄
-// @description:ja  ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、Doubao、ChatGLM、Z.ai、Qwen、Qianwen、Poe、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、Tencent IMA、Sakana AI、Arena AI、Dola などのチャット履歴をワンクリックで書き出し
-// @description:ko  ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、Doubao、ChatGLM、Z.ai、Qwen、Qianwen、Poe、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、Tencent IMA、Sakana AI、Arena AI、Dola  등 LLM 채팅 기록을 원클릭으로 내보내기
-// @description:es  Exporta con un clic el historial de chat de ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI y Dola
-// @description:fr  Exportez en un clic l'historique de vos conversations ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI et Dola
-// @description:de  Chatverläufe von ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI und Dola mit einem Klick exportieren
-// @description:pt-BR  Exporte com um clique o histórico de chats do ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI e Dola
-// @description:ru  Экспортируйте в один клик историю чатов ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI и Dola
-// @description:it  Esporta con un clic la cronologia delle chat di ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI e Dola
-// @description:vi  Xuất lịch sử trò chuyện từ ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI và Dola chỉ với một cú nhấp chuột
-// @description:id  Ekspor riwayat chat dari ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, dan Dola dengan sekali klik
-// @description:th  ส่งออกประวัติแชทจาก ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI และ Dola ด้วยคลิกเดียว
-// @description:tr  ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI ve Dola sohbet geçmişini tek tıkla dışa aktarın
-// @description:ar  صدّر سجل المحادثات من ChatGPT وClaude وGemini وGrok وDeepSeek وMicrosoft Copilot وM365 Copilot وPerplexity وKimi وDoubao وChatGLM وZ.ai وQwen وQianwen وPoe وTencent Yuanbao وTencent Hunyuan وMiniMax وMistral وMonica وGoogle AI Studio وDuckDuckGo AI Chat وTencent IMA وSakana AI وArena AI وDola بنقرة واحدة
+// @version      1.21.0
+// @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
+// @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
+// @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
+// @description:ja  ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、Doubao、ChatGLM、Z.ai、Qwen、Qianwen、Poe、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、Tencent IMA、Sakana AI、Arena AI、Dola、StepFun などのチャット履歴をワンクリックで書き出し
+// @description:ko  ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、Doubao、ChatGLM、Z.ai、Qwen、Qianwen、Poe、Tencent Yuanbao、Tencent Hunyuan、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、Tencent IMA、Sakana AI、Arena AI、Dola, StepFun  등 LLM 채팅 기록을 원클릭으로 내보내기
+// @description:es  Exporta con un clic el historial de chat de ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola y StepFun
+// @description:fr  Exportez en un clic l'historique de vos conversations ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola et StepFun
+// @description:de  Chatverläufe von ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola und StepFun mit einem Klick exportieren
+// @description:pt-BR  Exporte com um clique o histórico de chats do ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola e StepFun
+// @description:ru  Экспортируйте в один клик историю чатов ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola и StepFun
+// @description:it  Esporta con un clic la cronologia delle chat di ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola e StepFun
+// @description:vi  Xuất lịch sử trò chuyện từ ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola và StepFun chỉ với một cú nhấp chuột
+// @description:id  Ekspor riwayat chat dari ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, dan StepFun dengan sekali klik
+// @description:th  ส่งออกประวัติแชทจาก ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola และ StepFun ด้วยคลิกเดียว
+// @description:tr  ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola ve StepFun sohbet geçmişini tek tıkla dışa aktarın
+// @description:ar  صدّر سجل المحادثات من ChatGPT وClaude وGemini وGrok وDeepSeek وMicrosoft Copilot وM365 Copilot وPerplexity وKimi وDoubao وChatGLM وZ.ai وQwen وQianwen وPoe وTencent Yuanbao وTencent Hunyuan وMiniMax وMistral وMonica وGoogle AI Studio وDuckDuckGo AI Chat وTencent IMA وSakana AI وArena AI وDola وStepFun بنقرة واحدة
 // @author       AfterThink Studio
 // @license      AGPL-3.0
 // @match        https://chatgpt.com/*
@@ -68,6 +68,9 @@
 // @match        https://chat.sakana.ai/*
 // @match        https://arena.ai/*
 // @match        https://www.dola.com/*
+// @match        https://studio.stepfun.ai/*
+// @match        https://studio.stepfun.com/*
+// @match        https://chat.stepfun.com/*
 // @icon         https://avatars.githubusercontent.com/u/266756423?s=400&u=d38fce2849e95af734f50228d5195fcdf1c7719e&v=4
 // @grant        none
 // @run-at       document-idle
@@ -92,6 +95,33 @@
 // =============================================================
 //  📜 Changelog 
 // =============================================================
+//  1.21.0 (2026-09-27)
+//    - 全平台搜索引用格式标准化与重构收敛（RFC 1.0.0-draft）：
+//      沉淀通用 ReferenceCollector / normalizeRefUrl / formatRefLine / parseRefEntry 辅助体系
+//      文末 References 统一三级标题 ### References，空行自然承接彻底移除 --- 分隔线
+//      列表项全面标准化为标准 Markdown 链接 - [N] [标题](URL)（无标题时为 [URL](URL)）
+//      全面消除平台内部错位（Gemini / Grok / Sakana 错置单回合助手体内改为全文末汇总）
+//      全平台跨回合 URL 规范化全局去重与单调递增编号映射（ChatGPT / Perplexity /
+//      DeepSeek / 豆包 / 腾讯元宝 / 腾讯混元 / Kimi / 智谱清言 / Z.ai / 千问 / Mistral /
+//      Monica / DuckDuckGo / Arena / StepFun 等 20+ 平台 100% 满分合规对齐）
+//  1.20.0 (2026-09-27)
+//    - 新增 StepFun Chat（阶跃 AI 对话端 chat.stepfun.com）适配器：
+//      与 Studio 是两套独立应用（本适配器 id 为 stepfunchat，appid 10200）
+//      Connect RPC /api/agent/capy.agent.v1.AgentService/<Method>
+//      列表 ListChatSessions（pageToken 翻页）+ 单条 GetChatSessionByID
+//      + 消息 ListMessages（pageToken 翻页；页序最新在前、页内升序，汇总后按
+//      messageId 升序还原时间正序）
+//      思考链取自 assistantMessage.qa.pipeSteps[PIPE_STEP_TYPE_REASONING]
+//      （qa.reasoningContent 常为空）；搜索来源取自 qa.indexReferences，
+//      汇总到文末 ### References；认证走 localStorage 'oasis-token'
+//  1.19.0 (2026-09-27)
+//    - 新增 StepFun AI Studio（阶跃星辰）适配器：国际版 studio.stepfun.ai
+//      + 国内版 studio.stepfun.com（API 同构）。Connect 风格 RPC，统一前缀
+//      /api/step.openapi.devcenter.Dashboard/<Method>
+//      列表 ListConversations（cursor 翻页）+ 消息 ListMessages（cursor 翻页）
+//      + 正文 BatchGetMessages（messageIds 分批）；block.type 1=TEXT 2=THINKING
+//      3=TOOL_CALL 4=ASSETS，role 1=user 2=assistant 3=system
+//      支持思考链；工具调用块不输出正文；认证走同源 Cookie（oasis-* 头仅标记）
 //  1.1.0 (2026-08-05)
 //    - 新增 arena.ai 适配器：battle / side-by-side / direct-chat / agent
 //      四种模式（含投票、引用、思维链；格式规范见 docs/ChatFormat.arena.md）
@@ -330,6 +360,120 @@
       .join('\n');
   }
 
+  // ---- 通用：引用与信源区标准化工具（RFC 1.0.0 规范，见 docs/ChatFormat.md 4.4） ----
+  // 1. URL 规范化清洗（去 hash、去 tracking 参数、去非根路径冗余末尾斜杠）
+  function normalizeRefUrl(rawUrl) {
+    if (!rawUrl) return '';
+    const str = String(rawUrl).trim();
+    if (!str) return '';
+    try {
+      const u = new URL(str);
+      u.hash = '';
+      const TRACKING_PARAMS = [
+        'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+        'spm', 'from', 'source', 'feature', 'ref', 'ref_src',
+        'fbclid', 'gclid', 'msclkid', 'ved', 'ei'
+      ];
+      for (const p of TRACKING_PARAMS) {
+        u.searchParams.delete(p);
+      }
+      let res = u.toString();
+      if (res.endsWith('/') && !res.endsWith('://')) res = res.slice(0, -1);
+      return res;
+    } catch (e) {
+      return str.split('#')[0].trim().replace(/\/+$/, '');
+    }
+  }
+
+  // 2. 格式化单条 References 条目：标准 Markdown 链接化
+  function formatRefLine(num, title, url) {
+    const normUrl = normalizeRefUrl(url);
+    const cleanTitle = (title || '').trim();
+    if (cleanTitle && cleanTitle !== normUrl && cleanTitle !== url) {
+      return normUrl ? `- [${num}] [${cleanTitle}](${normUrl})` : `- [${num}] ${cleanTitle}`;
+    }
+    if (normUrl) {
+      return `- [${num}] [${normUrl}](${normUrl})`;
+    }
+    return `- [${num}] ${cleanTitle || 'unknown'}`;
+  }
+
+  // 3. 通用解析单行引用文本（支持 Markdown 链接、括号 URL、空格分隔及裸 URL）
+  function parseRefEntry(line) {
+    const mLine = String(line || '').trim().match(/^-\s*\[(\d+)\]\s*(.*)$/);
+    if (!mLine) return null;
+    const localNum = Number(mLine[1]);
+    const rest = mLine[2].trim();
+    const mdMatch = rest.match(/^\[(.*?)\]\((https?:\/\/[^\s)]+)\)$/);
+    if (mdMatch) {
+      return { localNum, title: mdMatch[1].trim(), url: mdMatch[2].trim() };
+    }
+    const parenMatch = rest.match(/^(.*?)\s*\((https?:\/\/[^\s)]+)\)$/);
+    if (parenMatch) {
+      return { localNum, title: parenMatch[1].trim(), url: parenMatch[2].trim() };
+    }
+    const spaceMatch = rest.match(/^(.*?)\s+(https?:\/\/\S+)$/);
+    if (spaceMatch) {
+      return { localNum, title: spaceMatch[1].trim(), url: spaceMatch[2].trim() };
+    }
+    if (/^https?:\/\/\S+$/.test(rest)) {
+      return { localNum, title: '', url: rest };
+    }
+    return { localNum, title: rest, url: '' };
+  }
+
+  // 4. ReferenceCollector：全局信源收集器（URL 规范化去重、单调递增编号、文末标准渲染）
+  class ReferenceCollector {
+    constructor() {
+      this.allRefs = [];              // array of { num, title, url }
+      this.urlToNum = new Map();      // normalizedUrl -> num
+      this.nextNum = 1;
+    }
+
+    add(title, rawUrl) {
+      const norm = normalizeRefUrl(rawUrl);
+      const cleanTitle = (title || '').trim();
+      if (norm && this.urlToNum.has(norm)) {
+        const num = this.urlToNum.get(norm);
+        // 如果原有条目缺 title，而新传入有有效 title，则补充 title
+        const existing = this.allRefs.find((r) => r.num === num);
+        if (existing && (!existing.title || existing.title === existing.url) && cleanTitle && cleanTitle !== norm) {
+          existing.title = cleanTitle;
+        }
+        return num;
+      }
+      const num = this.nextNum++;
+      if (norm) {
+        this.urlToNum.set(norm, num);
+      }
+      this.allRefs.push({
+        num,
+        title: cleanTitle,
+        url: norm || (rawUrl ? String(rawUrl).trim() : '')
+      });
+      return num;
+    }
+
+    get(rawUrl) {
+      const norm = normalizeRefUrl(rawUrl);
+      return norm ? this.urlToNum.get(norm) : undefined;
+    }
+
+    hasReferences() {
+      return this.allRefs.length > 0;
+    }
+
+    render() {
+      if (this.allRefs.length === 0) return [];
+      const lines = ['### References', ''];
+      for (const r of this.allRefs) {
+        lines.push(formatRefLine(r.num, r.title, r.url));
+      }
+      lines.push('');
+      return lines;
+    }
+  }
+
   // =============================================================
   //  🧩  PLATFORM_ADAPTERS — 平台适配器
   //  =============================================================
@@ -443,9 +587,8 @@
 
 
         // ---- 第一遍：收集引用，按 URL 去重全局编号 ----
-        const urlToNum = new Map();  // URL → 编号
+        const refCollector = new ReferenceCollector();
         const refKeyToNum = new Map(); // refKey → 编号
-        let nextNum = 1;
 
         // 每条最终回复消息的引用映射
         const msgCitationMap = new Map(); // msgIndex → Map<refKey, globalNum>
@@ -466,13 +609,9 @@
               const refInfo = refs[key];
               if (refInfo && refInfo.targetLink) {
                 const link = refInfo.targetLink;
-                if (urlToNum.has(link)) {
-                  refKeyToNum.set(key, urlToNum.get(link));
-                } else {
-                  urlToNum.set(link, nextNum);
-                  refKeyToNum.set(key, nextNum);
-                  nextNum++;
-                }
+                const title = refInfo.title || '';
+                const gn = refCollector.add(title, link);
+                refKeyToNum.set(key, gn);
               } else {
                 refKeyToNum.set(key, null);
               }
@@ -540,16 +679,8 @@
         }
 
         // ---- References ----
-        if (urlToNum.size > 0) {
-          const sorted = [...urlToNum.entries()].sort((a, b) => a[1] - b[1]);
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          for (const [link, num] of sorted) {
-            lines.push(`- [${num}] ${link}`);
-          }
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n');
@@ -754,9 +885,8 @@
 
 
         // ---- 第一遍：收集每条消息的引用编号 [N](@ref) → 全局编号（按 URL 去重） ----
+        const refCollector = new ReferenceCollector();
         const msgCiteMap = new Map();  // msgIndex → Map<localNum, globalNum>
-        const urlToNum = new Map();    // url → globalNum
-        let nextNum = 1;
 
         for (let i = 0; i < msgs.length; i++) {
           const fa = msgs[i]?.qa_msg?.format_answer || {};
@@ -766,10 +896,11 @@
           const nums = [...new Set([...text.matchAll(/\[(\d+)\]\(@ref\)/g)].map(m => Number(m[1])))];
           const localMap = new Map();
           for (const n of nums) {
-            const url = medias[n - 1]?.jumpUrl || '';
+            const mItem = medias[n - 1];
+            const url = mItem?.jumpUrl || '';
             if (!url) continue;
-            if (!urlToNum.has(url)) urlToNum.set(url, nextNum++);
-            localMap.set(n, urlToNum.get(url));
+            const gn = refCollector.add(mItem?.title || '', url);
+            localMap.set(n, gn);
           }
           msgCiteMap.set(i, localMap);
         }
@@ -813,16 +944,8 @@
         }
 
         // ---- References ----
-        if (urlToNum.size > 0) {
-          const sorted = [...urlToNum.entries()].sort((a, b) => a[1] - b[1]);
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          for (const [url, num] of sorted) {
-            lines.push(`- [${num}] ${url}`);
-          }
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n');
@@ -1039,9 +1162,8 @@
 
 
         // ---- 第一遍：引用编号【turnNsearchM】→ 全局编号（按 URL 去重） ----
+        const refCollector = new ReferenceCollector();
         const msgCiteMap = new Map();  // msgId → Map<refId, globalNum>
-        const urlToNum = new Map();    // url → globalNum
-        let nextNum = 1;
 
         for (const mid of chain) {
           const blocks = contents[mid]?.content_blocks || [];
@@ -1053,8 +1175,8 @@
           for (const key of keys) {
             const ref = refMap.get(key);
             if (!ref || !ref.url) continue;
-            if (!urlToNum.has(ref.url)) urlToNum.set(ref.url, nextNum++);
-            localMap.set(key, urlToNum.get(ref.url));
+            const gn = refCollector.add(ref.title || '', ref.url);
+            localMap.set(key, gn);
           }
           msgCiteMap.set(mid, localMap);
         }
@@ -1103,16 +1225,8 @@
         }
 
         // ---- References ----
-        if (urlToNum.size > 0) {
-          const sorted = [...urlToNum.entries()].sort((a, b) => a[1] - b[1]);
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          for (const [url, num] of sorted) {
-            lines.push(`- [${num}] ${url}`);
-          }
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n');
@@ -1363,9 +1477,8 @@
 
 
         // ---- 第一遍：收集引用编号【turnNsearchM】→ 全局编号（按 URL 去重） ----
+        const refCollector = new ReferenceCollector();
         const msgCiteMap = new Map();  // 消息下标 → Map<refKey, globalNum>
-        const urlToNum = new Map();    // url → globalNum
-        let nextNum = 1;
 
         for (let i = 0; i < messages.length; i++) {
           const ap = this._assistantParts(messages[i]);
@@ -1376,8 +1489,8 @@
           for (const key of keys) {
             const ref = ap.refMap.get(key);
             if (!ref || !ref.url) continue;
-            if (!urlToNum.has(ref.url)) urlToNum.set(ref.url, nextNum++);
-            localMap.set(key, urlToNum.get(ref.url));
+            const gn = refCollector.add(ref.title || '', ref.url);
+            localMap.set(key, gn);
           }
           msgCiteMap.set(i, localMap);
         }
@@ -1429,16 +1542,8 @@
         }
 
         // ---- References ----
-        if (urlToNum.size > 0) {
-          const sorted = [...urlToNum.entries()].sort((a, b) => a[1] - b[1]);
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          for (const [url, num] of sorted) {
-            lines.push(`- [${num}] ${url}`);
-          }
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n');
@@ -1683,9 +1788,8 @@
 
 
         // ---- 第一遍：收集每条助手消息的引用 <citation src="1,2"> → 全局编号（按 URL 去重） ----
+        const refCollector = new ReferenceCollector();
         const msgCiteMap = new Map();  // 消息下标 → Map<localNum, globalNum>
-        const urlToNum = new Map();    // url → globalNum
-        let nextNum = 1;
 
         for (let i = 0; i < messages.length; i++) {
           if (messages[i]?.role !== 'assistant') continue;
@@ -1701,8 +1805,8 @@
               const src = sources[n - 1];
               const url = src?.source?.url || '';
               if (!url) continue;
-              if (!urlToNum.has(url)) urlToNum.set(url, nextNum++);
-              localMap.set(n, urlToNum.get(url));
+              const gn = refCollector.add(src?.source?.title || '', url);
+              localMap.set(n, gn);
             }
           }
           msgCiteMap.set(i, localMap);
@@ -1752,16 +1856,8 @@
         }
 
         // ---- References ----
-        if (urlToNum.size > 0) {
-          const sorted = [...urlToNum.entries()].sort((a, b) => a[1] - b[1]);
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          for (const [url, num] of sorted) {
-            lines.push(`- [${num}] ${url}`);
-          }
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n');
@@ -1954,10 +2050,8 @@
         lines.push('');
 
         // ---- 第一遍：收集各 entry 引用 [N]，建立全局递增映射（按 URL 去重） ----
+        const refCollector = new ReferenceCollector();
         const entryCiteMap = new Map(); // entryIndex -> Map<localNum, globalNum>
-        const urlToNum = new Map();      // url -> globalNum
-        const allRefs = [];              // array of { num, url }
-        let nextNum = 1;
 
         for (let i = 0; i < entries.length; i++) {
           const entry = entries[i];
@@ -1976,12 +2070,9 @@
           for (const n of citedNums) {
             const w = webResults[n - 1];
             if (!w?.url) continue;
-            if (!urlToNum.has(w.url)) {
-              const gNum = nextNum++;
-              urlToNum.set(w.url, gNum);
-              allRefs.push({ num: gNum, url: w.url });
-            }
-            localMap.set(n, urlToNum.get(w.url));
+            const title = w.name || w.title || '';
+            const gNum = refCollector.add(title, w.url);
+            localMap.set(n, gNum);
           }
           entryCiteMap.set(i, localMap);
         }
@@ -2012,15 +2103,8 @@
           lines.push('');
         }
 
-        if (allRefs.length > 0) {
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          for (const ref of allRefs) {
-            lines.push(`- [${ref.num}] ${ref.url}`);
-          }
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n');
@@ -2109,12 +2193,10 @@
 
 
         // 第一遍：建立全局引用编号映射（按 URL 顺序去重注册）
-        const urlToNum = new Map();  // url → globalNum
-        let nextNum = 1;
-        const getUrlNum = (url) => {
+        const refCollector = new ReferenceCollector();
+        const getUrlNum = (url, title) => {
           if (!url) return null;
-          if (!urlToNum.has(url)) urlToNum.set(url, nextNum++);
-          return urlToNum.get(url);
+          return refCollector.add(title || '', url);
         };
 
         const msgCiteMaps = new Map();  // message_id → { refMap: Map(idx -> num), citeMap: Map(cite_idx -> num) }
@@ -2131,10 +2213,10 @@
           const references = respFrag?.references || msg.references || [];
           references.forEach((ref, idx) => {
             const target = fragMap.get(ref?.id);
-            if (target?.type === 'TOOL_OPEN' && target.result?.url) {
-              refMap.set(idx, getUrlNum(target.result.url));
-            } else if (target?.result?.url) {
-              refMap.set(idx, getUrlNum(target.result.url));
+            const u = target?.result?.url;
+            const t = target?.result?.title || '';
+            if (u) {
+              refMap.set(idx, getUrlNum(u, t));
             }
           });
 
@@ -2143,7 +2225,7 @@
             if (frag.type === 'SEARCH' || frag.type === 'TOOL_SEARCH') {
               for (const r of (frag.results || [])) {
                 if (r.cite_index !== undefined && r.cite_index !== null && r.cite_index !== '' && r.url) {
-                  citeMap.set(String(r.cite_index), getUrlNum(r.url));
+                  citeMap.set(String(r.cite_index), getUrlNum(r.url, r.title || ''));
                 }
               }
             }
@@ -2220,16 +2302,8 @@
         }
 
         // References
-        if (urlToNum.size > 0) {
-          const sorted = [...urlToNum.entries()].sort((a, b) => a[1] - b[1]);
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          for (const [url, num] of sorted) {
-            lines.push(`- [${num}] ${url}`);
-          }
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n');
@@ -2785,20 +2859,12 @@
           ? formatLocalTime(new Date(Number(session.created_at)))
           : 'unknown';
         const convUrl = convId ? `https://www.qianwen.com/chat/${convId}` : 'https://www.qianwen.com';
-        const refs = [];
+        const refCollector = new ReferenceCollector();
         const refKeyToNum = new Map();
-        const urlToNum = new Map();
         const ensureRef = (key, ref) => {
           if (!ref?.url) return null;
           if (key && refKeyToNum.has(key)) return refKeyToNum.get(key);
-          if (urlToNum.has(ref.url)) {
-            const existing = urlToNum.get(ref.url);
-            if (key) refKeyToNum.set(key, existing);
-            return existing;
-          }
-          const num = refs.length + 1;
-          refs.push({ title: ref.title || '', url: ref.url });
-          urlToNum.set(ref.url, num);
+          const num = refCollector.add(ref.title || '', ref.url);
           if (key) refKeyToNum.set(key, num);
           return num;
         };
@@ -2856,16 +2922,8 @@
           }
         }
 
-        if (refs.length > 0) {
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          for (let i = 0; i < refs.length; i++) {
-            const ref = refs[i];
-            lines.push(ref.title ? `- [${i + 1}] ${ref.title} ${ref.url}` : `- [${i + 1}] ${ref.url}`);
-          }
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n').replace(/\n{3,}/g, '\n\n');
@@ -3060,10 +3118,8 @@
           ? `https://yuanbao.tencent.com/chat/${agentId}/${conversationId}`
           : 'https://yuanbao.tencent.com';
         // ---- 第一遍：收集各轮引用 [citation:N]，建立全局递增映射（按 URL 去重） ----
+        const refCollector = new ReferenceCollector();
         const msgCiteMap = new Map(); // convIndex -> Map<localIndex, globalNum>
-        const urlToNum = new Map();   // url -> globalNum
-        const allRefs = [];           // array of { num, title, url }
-        let nextNum = 1;
 
         for (let i = 0; i < convs.length; i++) {
           const conv = convs[i];
@@ -3078,12 +3134,8 @@
           }
           const localMap = new Map();
           for (const [idx, ref] of convRefs.entries()) {
-            if (!urlToNum.has(ref.url)) {
-              const num = nextNum++;
-              urlToNum.set(ref.url, num);
-              allRefs.push({ num, title: ref.title || '', url: ref.url });
-            }
-            localMap.set(idx, urlToNum.get(ref.url));
+            const num = refCollector.add(ref.title || '', ref.url);
+            localMap.set(idx, num);
           }
           msgCiteMap.set(i, localMap);
         }
@@ -3135,15 +3187,8 @@
           }
         }
 
-        if (allRefs.length > 0) {
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          for (const ref of allRefs) {
-            lines.push(ref.title ? `- [${ref.num}] ${ref.title} ${ref.url}` : `- [${ref.num}] ${ref.url}`);
-          }
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n').replace(/\n{3,}/g, '\n\n');
@@ -3409,7 +3454,7 @@
         const url = agentId && conversationId
           ? `https://${this._siteHost()}/chat/${agentId}/${conversationId}`
           : `https://${this._siteHost()}`;
-        const urlToRef = new Map(); // url -> title
+        const refCollector = new ReferenceCollector();
 
         const lines = [];
         lines.push('## Metadata');
@@ -3427,7 +3472,7 @@
           const fallback = (conv.displayPrompt || '').trim();
           if (!parts.text && !parts.thought && !fallback) continue;
           for (const ref of parts.refs) {
-            if (ref?.url && !urlToRef.has(ref.url)) urlToRef.set(ref.url, ref.title || '');
+            if (ref?.url) refCollector.add(ref.title || '', ref.url);
           }
           if (role === 'user') {
             const body = stripHashes(parts.text || fallback);
@@ -3459,17 +3504,8 @@
           }
         }
 
-        if (urlToRef.size > 0) {
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          let i = 1;
-          for (const [refUrl, refTitle] of urlToRef.entries()) {
-            lines.push(refTitle ? `- [${i}] ${refTitle} ${refUrl}` : `- [${i}] ${refUrl}`);
-            i++;
-          }
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n').replace(/\n{3,}/g, '\n\n');
@@ -3628,27 +3664,28 @@
         return base + frac * 1000;
       },
 
-      _citationUrl(ref) {
+      _citationInfo(ref) {
         const item = ref?.items?.[0];
-        return item?.search?.base?.url || item?.searchResult?.base?.url || item?.base?.url || '';
+        const base = item?.search?.base || item?.searchResult?.base || item?.base || {};
+        return {
+          title: (base.title || '').trim(),
+          url: base.url || '',
+        };
       },
 
-      _cleanCitations(text, references, citeMap) {
+      _cleanCitations(text, references, refCollector) {
         if (!text) return '';
         const refByText = new Map();
         for (const ref of (references || [])) {
           if (ref?.matchedText) refByText.set(ref.matchedText, ref);
         }
-        let nextNum = citeMap.nextNum || 1;
-        const cleaned = text.replace(/cite[\s\S]*?/g, (marker) => {
+        return text.replace(/cite[\s\S]*?/g, (marker) => {
           const ref = refByText.get(marker);
-          const url = this._citationUrl(ref);
-          if (!url) return '';
-          if (!citeMap.urlToNum.has(url)) citeMap.urlToNum.set(url, nextNum++);
-          return `[${citeMap.urlToNum.get(url)}]`;
+          const info = this._citationInfo(ref);
+          if (!info.url) return '';
+          const num = refCollector.add(info.title, info.url);
+          return `[${num}]`;
         });
-        citeMap.nextNum = nextNum;
-        return cleaned;
       },
 
       toMarkdown(data, title, convId) {
@@ -3663,7 +3700,7 @@
           : 'unknown';
         const convUrl = convId ? `https://www.kimi.com/chat/${convId}` : 'https://www.kimi.com';
         const modelName = chat?.lastRequest?.scenario || 'Kimi';
-        const citeMap = { urlToNum: new Map(), nextNum: 1 };
+        const refCollector = new ReferenceCollector();
 
         const lines = [];
         lines.push('## Metadata');
@@ -3688,7 +3725,7 @@
             lines.push(stripHashes(text));
             lines.push('');
           } else if (role === 'assistant') {
-            const cleaned = stripHashes(this._cleanCitations(text, msg.references || [], citeMap));
+            const cleaned = stripHashes(this._cleanCitations(text, msg.references || [], refCollector));
             lines.push('### 🤖 Assistant');
             lines.push('');
             if (thought) {
@@ -3708,14 +3745,8 @@
           }
         }
 
-        if (citeMap.urlToNum.size > 0) {
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          const refs = [...citeMap.urlToNum.entries()].sort((a, b) => a[1] - b[1]);
-          for (const [url, idx] of refs) lines.push(`- [${idx}] ${url}`);
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n').replace(/\n{3,}/g, '\n\n');
@@ -4019,7 +4050,7 @@
         const convUrl = convId ? `https://${this._siteHost()}/chat/${convId}` : `https://${this._siteHost()}`;
         const modelName = conv?.conv_extra?.inner_bot_name || conv?.tags?.[0]
           || (this._siteHost().endsWith('dola.com') ? 'Dola' : '豆包');
-        const urlToRef = new Map();
+        const refCollector = new ReferenceCollector();
 
         const lines = [];
         lines.push('## Metadata');
@@ -4038,7 +4069,7 @@
           if (!parts.text && !parts.thought) continue;
 
           for (const ref of parts.refs || []) {
-            if (ref.url && !urlToRef.has(ref.url)) urlToRef.set(ref.url, ref.title || '');
+            if (ref.url) refCollector.add(ref.title || '', ref.url);
           }
 
           if (role === 'user') {
@@ -4066,17 +4097,8 @@
           }
         }
 
-        if (urlToRef.size > 0) {
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          let i = 1;
-          for (const [url, refTitle] of urlToRef.entries()) {
-            lines.push(refTitle ? `- [${i}] ${refTitle} ${url}` : `- [${i}] ${url}`);
-            i++;
-          }
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n').replace(/\n{3,}/g, '\n\n');
@@ -5021,25 +5043,23 @@
         lines.push('## Conversation');
         lines.push('');
 
+        const refCollector = new ReferenceCollector();
+
         for (const m of messages) {
           const role = m.author.role;
           let text = this._messageText(m);
 
           // 引用占位符（\uE000cite\uE002turn0search0\uE001）→ [N]，并收集 References
-          let refs = [];
           const meta = m.metadata;
           if (meta && Array.isArray(meta.content_references)) {
             for (const ref of meta.content_references) {
               const mt = ref.matched_text;
               if (!mt || !mt.includes('cite')) continue; // 跳过 sources_footnote 等
               if (!text.includes(mt)) continue;
-              const n = refs.length + 1;
-              refs.push({
-                n,
-                title: (ref.items?.[0]?.title || '').trim(),
-                url: ref.items?.[0]?.url || ref.safe_urls?.[0] || '',
-              });
-              text = text.split(mt).join(`[${n}]`);
+              const title = (ref.items?.[0]?.title || '').trim();
+              const url = ref.items?.[0]?.url || ref.safe_urls?.[0] || '';
+              const gNum = refCollector.add(title, url);
+              text = text.split(mt).join(`[${gNum}]`);
             }
           }
 
@@ -5056,17 +5076,12 @@
             lines.push('');
             lines.push(text);
             lines.push('');
-            // 该消息引用列表
-            if (refs.length) {
-              lines.push('#### References');
-              lines.push('');
-              for (const r of refs) {
-                lines.push(r.url ? `- [${r.n}] ${r.title} (${r.url})` : `- [${r.n}] ${r.title}`);
-              }
-              lines.push('');
-            }
           }
           // system / tool 消息不导出
+        }
+
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n');
@@ -5225,6 +5240,8 @@
         lines.push('## Conversation');
         lines.push('');
 
+        const refCollector = new ReferenceCollector();
+
         for (const it of messages) {
           const text = (it.message || '').trim();
           if (!text) continue;
@@ -5243,30 +5260,25 @@
             .map((c) => { try { return JSON.parse(c); } catch { return null; } })
             .filter(Boolean);
 
-          const refs = [];
           const used = new Set();
           body = body.replace(/\[\[CITE:([^\]]+)\]\]/g, (m, cardId) => {
             if (used.has(cardId)) return ''; // 同一卡片重复引用只计一次
             used.add(cardId);
             const card = cards.find((c) => String(c.id) === String(cardId));
-            const n = refs.length + 1;
-            refs.push({ n, url: card?.url || '' });
-            return `[${n}]`;
+            const url = card?.url || '';
+            const title = card?.title || '';
+            const gNum = refCollector.add(title, url);
+            return `[${gNum}]`;
           });
 
           lines.push('### 🤖 Assistant');
           lines.push('');
           lines.push(stripHashes(body));
           lines.push('');
+        }
 
-          if (refs.length) {
-            lines.push('#### References');
-            lines.push('');
-            for (const r of refs) {
-              lines.push(r.url ? `- [${r.n}] ${r.url}` : `- [${r.n}]`);
-            }
-            lines.push('');
-          }
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n');
@@ -5374,8 +5386,8 @@
         lines.push('## Conversation');
         lines.push('');
 
-        const allRefs = [];
-        const cardUrlMap = new Map();
+        const refCollector = new ReferenceCollector();
+        const cardMap = new Map();
 
         for (const r of responses) {
           const isUser = r.sender === 'human' || r.sender === 'user';
@@ -5399,20 +5411,17 @@
 
           for (const card of rawCards) {
             if (card && card.id && card.url) {
-              cardUrlMap.set(String(card.id), card.url);
+              cardMap.set(String(card.id), { title: card.title || '', url: card.url });
             }
           }
 
           let body = text.replace(/<grok:render\s+card_id="([^"]+)"[^>]*>.*?<\/grok:render>/gs, (m, cardId) => `[[CITE:${cardId}]]`);
 
           body = body.replace(/\[\[CITE:([^\]]+)\]\]/g, (m, cardId) => {
-            const url = cardUrlMap.get(String(cardId)) || '';
-            let idx = allRefs.findIndex((ref) => ref.url === url);
-            if (idx === -1) {
-              idx = allRefs.length;
-              allRefs.push({ n: idx + 1, url });
-            }
-            return `[${idx + 1}]`;
+            const card = cardMap.get(String(cardId));
+            if (!card?.url) return '';
+            const gNum = refCollector.add(card.title, card.url);
+            return `[${gNum}]`;
           });
 
           lines.push('### 🤖 Assistant');
@@ -5421,15 +5430,8 @@
           lines.push('');
         }
 
-        if (allRefs.length > 0) {
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          for (const ref of allRefs) {
-            lines.push(ref.url ? `- [${ref.n}] ${ref.url}` : `- [${ref.n}]`);
-          }
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
@@ -5624,6 +5626,8 @@
         lines.push('## Conversation');
         lines.push('');
 
+        const refCollector = new ReferenceCollector();
+
         for (const turn of turns) {
           // 用户消息：turn[2] = [["文本", ...], ...]
           const user = turn && turn[2];
@@ -5649,27 +5653,25 @@
               //        content = ["引用文本", null, null, [[s,e]...]]（spans 标记正文中引用文本的范围）
               const refsData = block[2];
               const refList = (refsData && Array.isArray(refsData[1])) ? refsData[1] : [];
-              const refs = refList.map((r, i) => {
+              const all = [];
+              for (const r of refList) {
                 const content = Array.isArray(r) ? r[0] : null;
                 const urls = Array.isArray(r) && Array.isArray(r[2]) ? r[2] : [];
                 const first = Array.isArray(urls[0]) ? urls[0] : [];
                 let url = first[0] || '';
-                if (url) url = url.split('#:~:')[0]; // 去掉引文锚点
-                return {
-                  n: i + 1,
-                  spans: (content && Array.isArray(content[3])) ? content[3] : [],
-                  url,
-                  title: first[1] || '',
-                };
-              }).filter((r) => r.url);
-
-              // 保留引用文本，在其结尾插入 [N]（按位置从后往前，偏移不受影响）
-              const all = [];
-              for (const r of refs) {
-                for (const sp of r.spans) {
-                  if (Array.isArray(sp) && sp.length === 2) all.push({ s: sp[0], e: sp[1], n: r.n });
+                if (!url) continue;
+                url = url.split('#:~:')[0]; // 去掉引文锚点
+                const title = first[1] || '';
+                const gNum = refCollector.add(title, url);
+                const spans = (content && Array.isArray(content[3])) ? content[3] : [];
+                for (const sp of spans) {
+                  if (Array.isArray(sp) && sp.length === 2) {
+                    all.push({ s: sp[0], e: sp[1], n: gNum });
+                  }
                 }
               }
+
+              // 保留引用文本，在其结尾插入 [N]（按位置从后往前，偏移不受影响）
               all.sort((a, b) => b.s - a.s);
               for (const { s, e, n } of all) {
                 if (s >= 0 && e >= s && e <= body.length) {
@@ -5683,16 +5685,12 @@
               lines.push('');
               lines.push(stripHashes(body));
               lines.push('');
-              if (refs.length) {
-                lines.push('#### References');
-                lines.push('');
-                for (const r of refs) {
-                  lines.push(r.title ? `- [${r.n}] ${r.title} ${r.url}` : `- [${r.n}] ${r.url}`);
-                }
-                lines.push('');
-              }
             }
           }
+        }
+
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n');
@@ -5966,7 +5964,7 @@
         if (refs.length) {
           md += '\n\n### References\n\n';
           md += refs
-            .map((r) => (r.title ? `- [${r.n}] ${r.title} ${r.url}` : `- [${r.n}] ${r.url}`))
+            .map((r) => (r.title && r.title !== r.url ? `- [${r.n}] [${r.title}](${r.url})` : `- [${r.n}] [${r.url}](${r.url})`))
             .join('\n');
         }
         return md.trim();
@@ -6095,12 +6093,16 @@
 
             // 4. 引用 chip
             if (tag === 'SPAN' && cls.includes('WBgIic')) {
-              // 引用 chip：读站点名 + a.PMDqCb 链接；无链接的纯图标 chip 静默丢弃
+              // 引用 chip：读站点名 + 提取所有有效链接；无链接的纯图标 chip 静默丢弃
               const label = this._textOf(n.querySelector('.QNca8b'));
-              for (const a of n.querySelectorAll('a.PMDqCb')) {
+              const links = n.querySelectorAll('a.PMDqCb, a[href]');
+              const seenHref = new Set();
+              for (const a of links) {
                 const href = (a.getAttribute('href') || '').split('#')[0];
-                if (!href) continue;
-                refs.push({ n: refs.length + 1, title: label, url: href });
+                if (!href || href.startsWith('javascript:') || seenHref.has(href)) continue;
+                seenHref.add(href);
+                const title = this._textOf(a) || label;
+                refs.push({ n: refs.length + 1, title: title || label, url: href });
                 parts.push('[' + refs.length + ']');
               }
               return;
@@ -6129,8 +6131,12 @@
         s = s.split('\n').map((line) => line.trim()).join('\n');
         // 连续 3 个及以上换行收敛为 2 个
         s = s.replace(/\n{3,}/g, '\n\n');
-        // 收敛 chip 编号前的空格：`…文本。 [1]` → `…文本。[1]`
-        s = s.replace(/ +(?=\[\d+\])/g, '');
+        // 中文全角标点后紧随角标，收敛多余空格：`…文本。 [1]` → `…文本。[1]`
+        s = s.replace(/([。，！？；：）”’]) +(?=\[\d+\])/g, '$1');
+        // 英文半角标点后紧随角标，收敛多余空格：`…example. [1]` → `…example.[1]`
+        s = s.replace(/([.,!?;:]) +(?=\[\d+\])/g, '$1');
+        // 连续引用紧凑连排：`[1] [2]` → `[1][2]`
+        s = s.replace(/(?<=\[\d+\]) +(?=\[\d+\])/g, '');
         return s.trim();
       },
 
@@ -6204,9 +6210,49 @@
         const timeMs = (data && data.timeMs) || null;
         const convUrl = (data && data.url) || (convId && convId !== 'current' ? `https://www.google.com/search?udm=50&mtid=${convId}` : (typeof window !== 'undefined' ? window.location.href : 'https://www.google.com/search?udm=50'));
 
-        // ---- 第一遍：解析各 Assistant 消息尾部的 References，建立全局递增编号 ----
+        const normalizeUrl = (rawUrl) => {
+          if (!rawUrl) return '';
+          try {
+            const u = new URL(rawUrl.trim());
+            u.hash = '';
+            for (const p of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'spm', 'from', 'source', 'feature', 'ref', 'ref_src']) {
+              u.searchParams.delete(p);
+            }
+            let res = u.toString();
+            if (res.endsWith('/') && !res.endsWith('://')) res = res.slice(0, -1);
+            return res;
+          } catch (e) {
+            return String(rawUrl).trim().split('#')[0].replace(/\/+$/, '');
+          }
+        };
+
+        const parseRefEntry = (line) => {
+          const mLine = line.trim().match(/^-\s*\[(\d+)\]\s*(.*)$/);
+          if (!mLine) return null;
+          const localNum = Number(mLine[1]);
+          const rest = mLine[2].trim();
+          const mdMatch = rest.match(/^\[(.*?)\]\((https?:\/\/[^\s)]+)\)$/);
+          if (mdMatch) {
+            return { localNum, title: mdMatch[1].trim(), url: mdMatch[2].trim() };
+          }
+          const parenMatch = rest.match(/^(.*?)\s*\((https?:\/\/[^\s)]+)\)$/);
+          if (parenMatch) {
+            return { localNum, title: parenMatch[1].trim(), url: parenMatch[2].trim() };
+          }
+          const spaceMatch = rest.match(/^(.*?)\s+(https?:\/\/\S+)$/);
+          if (spaceMatch) {
+            return { localNum, title: spaceMatch[1].trim(), url: spaceMatch[2].trim() };
+          }
+          if (/^https?:\/\/\S+$/.test(rest)) {
+            return { localNum, title: '', url: rest };
+          }
+          return { localNum, title: rest, url: '' };
+        };
+
+        // ---- 第一遍：解析各 Assistant 消息尾部的 References，建立全局递增编号与 URL 去重映射 ----
         const msgRefMap = new Map(); // msgIndex -> Map<localNum, globalNum>
-        const allRefs = [];           // array of { num, text }
+        const allRefs = [];           // array of { num, title, url }
+        const urlToGlobalNum = new Map(); // normalizedUrl -> globalNum
         let nextGlobalNum = 1;
 
         for (let i = 0; i < messages.length; i++) {
@@ -6218,14 +6264,18 @@
           const localMap = new Map();
           const refLines = refMatch[1].trim().split(/\r?\n/).filter((l) => l.trim().startsWith('- '));
           for (const l of refLines) {
-            const mLine = l.trim().match(/^-\s*\[(\d+)\]\s*(.*)$/);
-            if (mLine) {
-              const localNum = Number(mLine[1]);
-              const rest = mLine[2].trim();
-              const gNum = nextGlobalNum++;
-              allRefs.push({ num: gNum, text: rest });
-              localMap.set(localNum, gNum);
+            const entry = parseRefEntry(l);
+            if (!entry) continue;
+            const normUrl = normalizeUrl(entry.url);
+            let gNum;
+            if (normUrl && urlToGlobalNum.has(normUrl)) {
+              gNum = urlToGlobalNum.get(normUrl);
+            } else {
+              gNum = nextGlobalNum++;
+              if (normUrl) urlToGlobalNum.set(normUrl, gNum);
+              allRefs.push({ num: gNum, title: entry.title, url: normUrl || entry.url });
             }
+            localMap.set(entry.localNum, gNum);
           }
           msgRefMap.set(i, localMap);
         }
@@ -6264,12 +6314,16 @@
         }
 
         if (allRefs.length > 0) {
-          lines.push('---');
-          lines.push('');
           lines.push('### References');
           lines.push('');
           for (const r of allRefs) {
-            lines.push(`- [${r.num}] ${r.text}`);
+            if (r.title && r.title !== r.url) {
+              lines.push(`- [${r.num}] [${r.title}](${r.url})`);
+            } else if (r.url) {
+              lines.push(`- [${r.num}] [${r.url}](${r.url})`);
+            } else {
+              lines.push(`- [${r.num}] ${r.title}`);
+            }
           }
           lines.push('');
         }
@@ -6590,8 +6644,7 @@
       /** agent 模式渲染：Thought Process + Response 固定两段，引用收集到末尾 */
       _renderAgentBody(lines, data, stripHashes) {
         const messages = data?.messages || [];
-        const urlToNum = new Map();
-        const refList = [];
+        const refCollector = new ReferenceCollector();
 
         for (const msg of messages) {
           if (msg.role === 'user') {
@@ -6625,35 +6678,24 @@
               const joined = texts.join('\n\n');
               lines.push('#### 💡 Response');
               lines.push('');
-              lines.push(stripHashes(this._processCitations(joined, urlToNum, refList)));
+              lines.push(stripHashes(this._processCitations(joined, refCollector)));
               lines.push('');
             }
           }
         }
 
-        if (refList.length) {
-          lines.push('### References');
-          lines.push('');
-          refList.forEach((url, i) => {
-            lines.push('- [' + (i + 1) + '] ' + url);
-          });
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
       },
 
       /** 正文 [N](url) 引用 → [N]，URL 去重后按序编号（全局跨消息） */
-      _processCitations(text, urlToNum, refList) {
+      _processCitations(text, refCollector) {
         const re = /\[(\d+)\]\((https?:\/\/[^)\s]+)\)/g;
         const matches = [];
         let m;
         while ((m = re.exec(text))) {
-          let num;
-          if (urlToNum.has(m[2])) num = urlToNum.get(m[2]);
-          else {
-            num = refList.length + 1;
-            urlToNum.set(m[2], num);
-            refList.push(m[2]);
-          }
+          const num = refCollector.add('', m[2]);
           matches.push({ start: m.index, end: m.index + m[0].length, num });
         }
         let out = text;
@@ -6953,13 +6995,10 @@
         const timeStr = updatedAt ? formatLocalTime(new Date(updatedAt)) : 'unknown';
         const url = id ? `https://chat.mistral.ai/chat/${id}` : 'https://chat.mistral.ai';
 
-        const allRefs = [];
-        const seenUrls = new Set();
+        const refCollector = new ReferenceCollector();
         for (const m of messages) {
           for (const ref of this._collectRefs(m?.contentChunks)) {
-            if (seenUrls.has(ref.url)) continue;
-            seenUrls.add(ref.url);
-            allRefs.push(ref);
+            if (ref?.url) refCollector.add(ref.title || '', ref.url);
           }
         }
 
@@ -7000,15 +7039,8 @@
           }
         }
 
-        if (allRefs.length > 0) {
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          allRefs.forEach((ref, i) => {
-            lines.push(ref.title ? `- [${i + 1}] ${ref.title} ${ref.url}` : `- [${i + 1}] ${ref.url}`);
-          });
-          lines.push('');
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n').replace(/\n{3,}/g, '\n\n');
@@ -7097,12 +7129,18 @@
         return { thought: thoughts.join('\n\n').trim(), answer: answer.trim() };
       },
 
-      /** 清理 content：把搜索引用标签 <source-chip title="X" url="Y" /> 转成 markdown 链接 */
-      _cleanContent(s) {
+      /** 清理 content：把搜索引用标签 <source-chip title="X" url="Y" /> 转成 [N] 并收集信源 */
+      _cleanContent(s, refCollector) {
         return String(s || '').replace(/<source-chip\b[^>]*>/gi, (match) => {
           const t = (match.match(/title="([^"]*)"/i) || [])[1] || '';
           const u = (match.match(/url="([^"]*)"/i) || [])[1] || '';
-          if (u) return t ? `[${t}](${u})` : `<${u}>`;
+          if (u) {
+            if (refCollector) {
+              const num = refCollector.add(t, u);
+              return `[${num}]`;
+            }
+            return t ? `[${t}](${u})` : `<${u}>`;
+          }
           return '';
         });
       },
@@ -7115,6 +7153,7 @@
           ? formatLocalTime(new Date(data.updatedAt))
           : 'unknown';
         const url = id ? `https://chat.sakana.ai/conversation/${id}` : 'https://chat.sakana.ai';
+        const refCollector = new ReferenceCollector();
 
         const lines = [];
         lines.push('## Metadata');
@@ -7131,8 +7170,8 @@
           const from = String(m.from || '').toLowerCase();
           if (from === 'system') continue;
           const parts = this._splitContent(m.content);
-          const thought = this._cleanContent(parts.thought);
-          const answer = this._cleanContent(parts.answer);
+          const thought = this._cleanContent(parts.thought, refCollector);
+          const answer = this._cleanContent(parts.answer, refCollector);
           if (!thought && !answer) continue;
           if (from === 'user') {
             lines.push('### 🧑‍💻 User');
@@ -7157,6 +7196,10 @@
               lines.push('');
             }
           }
+        }
+
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n').replace(/\n{3,}/g, '\n\n');
@@ -7869,7 +7912,7 @@
           if (mm) return { title: unescapeUnicode(mm[1]).trim(), url: unescapeUnicode(mm[2]) };
           return { title: '', url: '' };
         };
-        const urlToRef = new Map(); // url → 标题（首次出现编号，URL 去重）
+        const refCollector = new ReferenceCollector();
 
         for (const it of ordered) {
           const kind = it.item_type;
@@ -7880,7 +7923,7 @@
             const byKey = [...it.data.sources].sort((a, b) => Number(a.key || 0) - Number(b.key || 0));
             for (const s of byKey) {
               const { title, url } = parseSource(s);
-              if (url && !urlToRef.has(url)) urlToRef.set(url, title || '');
+              if (url) refCollector.add(title, url);
             }
           }
           const body = stripHashes(content);
@@ -7891,21 +7934,481 @@
           lines.push('');
         }
 
-        // ---- References（豆包惯例）----
-        if (urlToRef.size > 0) {
-          lines.push('---');
-          lines.push('');
-          lines.push('### References');
-          lines.push('');
-          let i = 1;
-          for (const [url, refTitle] of urlToRef.entries()) {
-            lines.push(refTitle ? `- [${i}] ${refTitle} ${url}` : `- [${i}] ${url}`);
-            i++;
-          }
-          lines.push('');
+        // ---- References ----
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n').replace(/\n{3,}/g, '\n\n');
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[stepfun]  StepFun AI Studio（阶跃星辰）
+    // ═══════════════════════════════════════════════════════
+    // 国际版 studio.stepfun.ai / 国内版 studio.stepfun.com（API 同构，appid 同为 20700）
+    // Connect 风格 RPC，统一前缀 /api/step.openapi.devcenter.Dashboard/<Method>
+    //   列表 ListConversations {limit,cursor,conversationId} → {items,next_cursor,has_more}
+    //   消息 ListMessages {conversationId,limit,cursor} → {message_ids,next_cursor,has_more}
+    //   正文 BatchGetMessages {messageIds} → {items:[{blocks:[{type,text,payload}]}]}
+    //   block.type: 1=TEXT 2=THINKING 3=TOOL_CALL 4=ASSETS；role: 1=user 2=assistant 3=system
+    //   认证走同源 Cookie（oasis-* 头仅标记应用/平台，无需显式 token）
+    {
+      id: 'stepfun',
+      name: 'StepFun',
+      detect: () => window.location.hostname === 'studio.stepfun.ai'
+        || window.location.hostname === 'studio.stepfun.com',
+
+      getCurrentConversationId: () => {
+        const m = window.location.pathname.match(/^\/playground\/([^\/?]+)/);
+        return m ? m[1] : null;
+      },
+
+      /** RPC 必需的应用/平台标记头（认证依赖同源 Cookie，浏览器自动携带） */
+      _headers() {
+        const lang = (navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en';
+        return {
+          'content-type': 'application/json',
+          'connect-protocol-version': '1',
+          'oasis-appid': '20700',
+          'oasis-language': lang,
+          'oasis-platform': 'web',
+          'oasis-webid': localStorage.getItem('web_id') || '',
+        };
+      },
+
+      async _rpc(method, body) {
+        const r = await fetch('/api/step.openapi.devcenter.Dashboard/' + method, {
+          method: 'POST',
+          headers: this._headers(),
+          body: JSON.stringify(body || {}),
+          credentials: 'include',
+        });
+        if (!r.ok) throw new Error(`${method} ${r.status}: ${r.statusText}`);
+        return await r.json();
+      },
+
+      async getAllConversations(onProgress) {
+        const all = [];
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        const seen = new Set();
+        let cursor = '';
+        let pages = 0;
+        const MAX_PAGES = 1000; // 安全上限：50/页 = 5 万条会话，防止服务端游标异常时死循环
+
+        while (all.length < limit && pages < MAX_PAGES) {
+          pages++;
+          const d = await this._rpc('ListConversations', { limit: 50, cursor });
+          const items = Array.isArray(d.items) ? d.items : [];
+          for (const c of items) {
+            if (!c || !c.conversation_id || seen.has(c.conversation_id)) continue;
+            seen.add(c.conversation_id);
+            all.push({
+              id: c.conversation_id,
+              title: (c.title || '').trim(),
+              updated_at: c.last_message_at,
+            });
+          }
+          if (onProgress) onProgress(all.length);
+
+          // 终止条件：空页 / 服务端无更多 / 无下一页游标 / 游标未前进（防死循环）
+          if (!items.length || !d.has_more || !d.next_cursor || d.next_cursor === cursor) break;
+          cursor = d.next_cursor;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return all.slice(0, limit);
+      },
+
+      async getConversationDetails(id) {
+        // 标题/时间：ListConversations 按 conversationId 精确查询
+        let meta = {};
+        try {
+          const d = await this._rpc('ListConversations', { limit: 1, conversationId: id });
+          meta = (Array.isArray(d.items) && d.items[0]) || {};
+        } catch (e) { /* 标题拿不到时回退到 document.title */ }
+
+        const items = await this._fetchAllMessages(id);
+        return {
+          title: (meta.title || '').trim(),
+          conversation_id: id,
+          updated_at: meta.last_message_at,
+          items,
+        };
+      },
+
+      /** ListMessages 收集全部 id（游标翻页）→ BatchGetMessages 分批拉正文，按时间正序排列 */
+      async _fetchAllMessages(id) {
+        const ids = [];
+        const seen = new Set();
+        let cursor = '';
+        let pages = 0;
+        const PAGE = 200;
+        const MAX_PAGES = 1000; // 安全上限：200/页 = 20 万条消息，防止游标异常时死循环
+
+        while (pages < MAX_PAGES) {
+          pages++;
+          const d = await this._rpc('ListMessages', { conversationId: id, limit: PAGE, cursor });
+          const batch = Array.isArray(d.message_ids) ? d.message_ids : [];
+          for (const mid of batch) {
+            if (!mid || seen.has(mid)) continue;
+            seen.add(mid);
+            ids.push(mid);
+          }
+          // 终止条件：空页 / 服务端无更多 / 无下一页游标 / 游标未前进（防死循环）
+          if (!batch.length || !d.has_more || !d.next_cursor || d.next_cursor === cursor) break;
+          cursor = d.next_cursor;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        const byId = new Map();
+        const CHUNK = 50;
+        for (let i = 0; i < ids.length; i += CHUNK) {
+          const d = await this._rpc('BatchGetMessages', { messageIds: ids.slice(i, i + CHUNK) });
+          for (const m of (d.items || [])) byId.set(m.message_id, m);
+          if (i + CHUNK < ids.length) await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        const items = ids.map((x) => byId.get(x)).filter(Boolean);
+        return this._sortAsc(items);
+      },
+
+      /** 按 message_id（雪花 ID）升序 = 时间正序 */
+      _sortAsc(items) {
+        const key = (m) => {
+          try { return BigInt(m && m.message_id); } catch (e) { return 0n; }
+        };
+        return [...items].sort((a, b) => {
+          const ka = key(a), kb = key(b);
+          return ka < kb ? -1 : ka > kb ? 1 : 0;
+        });
+      },
+
+      _blocksText(blocks, type) {
+        return (blocks || [])
+          .filter((b) => b && b.type === type && typeof b.text === 'string')
+          .map((b) => b.text.trim())
+          .filter(Boolean)
+          .join('\n\n');
+      },
+
+      toMarkdown(data, title, convId) {
+        const items = this._sortAsc(data?.items || []);
+        if (!items.length) throw new Error('未找到消息数据');
+
+        const modelMsg = items.find((m) => m.role === 2 && m.model_id && m.model_id.trim());
+        const model = (modelMsg && modelMsg.model_id) || 'step';
+        const timeStr = data?.updated_at ? formatLocalTime(new Date(Number(data.updated_at))) : 'unknown';
+        let host = 'studio.stepfun.ai';
+        try {
+          if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+            host = window.location.hostname;
+          }
+        } catch (e) { /* Node/无 window 环境回退默认域名 */ }
+        const convUrl = convId ? `https://${host}/playground/${convId}` : `https://${host}`;
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `' + model + '`');
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${convUrl}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        for (const m of items) {
+          const blocks = m.blocks || [];
+
+          if (m.role === 1) {
+            const text = this._blocksText(blocks, 1);
+            if (!text) continue;
+            lines.push('### \u{1F9D1}\u200D\u{1F4BB} User');
+            lines.push('');
+            lines.push(stripHashes(text));
+            lines.push('');
+          } else if (m.role === 2) {
+            const thinking = this._blocksText(blocks, 2);
+            const answer = this._blocksText(blocks, 1);
+            if (!thinking && !answer) continue;
+            lines.push('### \u{1F916} Assistant');
+            lines.push('');
+            if (thinking) {
+              lines.push('#### \u{1F914} Thought Process');
+              lines.push('');
+              lines.push(stripHashes(thinking));
+              lines.push('');
+              lines.push('#### \u{1F4A1} Response');
+              lines.push('');
+            }
+            if (answer) {
+              lines.push(stripHashes(answer));
+              lines.push('');
+            }
+          } else if (m.role === 3) {
+            const text = this._blocksText(blocks, 1);
+            if (!text) continue;
+            lines.push('### \u{2699}\uFE0F System');
+            lines.push('');
+            lines.push(stripHashes(text));
+            lines.push('');
+          }
+        }
+
+        return lines.join('\n');
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[stepfunchat]  StepFun Chat（阶跃 AI 对话端）
+    // ═══════════════════════════════════════════════════════
+    // 站点 chat.stepfun.com（与 Studio studio.stepfun.* 是两套独立应用）
+    // Connect 风格 RPC，统一前缀 /api/agent/capy.agent.v1.AgentService/<Method>
+    //   列表 ListChatSessions {pageSize,pageToken} → {chatSessions,nextPageToken}
+    //   单条 GetChatSessionByID {sessionId} → {chatSession}
+    //   消息 ListMessages {chatSessionId,pageSize,pageToken} → {messages,nextPageToken}
+    //   分页：页序最新在前，页内 messageId 升序；汇总后按 messageId 升序还原时间正序
+    //   认证走 localStorage 'oasis-token'（appid 10200，与 Studio 的 20700 不同）
+    //   思考链在 assistantMessage.qa.pipeSteps[type=PIPE_STEP_TYPE_REASONING]
+    //   引用在 assistantMessage.qa.indexReferences（正文无行内标号，汇总到文末 References）
+    {
+      id: 'stepfunchat',
+      name: 'StepFun Chat',
+      detect: () => window.location.hostname === 'chat.stepfun.com',
+
+      getCurrentConversationId: () => {
+        const m = window.location.pathname.match(/^\/chats\/([^\/?]+)/);
+        return m ? m[1] : null;
+      },
+
+      _headers() {
+        let token = '', lang = 'zh';
+        try {
+          token = localStorage.getItem('oasis-token') || '';
+          lang = localStorage.getItem('i18nextLng') || 'zh';
+        } catch (e) { /* localStorage 不可用时留空 */ }
+        return {
+          'content-type': 'application/json',
+          'oasis-appid': '10200',
+          'oasis-platform': 'web',
+          'oasis-language': lang,
+          'oasis-token': token,
+        };
+      },
+
+      async _rpc(method, body) {
+        const r = await fetch('/api/agent/capy.agent.v1.AgentService/' + method, {
+          method: 'POST',
+          headers: this._headers(),
+          body: JSON.stringify(body || {}),
+          credentials: 'include',
+        });
+        if (r.status === 401 || r.status === 403) {
+          throw new Error(`${method} ${r.status}: 登录态失效，请刷新页面后重试`);
+        }
+        if (!r.ok) throw new Error(`${method} ${r.status}: ${r.statusText}`);
+        return await r.json();
+      },
+
+      async getAllConversations(onProgress) {
+        const all = [];
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        const seen = new Set();
+        let cursor = '';
+        let pages = 0;
+        const MAX_PAGES = 1000; // 安全上限：50/页 = 5 万条会话，防游标异常死循环
+
+        while (all.length < limit && pages < MAX_PAGES) {
+          pages++;
+          const d = await this._rpc('ListChatSessions', { pageSize: 50, pageToken: cursor });
+          const items = Array.isArray(d.chatSessions) ? d.chatSessions : [];
+          for (const c of items) {
+            if (!c || !c.chatSessionId || seen.has(c.chatSessionId)) continue;
+            seen.add(c.chatSessionId);
+            all.push({
+              id: c.chatSessionId,
+              title: (c.displayName || '').trim(),
+              updated_at: c.updateTime,
+              created_at: c.createTime,
+            });
+          }
+          if (onProgress) onProgress(all.length);
+
+          // 终止条件：空页 / 无下一页游标 / 游标未前进（防死循环）
+          if (!items.length || !d.nextPageToken || d.nextPageToken === cursor) break;
+          cursor = d.nextPageToken;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return all.slice(0, limit);
+      },
+
+      async getConversationDetails(id) {
+        let meta = {};
+        try {
+          const d = await this._rpc('GetChatSessionByID', { sessionId: id });
+          meta = d.chatSession || {};
+        } catch (e) { /* 标题拿不到时回退 document.title */ }
+
+        const messages = await this._fetchAllMessages(id);
+        return {
+          title: (meta.displayName || '').trim(),
+          conversation_id: id,
+          updated_at: meta.updateTime || meta.createTime,
+          messages,
+        };
+      },
+
+      async _fetchAllMessages(id) {
+        const all = [];
+        const seen = new Set();
+        let cursor = '';
+        let pages = 0;
+        const PAGE = 200;
+        const MAX_PAGES = 1000;
+
+        while (pages < MAX_PAGES) {
+          pages++;
+          const d = await this._rpc('ListMessages', { chatSessionId: id, pageSize: PAGE, pageToken: cursor });
+          const batch = Array.isArray(d.messages) ? d.messages : [];
+          for (const m of batch) {
+            if (!m || !m.messageId || seen.has(m.messageId)) continue;
+            seen.add(m.messageId);
+            all.push(m);
+          }
+          if (!batch.length || !d.nextPageToken || d.nextPageToken === cursor) break;
+          cursor = d.nextPageToken;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return this._sortAsc(all);
+      },
+
+      /** 按 messageId（雪花 ID）升序 = 时间正序 */
+      _sortAsc(messages) {
+        const key = (m) => {
+          try { return BigInt(m && m.messageId); } catch (e) { return 0n; }
+        };
+        return [...messages].sort((a, b) => {
+          const ka = key(a), kb = key(b);
+          return ka < kb ? -1 : ka > kb ? 1 : 0;
+        });
+      },
+
+      /** 从 oneof 内容对象里取第一个存在的分支 */
+      _pick(obj, keys) {
+        if (!obj) return null;
+        for (const k of keys) {
+          if (obj[k]) return obj[k];
+        }
+        return null;
+      },
+
+      _userContent(m) {
+        const c = m && m.content && m.content.userMessage;
+        const p = this._pick(c, ['qa', 'creation', 'deepResearch', 'deep_research', 'studioAgent', 'studio_agent', 'drWeb', 'dr_web', 'desktopAgent', 'desktop_agent', 'artifactAgent', 'artifact_agent', 'userCall', 'user_call']);
+        return p && typeof p.content === 'string' ? p.content.trim() : '';
+      },
+
+      /** 助手消息：正文 / 思考链 / 引用 */
+      _assistantParts(m) {
+        const am = m && m.content && m.content.assistantMessage;
+        if (!am) return null;
+        const qa = am.qa;
+        if (qa) {
+          let reasoning = (qa.reasoningContent || '').trim();
+          if (!reasoning) {
+            reasoning = (qa.pipeSteps || [])
+              .filter((s) => s && s.type === 'PIPE_STEP_TYPE_REASONING')
+              .map((s) => (s.data && s.data.eventReasoning && s.data.eventReasoning.reasoningContent) || '')
+              .map((t) => t.trim())
+              .filter(Boolean)
+              .join('\n\n');
+          }
+          return {
+            content: (qa.content || '').trim(),
+            reasoning,
+            references: Array.isArray(qa.indexReferences) ? qa.indexReferences : [],
+          };
+        }
+        // 非 QA 分支（dr_web / creation 等）尽力取 content
+        const other = this._pick(am, ['drWeb', 'dr_web', 'creation']);
+        if (other && typeof other.content === 'string' && other.content.trim()) {
+          return { content: other.content.trim(), reasoning: '', references: [] };
+        }
+        return null;
+      },
+
+      toMarkdown(data, title, convId) {
+        const messages = this._sortAsc(data?.messages || []);
+        if (!messages.length) throw new Error('未找到消息数据');
+
+        // 模型：取最后一条助手消息（会话中可切换模型）
+        let model = '';
+        for (let i = messages.length - 1; i >= 0; i--) {
+          const m = messages[i];
+          if (m.role === 'assistant' && m.model && m.model.model) { model = m.model.model; break; }
+        }
+        const timeStr = data?.updated_at ? formatLocalTime(new Date(data.updated_at)) : 'unknown';
+        const convUrl = convId ? `https://chat.stepfun.com/chats/${convId}` : 'https://chat.stepfun.com';
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `' + (model || 'step') + '`');
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${convUrl}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        const refCollector = new ReferenceCollector();
+
+        for (const m of messages) {
+          if (m.role === 'user') {
+            const text = this._userContent(m);
+            if (!text) continue;
+            lines.push('### \u{1F9D1}\u200D\u{1F4BB} User');
+            lines.push('');
+            lines.push(stripHashes(text));
+            lines.push('');
+          } else if (m.role === 'assistant') {
+            const parts = this._assistantParts(m);
+            if (!parts || (!parts.content && !parts.reasoning)) continue;
+            lines.push('### \u{1F916} Assistant');
+            lines.push('');
+            if (parts.reasoning) {
+              lines.push('#### \u{1F914} Thought Process');
+              lines.push('');
+              lines.push(stripHashes(parts.reasoning));
+              lines.push('');
+              lines.push('#### \u{1F4A1} Response');
+              lines.push('');
+            }
+            if (parts.content) {
+              lines.push(stripHashes(parts.content));
+              lines.push('');
+            }
+            for (const ref of parts.references || []) {
+              const url = ref && ref.url;
+              if (url) refCollector.add(ref.title || '', url);
+            }
+          } else if (m.role === 'system') {
+            const sc = m.content && m.content.systemMessage;
+            const text = sc && sc.newSession && typeof sc.newSession.content === 'string' ? sc.newSession.content.trim() : '';
+            if (!text) continue;
+            lines.push('### \u{2699}\uFE0F System');
+            lines.push('');
+            lines.push(stripHashes(text));
+            lines.push('');
+          }
+        }
+
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
+        }
+
+        return lines.join('\n');
       },
     },
   ];
@@ -9062,6 +9565,12 @@
 
   // 导出给 Bun 测试（浏览器下 module 不存在，无副作用）
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { PLATFORM_ADAPTERS };
+    module.exports = {
+      PLATFORM_ADAPTERS,
+      normalizeRefUrl,
+      formatRefLine,
+      parseRefEntry,
+      ReferenceCollector,
+    };
   }
 })();

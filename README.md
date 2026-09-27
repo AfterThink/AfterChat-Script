@@ -13,7 +13,7 @@
 
 AfterChat is a free, open-source **AI chat exporter / conversation backup tool**.
 
-Export chats from **ChatGPT, Claude, Gemini, DeepSeek, GLM, Qwen** and 28 major AI platforms to **Markdown files** with one click, fully preserving **reasoning / thinking** and **citation sources** for personal backup, migration and offline reading.
+Export chats from **ChatGPT, Claude, Gemini, DeepSeek, GLM, Qwen** and 30 major AI platforms to **Markdown files** with one click, fully preserving **reasoning / thinking** and **citation sources** for personal backup, migration and offline reading.
 
 After installing the [AfterChat Desktop App](https://github.com/AfterThink/AfterChat-App-Download), you can also save the current conversation to your AfterChat workspace with one click.
 
@@ -49,6 +49,8 @@ After installing the [AfterChat Desktop App](https://github.com/AfterThink/After
 | Sakana AI | `chat.sakana.ai` |
 | Arena AI | `arena.ai` |
 | Dola | `dola.com` |
+| StepFun AI Studio | `studio.stepfun.ai` / `studio.stepfun.com` |
+| StepFun Chat | `chat.stepfun.com` |
 
 ## Installation
 
@@ -58,7 +60,7 @@ After installing Violentmonkey ([Chrome](https://chrome.google.com/webstore/deta
 
 ## Features
 
-- **Multi-platform support**: works with 28 major LLM platforms.
+- **Multi-platform support**: works with 30 major LLM platforms.
 - **Single or batch export**: exports the current conversation or all conversations at once.
 - **Incremental export**: on the list page, batch export skips conversations you've already downloaded (by update-time anchor) and only fetches new/updated ones — dramatically faster on repeat runs.
 - **Content fidelity**: exports include user messages, AI replies, **reasoning / thinking**, and **citation sources**.
