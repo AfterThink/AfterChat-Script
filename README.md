@@ -62,6 +62,7 @@ After installing Violentmonkey ([Chrome](https://chrome.google.com/webstore/deta
 
 - **Multi-platform support**: works with 30 major LLM platforms.
 - **Single or batch export**: exports the current conversation or all conversations at once.
+- **Project / Workspace export**: automatically detects project and workspace folders to batch-export conversations within the project.
 - **Incremental export**: on the list page, batch export skips conversations you've already downloaded (by update-time anchor) and only fetches new/updated ones — dramatically faster on repeat runs.
 - **Content fidelity**: exports include user messages, AI replies, **reasoning / thinking**, and **citation sources**.
 - **One-click save to AfterChat**: on a conversation detail page, **right-click the button** to save the current conversation directly to your AfterChat workspace.
@@ -74,6 +75,7 @@ The script shows a circular download button in the bottom-right corner of the pa
 | --- | --- | --- |
 | Conversation page | **Left-click** | Export the current conversation |
 | Conversation page | **Right-click** | Save the current conversation to the AfterChat workspace |
+| Project page | **Left-click** | Project export: pack only conversations within the current project / workspace |
 | Default page | **Left-click** | Incremental export: pack only new conversations, skipping already-exported ones |
 | Default page | **Shift + left-click** | Force full export, re-download all conversations |
 

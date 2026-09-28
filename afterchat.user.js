@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.21.0
+// @version      1.22.0
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
@@ -95,6 +95,25 @@
 // =============================================================
 //  📜 Changelog 
 // =============================================================
+//  1.22.0 (2026-09-28)
+//    - 引入项目层级导出（Project Scope Export）三态架构：
+//      收敛为纯粹极简的三态交互（单会话 Leaf / 项目文件夹 Branch / 全局 Root）
+//      修复 ChatGPT 与 Claude 在项目内单会话被误判为全部导出的正则路径匹配
+//      ChatGPT 支持 /g/g-p-.../project 项目页探测、项目元信息拉取与项目专属 ZIP 导出
+//      Claude 支持 /project/{uuid} 项目页探测、项目元信息与项目会话批量打包
+//      Qwen 支持 /p/{id} 项目文件夹探测与 /api/v2/chats/?project_id={id} 分页拉取
+//      Kimi（www.kimi.com）支持 /project/{uuid} 项目页探测、ProjectService/GetProject 元数据与 FeedService/ListFeeds 项目会话打包
+//      Perplexity（www.perplexity.ai）支持 /projects/{id}（及 collections/spaces）主页探测、get_collection 元数据与 list_collection_threads 会话打包
+//      Grok（grok.com）支持 /project/{uuid} 主页探测、/rest/workspaces 元数据与 app-chat/conversations?workspaceId 项目会话打包，支持 ?chat={id} 项目内单会话
+//      MiniMax（agent.minimax.io / agent.minimaxi.com）支持 ?project={id} 项目页探测、/v1/project 与 sidebar/session 分页打包
+//      Mistral（chat.mistral.ai）修复项目页被误判为单会话 projects 的缺陷，支持 /chat/projects/{id} 识别与 project.byId 会话打包
+//      豆包（www.doubao.com）支持 ?project={id} 识别与 /im/project/list 项目专属会话打包
+//      千问（www.qianwen.com）支持 /group/{id} 分组识别与 /api/v2/session/page/list group_id 会话分页打包
+//      腾讯元宝（yuanbao.tencent.com）支持 ?projectId={id} 识别与 project-home-page 元数据及 conversation/v3/list 会话分页打包
+//      Google Gemini（gemini.google.com）支持 /notebook/{id} 项目主页识别，对接 HcT8bb 与 MaZiqc RPC 批量导出 Notebook 会话
+//      Google AI Mode（gaim）支持 ?ajid={b64} 项目主页识别，对接 AimThreadsService/GetJourney 获取项目元数据与 Threads 会话
+//      ZIP 文件独立命名标记为 chat-export-{platform}-project-{projectName}-{timestamp}.zip
+//      全局增量时间锚点实现作用域隔离保护，项目导出不污染全局增量时间线
 //  1.21.0 (2026-09-27)
 //    - 全平台搜索引用格式标准化与重构收敛（RFC 1.0.0-draft）：
 //      沉淀通用 ReferenceCollector / normalizeRefUrl / formatRefLine / parseRefEntry 辅助体系
@@ -1899,8 +1918,124 @@
       detect: () => window.location.hostname === 'www.perplexity.ai',
 
       getCurrentConversationId: () => {
-        const match = window.location.pathname.match(/^\/search\/([^\/?]+)/);
+        const match = window.location.pathname.match(/\/search\/([a-f0-9-]{36}|[^\/?#]+)/i);
         return match ? match[1] : null;
+      },
+
+      _projectCache: {},
+
+      _fetchProjectMeta(projectId) {
+        if (!projectId || (this._projectCache && this._projectCache[projectId])) return;
+        this._projectFetching = this._projectFetching || new Set();
+        if (this._projectFetching.has(projectId)) return;
+        this._projectFetching.add(projectId);
+        const urlProj = `/rest/collections/get_collection?collection_slug=${encodeURIComponent(projectId)}&version=2.18&source=default`;
+        fetch(urlProj, {
+          headers: this._threadHeaders(urlProj),
+          credentials: 'include',
+        }).then(async (r) => {
+          if (!r.ok) return;
+          const body = await r.json().catch(() => null);
+          const name = body?.title?.trim();
+          if (name) {
+            this._projectCache = this._projectCache || {};
+            this._projectCache[projectId] = name;
+          }
+        }).catch(() => {}).finally(() => {
+          this._projectFetching.delete(projectId);
+        });
+      },
+
+      getCurrentProject() {
+        // 匹配项目/空间文件夹主页: /projects/{id}、/collections/{id}、/spaces/{id}（当不在具体会话 /search/ 时）
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        if (pathname.includes('/search/')) return null;
+        const m = pathname.match(/^\/(?:projects|collections|spaces)\/([0-9a-f-]{36}|[0-9a-z_-]{10,})/i);
+        if (!m) return null;
+        const id = m[1];
+        if (this._projectCache && this._projectCache[id]) {
+          return { id, name: this._projectCache[id] };
+        }
+        this._fetchProjectMeta(id);
+        return { id, name: '' };
+      },
+
+      async getProjectConversations(projectId, onProgress) {
+        let projectName = (this._projectCache && this._projectCache[projectId]) || '';
+        let collectionSlug = projectId;
+        try {
+          const urlProj = `/rest/collections/get_collection?collection_slug=${encodeURIComponent(projectId)}&version=2.18&source=default`;
+          const rProj = await fetch(urlProj, {
+            headers: this._threadHeaders(urlProj),
+            credentials: 'include',
+          });
+          if (rProj.ok) {
+            const pBody = await rProj.json();
+            projectName = pBody?.title?.trim() || projectName;
+            if (pBody?.slug) collectionSlug = pBody.slug;
+            if (projectName) {
+              this._projectCache = this._projectCache || {};
+              this._projectCache[projectId] = projectName;
+            }
+          }
+        } catch (e) {
+          console.warn('[AfterChat] 获取 Perplexity 项目详情失败:', e);
+        }
+
+        const conversations = [];
+        const seen = new Set();
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        let offset = 0;
+        const pageSize = 50;
+
+        while (conversations.length < limit) {
+          const q = new URLSearchParams({
+            collection_slug: collectionSlug,
+            limit: String(pageSize),
+            offset: String(offset),
+            filter_by_user: 'false',
+            filter_by_shared_threads: 'false',
+            include_user_and_shared_threads: 'true',
+            version: '2.18',
+            source: 'default',
+          });
+          const urlList = `/rest/collections/list_collection_threads?${q.toString()}`;
+          const rList = await fetch(urlList, {
+            headers: this._threadHeaders(urlList),
+            credentials: 'include',
+          });
+          if (!rList.ok) throw new Error(`Perplexity 项目列表接口 ${rList.status}: ${rList.statusText}`);
+          const list = await rList.json();
+          const items = Array.isArray(list) ? list : (list?.threads || list?.items || []);
+          if (!items.length) break;
+
+          for (const item of items) {
+            const threadId = item.uuid || item.slug || item.context_uuid;
+            if (!threadId || seen.has(threadId)) continue;
+            const itemCollectionId = item.collection?.uuid || item.collection_uuid;
+            if (itemCollectionId && itemCollectionId !== projectId) continue;
+
+            seen.add(threadId);
+            conversations.push({
+              id: threadId,
+              title: (item.title || item.query_str || '').trim(),
+              updated_at: item.last_query_datetime,
+              created_at: item.last_query_datetime,
+              project_id: projectId,
+            });
+            if (conversations.length >= limit) break;
+          }
+
+          if (onProgress) onProgress(conversations.length);
+          if (items.length < pageSize) break;
+          offset += items.length;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return {
+          name: projectName || projectId,
+          conversations: conversations.slice(0, limit),
+        };
       },
 
       _threadHeaders(url) {
@@ -2319,12 +2454,104 @@
       detect: () => window.location.hostname === 'chat.qwen.ai',
 
       getCurrentConversationId: () => {
-        // 支持两种模式: /c/<uuid> 和 /a/chat/s/<uuid>
-        const m1 = window.location.pathname.match(/^\/c\/([^\/?]+)/);
+        // 支持普通会话 /c/<uuid> 以及其他前缀模式 /a/chat/s/<uuid>
+        const m1 = window.location.pathname.match(/\/c\/([a-f0-9-]{36}|[^\/?#]+)/i);
         if (m1) return m1[1];
-        const m2 = window.location.pathname.match(/^\/a\/chat\/s\/([^\/?]+)/);
+        const m2 = window.location.pathname.match(/\/a\/chat\/s\/([a-f0-9-]{36}|[^\/?#]+)/i);
         if (m2) return m2[1];
         return null;
+      },
+
+      _projectCache: {},
+
+      _fetchProjectMeta(projectId) {
+        if (!projectId || (this._projectCache && this._projectCache[projectId])) return;
+        this._projectFetching = this._projectFetching || new Set();
+        if (this._projectFetching.has(projectId)) return;
+        this._projectFetching.add(projectId);
+        fetch(`/api/v2/projects/${encodeURIComponent(projectId)}`, {
+          headers: { 'source': 'web' },
+        }).then(async (r) => {
+          if (!r.ok) return;
+          const body = await r.json().catch(() => null);
+          const name = body?.data?.name?.trim();
+          if (name) {
+            this._projectCache = this._projectCache || {};
+            this._projectCache[projectId] = name;
+          }
+        }).catch(() => {}).finally(() => {
+          this._projectFetching.delete(projectId);
+        });
+      },
+
+      getCurrentProject() {
+        // 匹配项目文件夹路径: /p/{projectId}（当不在具体会话 /c/ 页面时）
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        if (pathname.includes('/c/') || pathname.includes('/a/chat/s/')) return null;
+        const m = pathname.match(/^\/p\/([0-9a-f-]{36}|[0-9a-z_-]{10,})/i);
+        if (!m) return null;
+        const id = m[1];
+        if (this._projectCache && this._projectCache[id]) {
+          return { id, name: this._projectCache[id] };
+        }
+        this._fetchProjectMeta(id);
+        return { id, name: '' };
+      },
+
+      async getProjectConversations(projectId, onProgress) {
+        let projectName = (this._projectCache && this._projectCache[projectId]) || '';
+        try {
+          const rProj = await fetch(`/api/v2/projects/${encodeURIComponent(projectId)}`, {
+            headers: { 'source': 'web' },
+          });
+          if (rProj.ok) {
+            const pBody = await rProj.json();
+            projectName = pBody?.data?.name?.trim() || projectName;
+            if (projectName) {
+              this._projectCache = this._projectCache || {};
+              this._projectCache[projectId] = projectName;
+            }
+          }
+        } catch (e) {
+          console.warn('[AfterChat] 获取通义千问项目详情失败:', e);
+        }
+
+        const conversations = [];
+        let page = 1;
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+
+        while (conversations.length < limit) {
+          const url = `/api/v2/chats/?project_id=${encodeURIComponent(projectId)}&page=${page}`;
+          const r = await fetch(url, {
+            headers: { 'source': 'web' },
+          });
+          if (!r.ok) throw new Error(`通义千问项目会话列表API ${r.status}: ${r.statusText}`);
+          const body = await r.json();
+          const chats = body?.data || [];
+          if (!chats.length) break;
+
+          for (const c of chats) {
+            if (c.id) {
+              conversations.push({
+                id: c.id,
+                title: c.title || '',
+                updated_at: c.updated_at,
+                created_at: c.created_at,
+                chat_type: c.chat_type,
+                project_id: c.project_id || projectId,
+              });
+            }
+          }
+          if (onProgress) onProgress(conversations.length);
+
+          page++;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return {
+          name: projectName || projectId,
+          conversations: conversations.slice(0, limit),
+        };
       },
 
       async getAllConversations(onProgress) {
@@ -2483,16 +2710,60 @@
         return match ? match[1] : null;
       },
 
+      _projectCache: {},
+
+      _fetchProjectMeta(groupId) {
+        if (!groupId || (this._projectCache && this._projectCache[groupId])) return;
+        this._projectFetching = this._projectFetching || new Set();
+        if (this._projectFetching.has(groupId)) return;
+        this._projectFetching.add(groupId);
+        this._request('/api/v1/session/group/list', {
+          method: 'POST',
+          body: {},
+        }).then((body) => {
+          const list = Array.isArray(body?.data) ? body.data : [];
+          for (const item of list) {
+            const gid = item.group_id;
+            const gname = (item.group_name || '').trim();
+            if (gid && gname) {
+              this._projectCache = this._projectCache || {};
+              this._projectCache[gid] = gname;
+            }
+          }
+        }).catch(() => {}).finally(() => {
+          this._projectFetching.delete(groupId);
+        });
+      },
+
+      getCurrentProject() {
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        if (pathname.includes('/chat/')) return null;
+        const m = pathname.match(/^\/group\/([0-9a-f-]{32,36}|[0-9a-zA-Z_-]{8,})/i);
+        if (!m) return null;
+        const id = m[1];
+
+        // 1. 优先读取项目元数据缓存
+        if (this._projectCache && this._projectCache[id]) {
+          return { id, name: this._projectCache[id] };
+        }
+
+        // 2. 静默通过后端 /api/v1/session/group/list 接口预取分组名（严禁 DOM 探测）
+        this._fetchProjectMeta(id);
+
+        return { id, name: '' };
+      },
+
       _deviceId() {
         try {
-          const existing = localStorage.getItem('uc-stat-dn');
+          const ls = typeof localStorage !== 'undefined' ? localStorage : null;
+          const existing = ls?.getItem('uc-stat-dn');
           if (existing) return existing;
-          const cached = localStorage.getItem('qianwen-exporter-device-id');
+          const cached = ls?.getItem('qianwen-exporter-device-id');
           if (cached) return cached;
           const generated = (typeof crypto !== 'undefined' && crypto.randomUUID)
             ? crypto.randomUUID()
             : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-          localStorage.setItem('qianwen-exporter-device-id', generated);
+          ls?.setItem('qianwen-exporter-device-id', generated);
           return generated;
         } catch (e) {
           return '';
@@ -2501,7 +2772,8 @@
 
       _xsrfToken() {
         try {
-          const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/);
+          const doc = typeof document !== 'undefined' ? document : null;
+          const match = doc?.cookie?.match(/(?:^|; )XSRF-TOKEN=([^;]+)/);
           return match ? decodeURIComponent(match[1]) : '';
         } catch (e) {
           return '';
@@ -2510,7 +2782,8 @@
 
       _webVersion() {
         try {
-          const entries = performance.getEntriesByType('resource') || [];
+          const perf = typeof performance !== 'undefined' ? performance : null;
+          const entries = perf?.getEntriesByType('resource') || [];
           for (const entry of entries) {
             const name = entry?.name || '';
             const match = name.match(/\/qianwen-web\/(\d+\.\d+\.\d+)\//);
@@ -2526,6 +2799,9 @@
 
       _commonParams(extra) {
         const version = this._webVersion();
+        const nav = typeof navigator !== 'undefined' ? navigator : { language: 'zh-CN' };
+        let tz = 'Asia/Shanghai';
+        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai'; } catch (e) {}
         return new URLSearchParams({
           biz_id: 'ai_qwen',
           chat_client: 'h5',
@@ -2533,8 +2809,8 @@
           fr: 'pc',
           pr: 'qwen',
           ut: this._deviceId(),
-          la: navigator.language || 'zh-CN',
-          tz: (Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai'),
+          la: nav.language || 'zh-CN',
+          tz,
           wv: version,
           ve: version,
           ...(extra || {}),
@@ -2613,6 +2889,76 @@
         }
 
         return allChats.slice(0, limit);
+      },
+
+      async getProjectConversations(projectId, onProgress) {
+        let projectName = (this._projectCache && this._projectCache[projectId]) || '';
+        if (!projectName) {
+          try {
+            const gResp = await this._request('/api/v1/session/group/list', {
+              method: 'POST',
+              body: {},
+            });
+            const list = Array.isArray(gResp?.data) ? gResp.data : [];
+            for (const item of list) {
+              const gid = item.group_id;
+              const gname = (item.group_name || '').trim();
+              if (gid && gname) {
+                this._projectCache = this._projectCache || {};
+                this._projectCache[gid] = gname;
+              }
+            }
+            if (this._projectCache[projectId]) {
+              projectName = this._projectCache[projectId];
+            }
+          } catch (e) {
+            console.warn('[AfterChat] 获取千问分组列表失败:', e);
+          }
+        }
+        projectName = projectName || `Project ${projectId}`;
+
+        const allChats = [];
+        const seen = new Set();
+        let nextToken = '';
+
+        while (true) {
+          const body = await this._request('/api/v2/session/page/list', {
+            method: 'POST',
+            body: {
+              limit: 50,
+              next_token: nextToken,
+              sort_field: 'modifiedTime',
+              group_id: projectId,
+            },
+          });
+          const data = body?.data || {};
+          const sessions = Array.isArray(data.list) ? data.list : [];
+          let added = 0;
+          for (const session of sessions) {
+            const id = session.session_id || session.sessionId;
+            if (!id || seen.has(id)) continue;
+            seen.add(id);
+            allChats.push({
+              id,
+              title: session.title || session.summary || id,
+              created_at: session.created_at || session.createTime,
+              updated_at: session.updated_at || session.modifiedTime || session.last_req_timestamp,
+              qwen_session_type: session.qwen_session_type || session.sessionType,
+            });
+            added++;
+          }
+
+          if (onProgress) onProgress(allChats.length);
+          nextToken = data.next_token || '';
+          if (!data.have_next_page || !nextToken || !sessions.length || !added) break;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return {
+          id: projectId,
+          name: projectName,
+          conversations: allChats,
+        };
       },
 
       async getConversationDetails(id) {
@@ -2960,6 +3306,46 @@
         return match ? `${match[1]}/${match[2]}` : null;
       },
 
+      _projectCache: {},
+
+      _fetchProjectMeta(projectId) {
+        if (!projectId || (this._projectCache && this._projectCache[projectId])) return;
+        this._projectFetching = this._projectFetching || new Set();
+        if (this._projectFetching.has(projectId)) return;
+        this._projectFetching.add(projectId);
+        this._post('/api/v5/projectLogic/project/project-home-page', {
+          project_id: projectId,
+        }).then((pInfo) => {
+          const name = pInfo?.data?.project_info?.name?.trim();
+          if (name) {
+            this._projectCache = this._projectCache || {};
+            this._projectCache[projectId] = name;
+          }
+        }).catch(() => {}).finally(() => {
+          this._projectFetching.delete(projectId);
+        });
+      },
+
+      getCurrentProject() {
+        const pathParts = (typeof window !== 'undefined' ? window.location.pathname : '').split('/').filter(Boolean);
+        if (pathParts.length >= 3 && pathParts[0] === 'chat') return null;
+        const search = typeof window !== 'undefined' ? window.location.search : '';
+        const params = new URLSearchParams(search);
+        const id = params.get('projectId');
+        if (!id) return null;
+        let name = params.get('projectName') || '';
+        if (name) {
+          this._projectCache = this._projectCache || {};
+          this._projectCache[id] = name;
+          return { id, name };
+        }
+        if (this._projectCache && this._projectCache[id]) {
+          return { id, name: this._projectCache[id] };
+        }
+        this._fetchProjectMeta(id);
+        return { id, name: '' };
+      },
+
       async _post(path, body) {
         const r = await fetch(path, {
           method: 'POST',
@@ -3021,6 +3407,73 @@
         }
 
         return all.slice(0, limit);
+      },
+
+      async getProjectConversations(projectId, onProgress) {
+        let projectName = (this._projectCache && this._projectCache[projectId]) || '';
+        const agentId = this._currentAgentId() || this._defaultAgentId;
+
+        try {
+          const pInfo = await this._post('/api/v5/projectLogic/project/project-home-page', {
+            project_id: projectId,
+          });
+          const name = pInfo?.data?.project_info?.name?.trim();
+          if (name) {
+            projectName = name;
+            this._projectCache = this._projectCache || {};
+            this._projectCache[projectId] = projectName;
+          }
+        } catch (e) {
+          console.warn('[AfterChat] 获取腾讯元宝项目详情失败:', e);
+        }
+        projectName = projectName || `Project ${projectId}`;
+
+        const all = [];
+        const seen = new Set();
+        let lastRepliedAt = 0;
+        let topTime = 0;
+        const pageSize = 20;
+
+        while (true) {
+          const body = await this._post('/api/user/agent/conversation/v3/list', {
+            agent_id: agentId,
+            project_id: projectId,
+            page_size: pageSize,
+            action: 1,
+            last_replied_at: lastRepliedAt,
+            top_time: topTime,
+          });
+
+          const list = Array.isArray(body?.data?.list) ? body.data.list : [];
+          let added = 0;
+
+          for (const c of list) {
+            const cid = c.id;
+            if (!cid || seen.has(cid)) continue;
+            seen.add(cid);
+            all.push({
+              id: this._packId(c.agentId || agentId, cid),
+              title: (c.title || c.sessionTitle || cid).trim(),
+              created_at: c.firstRepliedAt || c.createTime,
+              updated_at: c.lastRepliedAt || c.lastRepliedDatetime,
+              agentId: c.agentId || agentId,
+              model: c.chatModelId || c.modelId,
+            });
+            added++;
+            lastRepliedAt = Number(c.lastRepliedAt) || lastRepliedAt;
+            topTime = Number(c.topTime) || topTime;
+          }
+
+          if (onProgress) onProgress(all.length);
+          if (!list.length || !added || list.length < pageSize) break;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return {
+          id: projectId,
+          name: projectName,
+          conversations: all,
+        };
       },
 
       async getConversationDetails(id) {
@@ -3521,8 +3974,43 @@
       detect: () => window.location.hostname === 'www.kimi.com',
 
       getCurrentConversationId: () => {
-        const match = window.location.pathname.match(/^\/chat\/([^\/?]+)/);
+        // 支持普通单会话 /chat/{id} 或潜在的路径 /c/{id}
+        const match = window.location.pathname.match(/(?:\/chat\/|\/c\/)([a-f0-9-]{36}|[^\/?#]+)/i);
         return match ? match[1] : null;
+      },
+
+      _projectCache: {},
+
+      _fetchProjectMeta(projectId) {
+        if (!projectId || (this._projectCache && this._projectCache[projectId])) return;
+        this._projectFetching = this._projectFetching || new Set();
+        if (this._projectFetching.has(projectId)) return;
+        this._projectFetching.add(projectId);
+        this._post('/apiv2/kimi.gateway.project.v1.ProjectService/GetProject', {
+          project_id: projectId,
+        }).then((pResp) => {
+          const name = pResp?.project?.name?.trim();
+          if (name) {
+            this._projectCache = this._projectCache || {};
+            this._projectCache[projectId] = name;
+          }
+        }).catch(() => {}).finally(() => {
+          this._projectFetching.delete(projectId);
+        });
+      },
+
+      getCurrentProject() {
+        // 匹配项目文件夹主页: /project/{projectId}（当不在具体会话 /chat/ 页面时）
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        if (pathname.includes('/chat/') || pathname.includes('/c/')) return null;
+        const m = pathname.match(/^\/project\/([0-9a-f-]{36}|[0-9a-z_-]{10,})/i);
+        if (!m) return null;
+        const id = m[1];
+        if (this._projectCache && this._projectCache[id]) {
+          return { id, name: this._projectCache[id] };
+        }
+        this._fetchProjectMeta(id);
+        return { id, name: '' };
       },
 
       _token() {
@@ -3552,6 +4040,66 @@
         });
         if (!r.ok) throw new Error(`Kimi API ${r.status}: ${await r.text().catch(() => r.statusText)}`);
         return r.json();
+      },
+
+      async getProjectConversations(projectId, onProgress) {
+        let projectName = (this._projectCache && this._projectCache[projectId]) || '';
+        try {
+          const pResp = await this._post('/apiv2/kimi.gateway.project.v1.ProjectService/GetProject', {
+            project_id: projectId,
+          });
+          projectName = pResp?.project?.name?.trim() || projectName;
+          if (projectName) {
+            this._projectCache = this._projectCache || {};
+            this._projectCache[projectId] = projectName;
+          }
+        } catch (e) {
+          console.warn('[AfterChat] 获取 Kimi 项目详情失败:', e);
+        }
+
+        const conversations = [];
+        const seen = new Set();
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        let pageToken = '';
+        let pageSize = 50;
+
+        while (conversations.length < limit) {
+          const body = {
+            page_size: pageSize,
+            project_id: projectId,
+            filter_types: ['FEED_TYPE_CHAT', 'FEED_TYPE_TASK'],
+          };
+          if (pageToken) body.page_token = pageToken;
+          const data = await this._post('/apiv2/kimi.gateway.feed.v1.FeedService/ListFeeds', body);
+          const items = Array.isArray(data?.items) ? data.items : [];
+          if (!items.length) break;
+
+          for (const item of items) {
+            const chat = item?.chat || item?.item?.value || null;
+            if (!chat?.id || seen.has(chat.id)) continue;
+            if (chat.projectId && chat.projectId !== projectId) continue;
+            seen.add(chat.id);
+            conversations.push({
+              id: chat.id,
+              title: (chat.name || '').trim(),
+              createTime: chat.createTime,
+              updateTime: chat.updateTime,
+              messageContent: chat.messageContent,
+              projectId: chat.projectId || projectId,
+            });
+            if (conversations.length >= limit) break;
+          }
+
+          if (onProgress) onProgress(conversations.length);
+          pageToken = data?.nextPageToken || data?.next_page_token || '';
+          if (!pageToken) break;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return {
+          name: projectName || projectId,
+          conversations: conversations.slice(0, limit),
+        };
       },
 
       async getAllConversations(onProgress) {
@@ -3774,6 +4322,68 @@
         return match ? match[1] : null;
       },
 
+      _projectCache: {},
+
+      _fetchProjectMeta(projectId) {
+        if (!projectId) return;
+        this._projectCache = this._projectCache || {};
+        if (this._projectCache[projectId] || this._fetchingProjectId === projectId) return;
+        this._fetchingProjectId = projectId;
+        const body = {
+          cmd: 4605,
+          uplink_body: {
+            list_projects_uplink_body: {
+              limit: 50,
+              include_invisible_projects: false,
+              sort_type: 1,
+              group_conversation_filter_param: {
+                exclude_archive: true,
+              },
+            },
+          },
+          sequence_id: this._uuid(),
+          channel: 2,
+          version: '1',
+        };
+        this._post('/im/project/list', body)
+          .then((res) => {
+            const projects = res?.downlink_body?.list_projects_downlink_body?.projects || [];
+            for (const p of projects) {
+              if (p.project_id && p.name) {
+                this._projectCache[String(p.project_id)] = p.name.trim();
+              }
+            }
+            if (this._projectCache[String(projectId)] && typeof window !== 'undefined' && window.__m365Controller?.updateLabel) {
+              window.__m365Controller.updateLabel();
+            }
+          })
+          .catch(() => {})
+          .finally(() => {
+            this._fetchingProjectId = null;
+          });
+      },
+
+      getCurrentProject() {
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        if (pathname.match(/^\/chat\/[0-9a-zA-Z_-]+/)) return null;
+        const search = typeof window !== 'undefined' ? window.location.search : '';
+        const m = search.match(/[?&]project=([^&]+)/);
+        if (!m) return null;
+        const id = decodeURIComponent(m[1]);
+
+        // 1. 优先读取缓存
+        if (this._projectCache && this._projectCache[id]) {
+          return { id, name: this._projectCache[id] };
+        }
+
+        // 2. 静默通过后端 /im/project/list 接口预取项目名（严禁 DOM 探测）
+        if (typeof this._fetchProjectMeta === 'function') {
+          this._fetchProjectMeta(id);
+        }
+
+        return { id, name: '' };
+      },
+
       _uuid() {
         if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
         return String(Date.now()) + '-' + Math.random().toString(16).slice(2);
@@ -3960,6 +4570,61 @@
         return allChats.slice(0, limit);
       },
 
+      async getProjectConversations(projectId, onProgress) {
+        let projectName = `Project ${projectId}`;
+        const conversations = [];
+
+        try {
+          const body = {
+            cmd: 4605,
+            uplink_body: {
+              list_projects_uplink_body: {
+                limit: 50,
+                include_invisible_projects: false,
+                sort_type: 1,
+                group_conversation_filter_param: {
+                  exclude_archive: true,
+                },
+              },
+            },
+            sequence_id: this._uuid(),
+            channel: 2,
+            version: '1',
+          };
+          const res = await this._post('/im/project/list', body);
+          const projects = res?.downlink_body?.list_projects_downlink_body?.projects || [];
+          const proj = projects.find((p) => String(p.project_id) === String(projectId));
+          if (proj) {
+            if (proj.name) {
+              projectName = proj.name;
+              this._projectCache = this._projectCache || {};
+              this._projectCache[String(projectId)] = proj.name;
+            }
+            const convList = Array.isArray(proj.conversations) ? proj.conversations : [];
+            for (const c of convList) {
+              const cid = c.conversation_id;
+              if (!cid) continue;
+              conversations.push({
+                id: cid,
+                title: (c.conversation_name || '').trim() || cid,
+                created_at: Number(c.create_time) || c.create_time,
+                updated_at: Number(c.update_time) || c.update_time,
+              });
+            }
+          }
+        } catch (e) {
+          console.warn('[AfterChat] Doubao list_projects failed:', e);
+        }
+
+        if (onProgress) onProgress(conversations.length);
+
+        return {
+          id: projectId,
+          name: projectName,
+          conversations,
+        };
+      },
+
       async getConversationDetails(id) {
         const conversationInfo = await this._post('/im/conversation/info', this._infoBody(id));
         const messages = [];
@@ -4135,10 +4800,43 @@
         return m ? decodeURIComponent(m[1]) : null;
       },
 
+      _projectCache: {},
+
+      _fetchProjectMeta(projectId) {
+        if (!projectId || (this._projectCache && this._projectCache[projectId])) return;
+        this._projectFetching = this._projectFetching || new Set();
+        if (this._projectFetching.has(projectId)) return;
+        this._projectFetching.add(projectId);
+        const pUrl = this._endpoint('/minimax-cloud/api/v1/project');
+        this._get(pUrl).then((pData) => {
+          const p = (pData?.projects || []).find((x) => String(x.id) === String(projectId));
+          if (p?.name) {
+            this._projectCache = this._projectCache || {};
+            this._projectCache[projectId] = p.name;
+          }
+        }).catch(() => {}).finally(() => {
+          this._projectFetching.delete(projectId);
+        });
+      },
+
+      getCurrentProject() {
+        const search = typeof window !== 'undefined' && window.location ? window.location.search : '';
+        if (/[?&]id=[^&]+/.test(search)) return null;
+        const m = search.match(/[?&]project=([^&]+)/);
+        if (!m) return null;
+        const id = decodeURIComponent(m[1]);
+        if (this._projectCache && this._projectCache[id]) {
+          return { id, name: this._projectCache[id] };
+        }
+        this._fetchProjectMeta(id);
+        return { id, name: '' };
+      },
+
       _token() {
         try {
-          const ud = JSON.parse(localStorage.getItem('user_detail_agent') || '{}');
-          return ud.token || localStorage.getItem('_token') || '';
+          const ls = typeof localStorage !== 'undefined' ? localStorage : null;
+          const ud = JSON.parse(ls?.getItem('user_detail_agent') || '{}');
+          return ud.token || ls?.getItem('_token') || '';
         } catch (e) {
           return '';
         }
@@ -4148,7 +4846,11 @@
       _webParams() {
         const now = Date.now();
         let ud = {};
-        try { ud = JSON.parse(localStorage.getItem('user_detail_agent') || '{}'); } catch (e) { /* ignore */ }
+        const ls = typeof localStorage !== 'undefined' ? localStorage : null;
+        const ss = typeof sessionStorage !== 'undefined' ? sessionStorage : null;
+        const nav = typeof navigator !== 'undefined' ? navigator : { userAgent: '', language: '', platform: '' };
+        const scr = typeof screen !== 'undefined' ? screen : { width: 0, height: 0 };
+        try { ud = JSON.parse(ls?.getItem('user_detail_agent') || '{}'); } catch (e) { /* ignore */ }
         const zh = this._siteHost().endsWith('minimaxi.com'); // 国内版 REGION=cn → zh
         const p = new URLSearchParams({
           device_platform: 'web',
@@ -4158,15 +4860,15 @@
           timezone_offset: String(-60 * new Date().getTimezoneOffset()),
           sys_language: zh ? 'zh' : 'en',
           lang: zh ? 'zh' : 'en',
-          uuid: localStorage.getItem('UNIQUE_USER_ID') || '',
-          device_id: sessionStorage.getItem('tab_device_id') || '',
-          os_name: navigator.userAgent.includes('Win') ? 'Windows' : navigator.userAgent.includes('Mac') ? 'macOS' : 'unknown',
-          browser_name: navigator.userAgent.includes('Firefox') ? 'Firefox' : navigator.userAgent.includes('Chrome') ? 'Chrome' : 'unknown',
-          browser_language: navigator.language || '',
-          browser_platform: navigator.platform || '',
+          uuid: ls?.getItem('UNIQUE_USER_ID') || '',
+          device_id: ss?.getItem('tab_device_id') || '',
+          os_name: (nav.userAgent || '').includes('Win') ? 'Windows' : (nav.userAgent || '').includes('Mac') ? 'macOS' : 'unknown',
+          browser_name: (nav.userAgent || '').includes('Firefox') ? 'Firefox' : (nav.userAgent || '').includes('Chrome') ? 'Chrome' : 'unknown',
+          browser_language: nav.language || '',
+          browser_platform: nav.platform || '',
           user_id: ud.realUserID || '0',
-          screen_width: String(screen.width || 0),
-          screen_height: String(screen.height || 0),
+          screen_width: String(scr.width || 0),
+          screen_height: String(scr.height || 0),
           unix: String(now),
           token: this._token(),
           client: 'web',
@@ -4256,7 +4958,75 @@
         return all.slice(0, limit);
       },
 
+      async getProjectConversations(projectId, onProgress) {
+        let projectName = (this._projectCache && this._projectCache[projectId]) || '';
+        try {
+          const pUrl = this._endpoint('/minimax-cloud/api/v1/project');
+          const pData = await this._get(pUrl);
+          const p = (pData?.projects || []).find((x) => String(x.id) === String(projectId));
+          if (p?.name) {
+            projectName = p.name;
+            this._projectCache = this._projectCache || {};
+            this._projectCache[projectId] = projectName;
+          }
+        } catch (e) {
+          console.warn('[AfterChat] 获取 MiniMax 项目详情失败:', e);
+        }
+        projectName = projectName || `Project ${projectId}`;
+
+        const all = [];
+        const seen = new Set();
+        let cursor = '';
+
+        while (true) {
+          const endpointUrl = this._endpoint('/minimax-cloud/api/v1/sidebar/session');
+          let url = endpointUrl;
+          try {
+            const u = new URL(endpointUrl, (typeof window !== 'undefined' && window.location?.origin) || 'https://' + this._fallbackHost);
+            u.searchParams.set('project_id', String(projectId));
+            u.searchParams.set('limit', '20');
+            if (cursor) u.searchParams.set('cursor', cursor);
+            url = u.pathname + u.search;
+          } catch (e) {
+            url += (url.includes('?') ? '&' : '?') + `project_id=${encodeURIComponent(projectId)}&limit=20`;
+            if (cursor) url += `&cursor=${encodeURIComponent(cursor)}`;
+          }
+
+          const data = await this._get(url);
+          const sessions = Array.isArray(data.sessions) ? data.sessions : [];
+          let added = 0;
+
+          for (const item of sessions) {
+            const s = item?.session || item || {};
+            const id = s.session_id;
+            if (!id || seen.has(id)) continue;
+            seen.add(id);
+            all.push({
+              id,
+              title: (s.title || '').trim() || id,
+              created_at: s.created_at,
+              updated_at: s.updated_at,
+              model: s.model?.model_id || '',
+              archived: !!s.archived,
+            });
+            added++;
+          }
+
+          if (onProgress) onProgress(all.length);
+          if (!data.has_more || !data.next_cursor || !sessions.length || !added) break;
+          cursor = data.next_cursor;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return {
+          id: projectId,
+          name: projectName,
+          conversations: all,
+        };
+      },
+
       async getConversationDetails(id) {
+
         const sessionResp = await this._get(this._endpoint(`/minimax-cloud/api/v1/session/${id}`));
         const messages = [];
         const seen = new Set();
@@ -4915,8 +5685,99 @@
       detect: () => window.location.hostname === 'chatgpt.com',
 
       getCurrentConversationId: () => {
-        const match = window.location.pathname.match(/^\/c\/([^\/?]+)/);
+        // 支持普通会话 /c/{id} 以及项目内会话 /g/g-p-.../c/{id}
+        const match = window.location.pathname.match(/\/c\/([a-f0-9-]+)/i);
         return match ? match[1] : null;
+      },
+
+      _projectCache: {},
+
+      _fetchProjectMeta(projectId) {
+        if (!projectId || (this._projectCache && this._projectCache[projectId])) return;
+        this._projectFetching = this._projectFetching || new Set();
+        if (this._projectFetching.has(projectId)) return;
+        this._projectFetching.add(projectId);
+        (async () => {
+          const headers = await this._headers();
+          const rGizmo = await fetch(`/backend-api/gizmos/${encodeURIComponent(projectId)}`, { headers });
+          if (!rGizmo.ok) return;
+          const gBody = await rGizmo.json();
+          const name = gBody?.gizmo?.display?.name?.trim();
+          if (name) {
+            this._projectCache = this._projectCache || {};
+            this._projectCache[projectId] = name;
+          }
+        })().catch(() => {}).finally(() => {
+          this._projectFetching.delete(projectId);
+        });
+      },
+
+      getCurrentProject() {
+        // 匹配项目文件夹路径 /g/(g-p-[0-9a-f]{32})[^/]*/project
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        const match = pathname.match(/\/g\/(g-p-[0-9a-f]{32})[^/]*\/project/i);
+        if (!match) return null;
+        const id = match[1];
+        if (this._projectCache && this._projectCache[id]) {
+          return { id, name: this._projectCache[id] };
+        }
+        this._fetchProjectMeta(id);
+        return { id, name: '' };
+      },
+
+      async getProjectConversations(projectId, onProgress) {
+        const headers = await this._headers();
+        let projectName = (this._projectCache && this._projectCache[projectId]) || '';
+        try {
+          const rGizmo = await fetch(`/backend-api/gizmos/${encodeURIComponent(projectId)}`, { headers });
+          if (rGizmo.ok) {
+            const gBody = await rGizmo.json();
+            projectName = gBody?.gizmo?.display?.name?.trim() || projectName;
+            if (projectName) {
+              this._projectCache = this._projectCache || {};
+              this._projectCache[projectId] = projectName;
+            }
+          }
+        } catch (e) {
+          console.warn('[AfterChat] 获取 ChatGPT 项目详情失败:', e);
+        }
+
+        const conversations = [];
+        let cursor = 0;
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+
+        while (conversations.length < limit && cursor !== null && cursor !== undefined) {
+          const url = `/backend-api/gizmos/${encodeURIComponent(projectId)}/conversations?cursor=${encodeURIComponent(String(cursor))}`;
+          const r = await fetch(url, { headers });
+          if (!r.ok) throw new Error(`项目会话列表API ${r.status}: ${r.statusText}`);
+          const body = await r.json();
+          const items = body.items || [];
+          if (!items.length) break;
+
+          for (const c of items) {
+            if (c.id) {
+              conversations.push({
+                id: c.id,
+                title: (c.title || '').trim(),
+                create_time: c.create_time,
+                update_time: c.update_time,
+              });
+            }
+          }
+          if (onProgress) onProgress(conversations.length);
+
+          if (body.cursor !== undefined && body.cursor !== null && items.length > 0) {
+            cursor = body.cursor;
+          } else {
+            break;
+          }
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return {
+          name: projectName || projectId,
+          conversations: conversations.slice(0, limit),
+        };
       },
 
       /** 从 /api/auth/session 或 localStorage 中提取 accessToken */
@@ -5299,8 +6160,115 @@
       detect: () => window.location.hostname === 'grok.com',
 
       getCurrentConversationId() {
-        const m = window.location.pathname.match(/\/c\/([a-zA-Z0-9-]+)/);
-        return m ? m[1] : null;
+        // 1. 普通会话路径: /c/{id}
+        const m = window.location.pathname.match(/\/c\/([a-zA-Z0-9-]+)/i);
+        if (m) return m[1];
+        // 2. 项目内单会话 query 参数: ?chat={id}
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const chat = params.get('chat');
+          if (chat && /^[a-zA-Z0-9-]+$/.test(chat)) return chat;
+        } catch (_) {}
+        return null;
+      },
+
+      _projectCache: {},
+
+      _fetchProjectMeta(projectId) {
+        if (!projectId || (this._projectCache && this._projectCache[projectId])) return;
+        this._projectFetching = this._projectFetching || new Set();
+        if (this._projectFetching.has(projectId)) return;
+        this._projectFetching.add(projectId);
+        fetch(`/rest/workspaces/${encodeURIComponent(projectId)}`, { credentials: 'include' })
+          .then(async (r) => {
+            if (!r.ok) return;
+            const pBody = await r.json().catch(() => null);
+            const name = pBody?.name?.trim();
+            if (name) {
+              this._projectCache = this._projectCache || {};
+              this._projectCache[projectId] = name;
+            }
+          }).catch(() => {}).finally(() => {
+            this._projectFetching.delete(projectId);
+          });
+      },
+
+      getCurrentProject() {
+        if (this.getCurrentConversationId && this.getCurrentConversationId()) return null;
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        const m = pathname.match(/^\/(?:project|projects|workspace|workspaces)\/([0-9a-f-]{36}|[0-9a-z_-]{10,})/i);
+        if (!m) return null;
+        const id = m[1];
+        if (this._projectCache && this._projectCache[id]) {
+          return { id, name: this._projectCache[id] };
+        }
+        this._fetchProjectMeta(id);
+        return { id, name: '' };
+      },
+
+      async getProjectConversations(projectId, onProgress) {
+        let projectName = (this._projectCache && this._projectCache[projectId]) || '';
+        try {
+          const rProj = await fetch(`/rest/workspaces/${encodeURIComponent(projectId)}`, { credentials: 'include' });
+          if (rProj.ok) {
+            const pBody = await rProj.json();
+            projectName = pBody?.name?.trim() || projectName;
+            if (projectName) {
+              this._projectCache = this._projectCache || {};
+              this._projectCache[projectId] = projectName;
+            }
+          }
+        } catch (e) {
+          console.warn('[AfterChat] 获取 Grok 项目详情失败:', e);
+        }
+
+        const conversations = [];
+        const seen = new Set();
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        let pageToken = '';
+        const pageSize = 50;
+
+        while (conversations.length < limit) {
+          const params = new URLSearchParams({
+            pageSize: String(pageSize),
+            workspaceId: projectId,
+          });
+          if (pageToken) params.set('pageToken', pageToken);
+
+          const resp = await fetch(`/rest/app-chat/conversations?${params.toString()}`, { credentials: 'include' });
+          if (!resp.ok) throw new Error(`Grok 项目列表请求失败: HTTP ${resp.status}`);
+          const data = await resp.json();
+          const list = data?.conversations || [];
+          if (!list.length) break;
+
+          for (const c of list) {
+            const id = c.conversationId;
+            if (!id || seen.has(id)) continue;
+            // 防退化铁律：严格按 workspaceId 校验
+            if (c.workspaceId && c.workspaceId !== projectId) continue;
+
+            seen.add(id);
+            conversations.push({
+              id,
+              title: c.title || 'untitled',
+              createTimeUtc: c.createTime ? new Date(c.createTime).getTime() : Date.now(),
+              updateTimeUtc: c.modifyTime ? new Date(c.modifyTime).getTime() : Date.now(),
+              workspaceId: c.workspaceId || projectId,
+              project_id: projectId,
+            });
+            if (conversations.length >= limit) break;
+          }
+
+          if (onProgress) onProgress(conversations.length);
+          pageToken = data?.nextPageToken || '';
+          if (!pageToken) break;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return {
+          name: projectName || projectId,
+          conversations: conversations.slice(0, limit),
+        };
       },
 
       async getAllConversations(onProgress) {
@@ -5530,6 +6498,53 @@
         return match ? match[1] : null;
       },
 
+      _projectCache: {},
+
+      _fetchNotebookTitle(cleanId) {
+        if (!cleanId) return;
+        this._projectCache = this._projectCache || {};
+        if (this._projectCache[cleanId] || this._fetchingNotebookId === cleanId) return;
+        this._fetchingNotebookId = cleanId;
+        const notebookFullId = 'notebooks/' + cleanId;
+        this._rpc('HcT8bb', JSON.stringify([notebookFullId]), `/notebook/${cleanId}`)
+          .then((hData) => {
+            const nName = hData?.[0]?.[1]?.[0];
+            if (nName && typeof nName === 'string') {
+              const s = nName.trim();
+              if (s && !/^((Google\s+)?Gemini)$/i.test(s)) {
+                this._projectCache[cleanId] = s;
+                if (typeof window !== 'undefined' && window.__m365Controller?.updateLabel) {
+                  window.__m365Controller.updateLabel();
+                }
+              }
+            }
+          })
+          .catch(() => {})
+          .finally(() => {
+            this._fetchingNotebookId = null;
+          });
+      },
+
+      getCurrentProject() {
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        if (pathname.includes('/app/')) return null;
+        const m = pathname.match(/^\/notebook\/([0-9a-f-]{36}|[0-9a-zA-Z_-]{8,})/i);
+        if (!m) return null;
+        const id = m[1];
+
+        // 1. 优先读取项目元数据缓存
+        if (this._projectCache && this._projectCache[id]) {
+          return { id, name: this._projectCache[id] };
+        }
+
+        // 2. 静默通过后端 HcT8bb RPC 预取 Notebook 名称（严禁 DOM 探测）
+        if (typeof this._fetchNotebookTitle === 'function') {
+          this._fetchNotebookTitle(id);
+        }
+
+        return { id, name: '' };
+      },
+
       async getAllConversations(onProgress) {
         const allChats = [];
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -5560,6 +6575,58 @@
         }
 
         return allChats.slice(0, limit);
+      },
+
+      async getProjectConversations(projectId, onProgress) {
+        const cleanId = String(projectId).replace(/^notebooks\//, '');
+        const notebookFullId = 'notebooks/' + cleanId;
+        let projectName = `Notebook ${cleanId}`;
+
+        try {
+          const hData = await this._rpc('HcT8bb', JSON.stringify([notebookFullId]), `/notebook/${cleanId}`);
+          const nName = hData?.[0]?.[1]?.[0];
+          if (nName) {
+            projectName = nName;
+            this._projectCache = this._projectCache || {};
+            this._projectCache[cleanId] = nName;
+          }
+        } catch (e) {
+          const cur = this.getCurrentProject();
+          if (cur?.name) projectName = cur.name;
+        }
+
+        const allChats = [];
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+        let cursor = null;
+
+        for (let i = 0; i < 100; i++) {
+          const proto = JSON.stringify([20, cursor, [null, null, 1, notebookFullId, 1]]);
+          const data = await this._rpc('MaZiqc', proto, `/notebook/${cleanId}`);
+          const items = (data && data[2]) || [];
+          if (!items.length) break;
+
+          for (const c of items) {
+            const id = (c[0] || '').replace(/^c_/, '');
+            const title = c[1] || '';
+            if (id) {
+              this._titleCache = this._titleCache || {};
+              this._titleCache[id] = title;
+            }
+            allChats.push({ id, title, t: c[5] });
+          }
+
+          if (onProgress) onProgress(allChats.length);
+          cursor = (data && data[1]) || null;
+          if (!cursor || !cursor.length) break;
+          if (allChats.length >= limit) break;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return {
+          id: cleanId,
+          name: projectName,
+          conversations: allChats.slice(0, limit),
+        };
       },
 
       /** 从列表 API 翻页查找单个对话的标题 */
@@ -5734,6 +6801,23 @@
         return null;
       },
 
+      getCurrentProject: () => {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('mtid')) return null;
+          const ajid = params.get('ajid');
+          if (!ajid) return null;
+          let name = '';
+          try {
+            const t = document.title || '';
+            if (t) {
+              name = t.replace(/\s*-\s*(Google\s*AI\s*Mode|Google|Google\s*搜索).*$/i, '').trim();
+            }
+          } catch (e) { /* ignore */ }
+          return { id: ajid, name: name || `Project ${ajid}` };
+        } catch (e) { return null; }
+      },
+
       /** 列表元数据缓存：mtid -> { title, mstk, createdMs, updatedMs } */
       _threadsMeta: new Map(),
 
@@ -5807,6 +6891,47 @@
           await sleep(CONFIG.API_PAGE_DELAY);
         }
         return all.slice(0, limit);
+      },
+
+      async getProjectConversations(projectId, onProgress) {
+        const ajid = projectId;
+        let projectName = `Project ${ajid}`;
+        const reqpld = `[null,[${JSON.stringify(ajid)}]]`;
+        const url = `/httpservice/web/AimThreadsService/GetJourney?aep=151&udm=50&reqpld=${encodeURIComponent(reqpld)}&msc=gwsclient&opi=89978449`;
+
+        const resp = await fetch(url, { credentials: 'include' });
+        if (!resp.ok) throw new Error(`GetJourney ${resp.status}: ${resp.statusText}`);
+        const text = await resp.text();
+        const raw = JSON.parse(text.replace(/^\)\]\}['"]?\s*\n?/, ''));
+
+        const journey = Array.isArray(raw) && Array.isArray(raw[0]) ? raw[0] : null;
+        if (journey) {
+          if (typeof journey[2] === 'string' && journey[2].trim()) {
+            projectName = journey[2].trim();
+          }
+        }
+
+        const threadRawList = journey && Array.isArray(journey[10]) ? journey[10] : [];
+        const { threads } = this._parseThreadList([threadRawList, null]);
+
+        const conversations = [];
+        for (const t of threads) {
+          this._threadsMeta.set(t.id, t);
+          conversations.push({
+            id: t.id,
+            title: t.title || t.id,
+            created_at: t.createdMs,
+            updated_at: t.updatedMs,
+          });
+        }
+
+        if (onProgress) onProgress(conversations.length);
+
+        return {
+          id: ajid,
+          name: projectName,
+          conversations,
+        };
       },
 
       /** 拼线程页 URL（mtid + mstk + q + atvm/aep 是服务端渲染线程对话的必要参数） */
@@ -6766,8 +7891,59 @@
       detect: () => window.location.hostname === 'chat.mistral.ai',
 
       getCurrentConversationId: () => {
-        const m = window.location.pathname.match(/^\/chat\/([^\/?]+)/);
+        const pathname = window.location.pathname;
+        if (pathname.startsWith('/chat/projects')) return null;
+        const m = pathname.match(/^\/chat\/([0-9a-f-]{36}|[a-zA-Z0-9_-]{10,})/i);
         return m ? m[1] : null;
+      },
+
+      _projectCache: {},
+
+      _fetchProjectMeta(projectId) {
+        if (!projectId || (this._projectCache && this._projectCache[projectId])) return;
+        this._projectFetching = this._projectFetching || new Set();
+        if (this._projectFetching.has(projectId)) return;
+        this._projectFetching.add(projectId);
+        this._trpc('project.byId', { 0: { id: projectId } })
+          .then((resp) => {
+            const proj = this._findProjectPayload(resp);
+            const name = proj?.name?.trim();
+            if (name) {
+              this._projectCache = this._projectCache || {};
+              this._projectCache[projectId] = name;
+            }
+          }).catch(() => {}).finally(() => {
+            this._projectFetching.delete(projectId);
+          });
+      },
+
+      getCurrentProject() {
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        const m = pathname.match(/^\/chat\/projects\/([0-9a-f-]{36}|[a-zA-Z0-9_-]{8,})/i);
+        if (!m) return null;
+        const id = m[1];
+        if (this._projectCache && this._projectCache[id]) {
+          return { id, name: this._projectCache[id] };
+        }
+        this._fetchProjectMeta(id);
+        return { id, name: '' };
+      },
+
+      _findProjectPayload(data) {
+        if (!data) return null;
+        let found = null;
+        const walk = (o) => {
+          if (found || !o || typeof o !== 'object') return;
+          if (o.chats && typeof o.chats === 'object' && o.name) {
+            found = o;
+            return;
+          }
+          for (const v of Object.values(o)) {
+            walk(v);
+          }
+        };
+        walk(data);
+        return found;
       },
 
       async _trpc(procedures, inputs) {
@@ -6782,7 +7958,15 @@
         const text = await r.text();
         if (!r.ok) throw new Error(`Mistral API ${r.status}: ${text.slice(0, 120)}`);
         let data;
-        try { data = JSON.parse(text); } catch (e) { data = []; }
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          const lines = text.trim().split('\n').filter(Boolean);
+          data = [];
+          for (const line of lines) {
+            try { data.push(JSON.parse(line)); } catch (_) {}
+          }
+        }
         return data;
       },
 
@@ -6915,6 +8099,77 @@
           await sleep(CONFIG.API_PAGE_DELAY);
         }
         return all;
+      },
+
+      async getProjectConversations(projectId, onProgress) {
+        let projectName = `Project ${projectId}`;
+        const conversations = [];
+
+        // 1. 优先从 project.byId 提取项目内会话
+        try {
+          const resp = await this._trpc('project.byId', { 0: { id: projectId } });
+          const proj = this._findProjectPayload(resp);
+          if (proj) {
+            if (proj.name) projectName = proj.name;
+            if (proj.chats && typeof proj.chats === 'object') {
+              for (const [chatId, c] of Object.entries(proj.chats)) {
+                if (!chatId) continue;
+                conversations.push({
+                  id: chatId,
+                  title: (c?.userTitle || c?.generatedTitle || c?.title || chatId).trim(),
+                  created_at: c?.createdAt,
+                  updated_at: c?.updatedAt,
+                });
+              }
+            }
+          }
+        } catch (e) {
+          // ignore and fallback
+        }
+
+        // 2. 兜底方案：通过 chat.last 带有 includeProjectChats 过滤
+        if (conversations.length === 0) {
+          try {
+            let cursor = null;
+            while (true) {
+              const input = {
+                chatVisibility: 'private',
+                chatPermission: 'write',
+                includeProjectChats: true,
+                productType: 'chat',
+                direction: 'forward',
+              };
+              if (cursor) input.cursor = cursor;
+              const resp = await this._trpc('chat.last', { 0: input });
+              const json = resp?.[0]?.result?.data?.json || {};
+              const items = Array.isArray(json.items) ? json.items : [];
+              let added = 0;
+              for (const it of items) {
+                if (it.projectId === projectId || it.project_id === projectId) {
+                  conversations.push({
+                    id: it.id,
+                    title: (it.userTitle || it.generatedTitle || it.title || it.id).trim(),
+                    updated_at: it.updatedAt,
+                  });
+                  added++;
+                }
+              }
+              if (!items.length || !json.nextCursor) break;
+              cursor = json.nextCursor;
+              await sleep(CONFIG.API_PAGE_DELAY);
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        if (onProgress) onProgress(conversations.length);
+
+        return {
+          id: projectId,
+          name: projectName,
+          conversations,
+        };
       },
 
       async getConversationDetails(id) {
@@ -7222,15 +8477,127 @@
       detect: () => ['claude.ai', 'claude.com'].includes(window.location.hostname),
 
       getCurrentConversationId: () => {
-        const m = window.location.pathname.match(/^\/chat\/([^\/?]+)/);
+        // 支持普通会话 /chat/{id} 以及项目内会话 /project/{projId}/chat/{id}
+        const m = window.location.pathname.match(/\/chat\/([^\/?#]+)/);
         const id = m ? m[1] : null;
         // Claude 对话 ID 是 UUID；/new、/projects 等页面返回 null
         return id && id.length >= 20 && id.includes('-') ? id : null;
       },
 
+      _projectCache: {},
+
+      _fetchProjectMeta(projectId) {
+        if (!projectId || (this._projectCache && this._projectCache[projectId])) return;
+        const orgId = this._orgId();
+        if (!orgId) return;
+        this._projectFetching = this._projectFetching || new Set();
+        if (this._projectFetching.has(projectId)) return;
+        this._projectFetching.add(projectId);
+        fetch(`/api/organizations/${orgId}/projects/${encodeURIComponent(projectId)}`, {
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        }).then(async (r) => {
+          if (!r.ok) return;
+          const body = await r.json().catch(() => null);
+          const name = body?.name?.trim();
+          if (name) {
+            this._projectCache = this._projectCache || {};
+            this._projectCache[projectId] = name;
+          }
+        }).catch(() => {}).finally(() => {
+          this._projectFetching.delete(projectId);
+        });
+      },
+
+      getCurrentProject() {
+        // 匹配 /project/{projectId}（且当前不在具体 /chat/ 页面内）
+        const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+        if (pathname.includes('/chat/')) return null;
+        const m = pathname.match(/\/project\/([0-9a-f-]{36}|[0-9a-z]{20,})/i);
+        if (!m) return null;
+        const id = m[1];
+        if (this._projectCache && this._projectCache[id]) {
+          return { id, name: this._projectCache[id] };
+        }
+        this._fetchProjectMeta(id);
+        return { id, name: '' };
+      },
+
+      async getProjectConversations(projectId, onProgress) {
+        const orgId = this._orgId();
+        if (!orgId) throw new Error('无法读取 Claude 会话（lastActiveOrg cookie 缺失）——请确认已登录 claude.ai');
+
+        let projectName = (this._projectCache && this._projectCache[projectId]) || '';
+        try {
+          const rProj = await fetch(`/api/organizations/${orgId}/projects/${projectId}`, {
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+          });
+          if (rProj.ok) {
+            const pBody = await rProj.json();
+            projectName = pBody?.name?.trim() || projectName;
+            if (projectName) {
+              this._projectCache = this._projectCache || {};
+              this._projectCache[projectId] = projectName;
+            }
+          }
+        } catch (e) {
+          console.warn('[AfterChat] 获取 Claude 项目详情失败:', e);
+        }
+
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+
+        // 1. 优先调用 Claude 官方原生项目对话接口：GET /api/organizations/{orgId}/projects/{projectId}/conversations
+        try {
+          const projUrl = `/api/organizations/${orgId}/projects/${projectId}/conversations`;
+          const rConvs = await fetch(projUrl, {
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+          });
+          if (rConvs.ok) {
+            const list = await rConvs.json();
+            if (Array.isArray(list)) {
+              if (onProgress) onProgress(list.length);
+              console.log(`[AfterChat] Claude 原生项目对话接口获取成功: 共 ${list.length} 条会话`);
+              return {
+                name: projectName || projectId,
+                conversations: list.map((c) => ({
+                  id: c.uuid || c.id,
+                  title: c.name || c.title || '',
+                  created_at: c.created_at,
+                  updated_at: c.updated_at,
+                  project_uuid: c.project_uuid || projectId,
+                })).slice(0, limit),
+              };
+            }
+          }
+        } catch (e) {
+          console.warn('[AfterChat] Claude 原生项目对话接口调用失败，尝试本地过滤兜底:', e);
+        }
+
+        // 2. 兜底策略：拉取全量会话后，严格按 project_uuid 精确过滤（绝不包含 project_uuid 为空的普通会话）
+        const allChats = await this.getAllConversations((count) => {
+          if (onProgress) onProgress(count);
+        });
+
+        const targetId = String(projectId).toLowerCase().trim();
+        const filtered = allChats.filter((c) => {
+          const p = String(c.project_uuid || c.projectId || '').toLowerCase().trim();
+          return p && p === targetId;
+        });
+
+        console.log(`[AfterChat] Claude 项目 [${projectName || projectId}] 本地兜底过滤完成: 全部 ${allChats.length} 条中命中 ${filtered.length} 条`);
+
+        return {
+          name: projectName || projectId,
+          conversations: filtered.slice(0, limit),
+        };
+      },
+
       /** 从 cookie 读取当前组织 ID（HN 参考脚本用 intercomSettings，留作兜底） */
       _orgId() {
-        const m = document.cookie.match(/lastActiveOrg=([^;]+)/);
+        const cookie = typeof document !== 'undefined' ? (document.cookie || '') : '';
+        const m = cookie.match(/lastActiveOrg=([^;]+)/);
         if (m && m[1]) return m[1];
         try { return window.intercomSettings?.lastActiveOrgUuid || ''; } catch { return ''; }
       },
@@ -7272,6 +8639,7 @@
             title: c.name || '',
             created_at: c.created_at,
             updated_at: c.updated_at,
+            project_uuid: c.project_uuid || c.project?.uuid || null,
           })));
           if (onProgress) onProgress(all.length);
 
@@ -8427,6 +9795,7 @@
   const TXT = {
     exportAll:   LANG === 'zh' ? '导出全部聊天' : 'Export all chats',
     exportSingle: LANG === 'zh' ? '导出当前对话' : 'Export this chat',
+    exportProject: (name) => LANG === 'zh' ? (name ? `导出项目「${name}」` : '导出当前项目') : (name ? `Export project "${name}"` : 'Export current project'),
     fetching:    LANG === 'zh' ? (n) => `获取列表 ${n} 条` : (n) => `Fetching ${n} chats`,
     packing:     LANG === 'zh' ? '打包 ZIP' : 'Packing ZIP',
     saveAfterChat: LANG === 'zh' ? '保存到 AfterChat' : 'Save to AfterChat',
@@ -8931,13 +10300,34 @@
         tooltipEl.style.display = text ? '' : 'none';
       },
 
-      /** 根据适配器刷新按钮模式（单条/全部）和气泡文字 */
+      mode: 'all',
+      isSingleMode: false,
+      currentProject: null,
+
+      /** 根据适配器刷新按钮模式（单条/全部/项目）和气泡文字 */
       updateLabel(adapter) {
         if (adapter) _adapter = adapter;
         if (!_adapter) return;
-        this.isSingleMode = !!_adapter.getCurrentConversationId();
-        const label = this.isSingleMode ? TXT.exportSingle : TXT.exportAll;
-        tooltipEl.textContent = label;
+        const convId = _adapter.getCurrentConversationId ? _adapter.getCurrentConversationId() : null;
+        const project = (!convId && _adapter.getCurrentProject) ? _adapter.getCurrentProject() : null;
+
+        if (convId) {
+          this.mode = 'single';
+          this.isSingleMode = true;
+          this.currentProject = null;
+          tooltipEl.textContent = TXT.exportSingle;
+        } else if (project) {
+          this.mode = 'project';
+          this.isSingleMode = false;
+          this.currentProject = project;
+          const pName = project.name || '';
+          tooltipEl.textContent = TXT.exportProject(pName);
+        } else {
+          this.mode = 'all';
+          this.isSingleMode = false;
+          this.currentProject = null;
+          tooltipEl.textContent = TXT.exportAll;
+        }
       },
 
       idle() {
@@ -9009,7 +10399,8 @@
     let reportText = null;
 
     try {
-      const conversationId = adapter.getCurrentConversationId();
+      const conversationId = adapter.getCurrentConversationId ? adapter.getCurrentConversationId() : null;
+      const project = (!conversationId && adapter.getCurrentProject) ? adapter.getCurrentProject() : null;
 
       if (conversationId) {
         // ---- 单条导出 ----
@@ -9037,10 +10428,27 @@
           downloadJSON(exportData, `${safeTitle}.json`);
         }
       } else {
-        // ---- 全部导出 ----
-        const conversations = await adapter.getAllConversations((count) => {
-          ui.updateProgress(-1, TXT.fetching(count));
-        });
+        // ---- 批量导出（项目导出 OR 全量导出）----
+        const isProjectExport = !!project;
+        let exportProjectName = project?.name || '';
+        let conversations = [];
+
+        if (isProjectExport && typeof adapter.getProjectConversations === 'function') {
+          ui.updateProgress(-1, TXT.fetching(0));
+          const projResult = await adapter.getProjectConversations(project.id, (count) => {
+            ui.updateProgress(-1, TXT.fetching(count));
+          });
+          if (projResult && typeof projResult === 'object' && !Array.isArray(projResult)) {
+            exportProjectName = projResult.name || exportProjectName || project.id;
+            conversations = projResult.conversations || [];
+          } else if (Array.isArray(projResult)) {
+            conversations = projResult;
+          }
+        } else {
+          conversations = await adapter.getAllConversations((count) => {
+            ui.updateProgress(-1, TXT.fetching(count));
+          });
+        }
 
         if (!conversations || conversations.length === 0) {
           ui.done();
@@ -9052,10 +10460,11 @@
         //   默认（句子时间没改过）   → 起点=上次锚点 → 上次之后，精确续导
         //   句子点时间改过          → 起点=用户改的时刻（回导/重导），一次性，成功即自愈
         //   opts.full（Shift+单击） → 本次起点=最早 → 全量快键
+        //   项目导出：默认导出该项目全部对话，不应用时间增量过滤
         // 拿不到时间的会话保守处理：宁重复不漏，始终导出
         const runAt = Date.now();    // “本次下载时刻”：锚点下限，保证点完句子时间就前移
         let freshList = conversations;
-        if (CONFIG.INCREMENTAL) {
+        if (!isProjectExport && CONFIG.INCREMENTAL) {
           const boundary = opts?.full ? null : (exportStartOverrideMs ?? loadExportAnchor(adapter.id));
           if (boundary !== null) {
             freshList = conversations.filter((c) => {
@@ -9068,7 +10477,7 @@
         if (!freshList || freshList.length === 0) {
           // 起点之后没有内容：没跳过任何东西，锚点可以安全推进到“本次下载时刻”；
           // 气泡只提示无新内容；用户手改的起点同样自愈（一次性的）
-          if (CONFIG.INCREMENTAL) {
+          if (!isProjectExport && CONFIG.INCREMENTAL) {
             saveExportAnchor(adapter.id, conversations, runAt);
             exportStartOverrideMs = null;
           }
@@ -9152,18 +10561,24 @@
               content: buildFailureMarkdown(exportMeta, failures),
             });
           }
-          downloadZip(zipFiles, `${CONFIG.EXPORT_PREFIX}-${adapter.id}-all-${Date.now()}.zip`);
+          const zipFilename = isProjectExport
+            ? `${CONFIG.EXPORT_PREFIX}-${adapter.id}-project-${sanitizeFilename(exportProjectName || project.id)}-${Date.now()}.zip`
+            : `${CONFIG.EXPORT_PREFIX}-${adapter.id}-all-${Date.now()}.zip`;
+          downloadZip(zipFiles, zipFilename);
         } else {
+          const jsonFilename = isProjectExport
+            ? `${CONFIG.EXPORT_PREFIX}-${adapter.id}-project-${sanitizeFilename(exportProjectName || project.id)}-${Date.now()}.json`
+            : `${CONFIG.EXPORT_PREFIX}-${adapter.id}-all-${Date.now()}.json`;
           downloadJSON(
-            { ...exportMeta, conversations: results },
-            `${CONFIG.EXPORT_PREFIX}-${adapter.id}-all-${Date.now()}.json`
+            { ...exportMeta, ...(isProjectExport ? { projectName: exportProjectName, projectId: project.id } : {}), conversations: results },
+            jsonFilename
           );
         }
 
-        // 增量锚点：全部成功才推进（有失败保留旧锚点，下次重试含失败条目；宁重复不漏）
+        // 增量锚点：仅全量导出且全部成功才推进（项目导出不更新全局时间锚点）
         // 起点改动也是“一次性”：成功即自愈，下次句子回到“上次之后”
         // 锚点下限取本次运行时刻：点完下载，hover 句子里的时间就前移
-        if (CONFIG.INCREMENTAL && failCount === 0) {
+        if (!isProjectExport && CONFIG.INCREMENTAL && failCount === 0) {
           saveExportAnchor(adapter.id, conversations, runAt);
           exportStartOverrideMs = null;
         }
@@ -9220,14 +10635,22 @@
   function watchURL(ui, adapter) {
     let lastUrl = window.location.href;
     let lastConvId = adapter?.getCurrentConversationId ? adapter.getCurrentConversationId() : null;
+    let lastProjId = adapter?.getCurrentProject ? adapter.getCurrentProject()?.id : null;
+    let lastProjName = adapter?.getCurrentProject ? adapter.getCurrentProject()?.name : null;
 
     function checkURL() {
       const currentUrl = window.location.href;
       const currentConvId = adapter?.getCurrentConversationId ? adapter.getCurrentConversationId() : null;
+      const currentProj = adapter?.getCurrentProject ? adapter.getCurrentProject() : null;
+      const currentProjId = currentProj?.id || null;
+      const currentProjName = currentProj?.name || null;
+
       if (ui.updateVisibility) ui.updateVisibility(adapter);
-      if (currentUrl === lastUrl && currentConvId === lastConvId) return;
+      if (currentUrl === lastUrl && currentConvId === lastConvId && currentProjId === lastProjId && currentProjName === lastProjName) return;
       lastUrl = currentUrl;
       lastConvId = currentConvId;
+      lastProjId = currentProjId;
+      lastProjName = currentProjName;
       if (!ui.isIdle()) return;
       ui.updateLabel(adapter);
     }
@@ -9409,7 +10832,7 @@
       return CONFIG.INCREMENTAL ? loadExportAnchor(adapter.id) : null;
     }
     function canSentence() {
-      return ui.isIdle() && !ui.isSingleMode && CONFIG.INCREMENTAL;
+      return ui.isIdle() && ui.mode === 'all' && CONFIG.INCREMENTAL;
     }
     function buildSentenceBubble() {
       tooltip.textContent = '';
@@ -9443,7 +10866,12 @@
       if (canSentence()) {
         buildSentenceBubble();
       } else {
-        if (!tooltip.textContent) tooltip.textContent = ui.isSingleMode ? TXT.exportSingle : TXT.exportAll;
+        if (ui.mode === 'project') {
+          const pName = ui.currentProject?.name || '';
+          tooltip.textContent = TXT.exportProject(pName);
+        } else {
+          if (!tooltip.textContent) tooltip.textContent = ui.isSingleMode ? TXT.exportSingle : TXT.exportAll;
+        }
         tooltip.style.pointerEvents = 'none';
       }
     }
@@ -9567,10 +10995,6 @@
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
       PLATFORM_ADAPTERS,
-      normalizeRefUrl,
-      formatRefLine,
-      parseRefEntry,
-      ReferenceCollector,
     };
   }
 })();
