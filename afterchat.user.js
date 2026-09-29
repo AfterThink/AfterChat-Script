@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.22.0
+// @version      1.22.1
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
@@ -95,6 +95,10 @@
 // =============================================================
 //  📜 Changelog 
 // =============================================================
+//  1.22.1 (2026-09-29)
+//    - 修复 duck.ai 带图片会话导出报错（(intermediate value).trim is not a function）：
+//      带图用户消息的 content 是 { text, images[] } 对象而非字符串，新增 _contentText() 统一取正文
+//      图片按约定不导出（本地 IndexedDB chat-images 无云端 URL）；仅带 http(s) URL 时内嵌 ![name](url)
 //  1.22.0 (2026-09-28)
 //    - 引入项目层级导出（Project Scope Export）三态架构：
 //      收敛为纯粹极简的三态交互（单会话 Leaf / 项目文件夹 Branch / 全局 Root）
@@ -1705,6 +1709,27 @@
         });
       },
 
+      /** 用户/助手消息正文：字符串，或带图会话的 { text, images[] } 对象 */
+      _contentText(content) {
+        if (typeof content === 'string') return content;
+        if (content && typeof content === 'object' && typeof content.text === 'string') return content.text;
+        return '';
+      },
+
+      /**
+       * 用户消息里的图片：只有云端 URL 的才导出为 ![name](url)；
+       * duck 的图存在本地 IndexedDB（chat-images 仓库）没有可引用 URL，按约定直接丢弃。
+       */
+      _userImageMarkdown(content) {
+        if (!content || typeof content !== 'object' || !Array.isArray(content.images)) return '';
+        const parts = [];
+        for (const img of content.images) {
+          if (!img || typeof img.url !== 'string' || !/^https?:\/\//i.test(img.url)) continue;
+          parts.push(`![${img.name || 'image'}](${img.url})`);
+        }
+        return parts.join('\n\n');
+      },
+
       /** 所有 key（排除元数据项） */
       _allKeys(db) {
         return new Promise((resolve, reject) => {
@@ -1836,12 +1861,19 @@
           const msg = messages[i];
 
           if (msg.role === 'user') {
-            const text = (msg.content || '').trim();
-            if (!text) continue;
+            const text = this._contentText(msg.content).trim();
+            const images = this._userImageMarkdown(msg.content);
+            if (!text && !images) continue;
             lines.push('### 🧑\u200d💻 User');
             lines.push('');
-            lines.push(stripHashes(text));
-            lines.push('');
+            if (images) {
+              lines.push(images);
+              lines.push('');
+            }
+            if (text) {
+              lines.push(stripHashes(text));
+              lines.push('');
+            }
 
           } else if (msg.role === 'assistant') {
             const { responseText, thoughts } = this._assistantParts(msg);
@@ -1890,17 +1922,17 @@
         let responseText = '';
         for (const p of msg?.parts || []) {
           if (!p) continue;
-          if (p.type === 'reasoning' && p.text) {
+          if (p.type === 'reasoning' && typeof p.text === 'string' && p.text) {
             thoughts.push(p.text.trim());
-          } else if (p.type === 'text' && p.text) {
+          } else if (p.type === 'text' && typeof p.text === 'string' && p.text) {
             responseText = p.text.trim();
           } else if (p.type === 'source') {
             sources.push(p);
           }
           // tool-invocation 等中间产物跳过
         }
-        if (!responseText && msg?.content) {
-          responseText = msg.content.trim();
+        if (!responseText) {
+          responseText = this._contentText(msg?.content).trim();
         }
         return { thoughts, sources, responseText };
       },
