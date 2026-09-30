@@ -93,7 +93,7 @@ AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工�
 ## 关于
 
 - 本脚本通过各平台**前端同源 API** 拉取数据，可能随平台改版失效，敬请留意更新。
-- 脚本失效请通过 [GreasyFork](https://greasyfork.org/zh-CN/scripts/589622-afterchat-llm-chat-exporter/discussions/339157) 或 [Github issue](https://github.com/AfterThink/AfterChat-Script/issues) 反馈。
+- 脚本失效请通过 [GreasyFork](https://greasyfork.org/zh-CN/scripts/589622-afterchat-llm-chat-exporter/feedback) 或 [Github issue](https://github.com/AfterThink/AfterChat-Script/issues) 反馈。
 - 欢迎提交 PR 修复！喜欢请[点星](https://github.com/AfterThink/AfterChat-Script)！
 - 请遵守各平台服务条款，导出内容仅限个人备份与学习使用。
 

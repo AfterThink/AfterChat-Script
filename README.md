@@ -93,7 +93,7 @@ The script runs with `@grant none`, sends no data to any third party, and export
 ## About
 
 - This script pulls data through each platform's **front-end same-origin API**. These are unofficial interfaces and may stop working when platforms update, so please keep it updated.
-- If a platform breaks, please report it on [Greasy Fork](https://greasyfork.org/en/scripts/589622-afterchat-llm-chat-exporter/discussions/339157) or open a [GitHub issue](https://github.com/AfterThink/AfterChat-Script/issues).
+- If a platform breaks, please report it on [Greasy Fork](https://greasyfork.org/zh-CN/scripts/589622-afterchat-llm-chat-exporter/feedback) or open a [GitHub issue](https://github.com/AfterThink/AfterChat-Script/issues).
 - Pull requests are welcome! If you find this useful, please [star the repo](https://github.com/AfterThink/AfterChat-Script).
 - Please follow each platform's terms of service. Exported content is intended for personal backup and learning only.
 
