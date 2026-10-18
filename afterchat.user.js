@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.22.1
+// @version      1.23.2
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
@@ -511,7 +511,7 @@
    * @property {string}   name                      - 平台显示名称
    * @property {()=>boolean} detect                 - 检测当前是否为此平台
    * @property {()=>string|null} getCurrentConversationId - 当前对话 ID（列表页返回 null）
-   * @property {(onProgress?:(n:number)=>void)=>Promise<Array>} getAllConversations
+   * @property {(onProgress?:(n:number)=>void, options?:{boundary?:number|null})=>Promise<Array>} getAllConversations
    * @property {(id:string)=>Promise<Object>} getConversationDetails
    * @property {((data:Object, title:string)=>string)=} toMarkdown - [可选] 将对话数据转为 Markdown 字符串
    */
@@ -534,7 +534,7 @@
         return match ? match[1] : null;
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         let allChats = [];
         let syncState = '';
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -543,9 +543,11 @@
           const result = await this._fetchPage(syncState, allChats);
           if (!result || !result.chats) break;
           if (result.chats.length <= allChats.length) break;
+          const newItems = result.chats.slice(allChats.length);
           allChats = result.chats;
           syncState = result.syncState || '';
           if (onProgress) onProgress(allChats.length);
+          if (isPagePastBoundary(newItems, boundary)) break;
           await sleep(CONFIG.API_PAGE_DELAY);
         }
 
@@ -818,7 +820,7 @@
         };
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const all = [];
         let cursor = '';
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -850,6 +852,7 @@
 
           all.push(...items);
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(items, boundary)) break;
 
           if (body.is_end) break;
           cursor = body.next_cursor || '';
@@ -1059,7 +1062,7 @@
         };
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const all = [];
         let page = 1;
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -1082,6 +1085,7 @@
 
           all.push(...mapped);
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(mapped, boundary)) break;
 
           page++;
           await sleep(CONFIG.API_PAGE_DELAY);
@@ -1382,7 +1386,7 @@
         }
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const all = [];
         let page = 1;
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -1409,6 +1413,7 @@
             });
           }
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(list, boundary)) break;
 
           if (!body.result?.has_more) break;
           page++;
@@ -2308,7 +2313,7 @@
         return match ? match[1] : null;
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const allSessions = [];
         let cursor = '';
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -2324,6 +2329,7 @@
 
           allSessions.push(...sessions);
           if (onProgress) onProgress(allSessions.length);
+          if (isPagePastBoundary(sessions, boundary)) break;
 
           const hasMore = body?.data?.biz_data?.has_more;
           if (!hasMore) break;
@@ -2586,7 +2592,7 @@
         };
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const allChats = [];
         let page = 1;
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -2601,6 +2607,7 @@
 
           allChats.push(...chats);
           if (onProgress) onProgress(allChats.length);
+          if (isPagePastBoundary(chats, boundary)) break;
 
           page++;
           await sleep(CONFIG.API_PAGE_DELAY);
@@ -2880,7 +2887,7 @@
         return body;
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const allChats = [];
         const seen = new Set();
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -2915,6 +2922,7 @@
           }
 
           if (onProgress) onProgress(allChats.length);
+          if (isPagePastBoundary(allChats.slice(allChats.length - added), boundary)) break;
           nextToken = data.next_token || '';
           if (!data.have_next_page || !nextToken || !sessions.length || !added) break;
           await sleep(CONFIG.API_PAGE_DELAY);
@@ -3398,7 +3406,7 @@
         return data;
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const agentId = this._currentAgentId() || this._defaultAgentId;
         const all = [];
         const seen = new Set();
@@ -3433,6 +3441,7 @@
             if (all.length >= limit) break;
           }
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(all.slice(all.length - added), boundary)) break;
           if (!conversations.length || !added) break;
           offset += conversations.length;
           await sleep(CONFIG.API_PAGE_DELAY);
@@ -3752,7 +3761,7 @@
         return data;
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const all = [];
         const seen = new Set();
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -3787,6 +3796,7 @@
             if (all.length >= limit) break;
           }
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(all.slice(all.length - added), boundary)) break;
           if (!conversations.length || !added) break;
           offset += conversations.length;
           await sleep(CONFIG.API_PAGE_DELAY);
@@ -4134,7 +4144,7 @@
         };
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const allChats = [];
         const seen = new Set();
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -4151,6 +4161,7 @@
           };
           const data = await this._post('/apiv2/kimi.gateway.feed.v1.FeedService/ListFeeds', body);
           const items = Array.isArray(data?.items) ? data.items : [];
+          let added = 0;
           for (const item of items) {
             const chat = item?.chat || item?.item?.value || null;
             if (!chat?.id || seen.has(chat.id)) continue;
@@ -4162,10 +4173,12 @@
               updateTime: chat.updateTime,
               messageContent: chat.messageContent,
             });
+            added++;
             if (allChats.length >= limit) break;
           }
 
           if (onProgress) onProgress(allChats.length);
+          if (isPagePastBoundary(allChats.slice(allChats.length - added), boundary)) break;
           pageToken = data?.nextPageToken || '';
           if (!pageToken || !items.length) break;
           pageSize = 50;
@@ -4564,7 +4577,7 @@
         };
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const allChats = [];
         const seen = new Set();
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -4593,6 +4606,7 @@
           }
 
           if (onProgress) onProgress(allChats.length);
+          if (isPagePastBoundary(allChats.slice(allChats.length - added), boundary)) break;
           // 无新增说明游标已到底或服务端返回重复页，立即停止防止死循环
           if (!body.has_more || !body.next_conv_version || !cells.length || !added) break;
           convVersion = body.next_conv_version;
@@ -4951,7 +4965,7 @@
         return data;
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const all = [];
         const seen = new Set();
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -4982,6 +4996,7 @@
           }
 
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(all.slice(all.length - added), boundary)) break;
           if (!data.has_more || !data.next_cursor || !sessions.length || !added) break;
           cursor = data.next_cursor;
           await sleep(CONFIG.API_PAGE_DELAY);
@@ -5239,7 +5254,7 @@
 
 
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const allChats = [];
         let cursor = '';
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -5260,6 +5275,7 @@
 
           allChats.push(...items);
           if (onProgress) onProgress(allChats.length);
+          if (isPagePastBoundary(items, boundary)) break;
 
           if (!body.next) break;
           cursor = body.next;
@@ -5387,7 +5403,7 @@
        *   prompts 各元素: ["prompts/{id}", ..., [title, ...], ...]
        *   nextPageToken: "~!!~BASE64" 或 undefined（末页）
        */
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const chats = [];
         let pageToken = '';
 
@@ -5396,6 +5412,7 @@
           const raw = await this._rpc('ListPrompts', body);
           const list = Array.isArray(raw) ? raw : [];
           const prompts = list.length > 0 && Array.isArray(list[0]) ? list[0] : [];
+          const pageChats = [];
 
           for (const item of prompts) {
             if (!Array.isArray(item)) continue;
@@ -5410,10 +5427,13 @@
             const tsArr = Array.isArray(item[4]) && Array.isArray(item[4][4])
               ? item[4][4][0]
               : null;
-            chats.push({ id, title, updated_at: tsArr });
+            const mapped = { id, title, updated_at: tsArr };
+            chats.push(mapped);
+            pageChats.push(mapped);
           }
 
           if (onProgress) onProgress(chats.length);
+          if (isPagePastBoundary(pageChats, boundary)) break;
 
           // 检查是否有下一页
           const nextToken = list[1];
@@ -5839,7 +5859,7 @@
         return h;
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const allChats = [];
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
         const pageSize = 100; // 服务端支持一页 100 条（实测可一次拿全）；超大账号仍会循环翻页
@@ -5862,6 +5882,7 @@
 
           allChats.push(...items);
           if (onProgress) onProgress(allChats.length);
+          if (isPagePastBoundary(items, boundary)) break;
 
           // 注意：服务端 total 随 offset 漂移（非真实总数），不能作为停止条件
           if (items.length < pageSize) break;  // 不足一页 = 到底了
@@ -6014,7 +6035,7 @@
         return m ? m[1] : null;
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const allChats = [];
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
         const headers = this._headers();
@@ -6032,6 +6053,7 @@
 
           allChats.push(...items);
           if (onProgress) onProgress(allChats.length);
+          if (isPagePastBoundary(items, boundary)) break;
 
           cursor = history?.cursor || null;
           if (!cursor) break;
@@ -6577,7 +6599,7 @@
         return { id, name: '' };
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const allChats = [];
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
         let cursor = null;
@@ -6588,6 +6610,7 @@
           const items = (data && data[2]) || [];
           if (!items.length) break;
 
+          const pageChats = [];
           for (const c of items) {
             const id = (c[0] || '').replace(/^c_/, '');
             const title = c[1] || '';
@@ -6596,9 +6619,12 @@
               this._titleCache = this._titleCache || {};
               this._titleCache[id] = title;
             }
-            allChats.push({ id, title, t: c[5] });
+            const chat = { id, title, t: c[5] };
+            allChats.push(chat);
+            pageChats.push(chat);
           }
           if (onProgress) onProgress(allChats.length);
+          if (isPagePastBoundary(pageChats, boundary)) break;
 
           cursor = (data && data[1]) || null;
           if (!cursor || !cursor.length) break;
@@ -6804,8 +6830,8 @@
     //   - 详情：无 JSON 接口。线程对话由服务端渲染在
     //     /search?udm=50&mtid=<id>&mstk=<token>&csuir=1&q=<标题>&atvm=2&aep=26
     //     页面里（fetch 请求拿不到个性化内容，必须真导航），故用隐藏 iframe 导航 + DOM 提取。
-    //   正文语义块：div.n6owBd（段落）/ div.otQkpb（小节标题→加粗）/ ul.KsbFXc（列表）/
-    //   table.NRefec（表格）；引用 chip（span.WBgIic）内嵌 a.PMDqCb → [N] 汇总 References。
+    //   正文语义块：div.n6owBd（段落）/ div[role=heading][aria-level]（小节标题→加粗）/
+    //   ul.XSq4R（列表）/ table.NRefec（表格）；引用 chip（span.WBgIic）内嵌 a.PMDqCb → [N] 汇总 References。
     {
       id: 'gaim',
       name: 'Google AI Mode',
@@ -6894,13 +6920,14 @@
         return { threads, cursor };
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const all = [];
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
         let cursor = null;
         for (let i = 0; i < 50; i++) {
           const raw = await this._listThreads(cursor);
           const { threads, cursor: next } = this._parseThreadList(raw);
+          const pageChats = [];
           for (const t of threads) {
             if (this._threadsMeta.has(t.id)) {
               // 只补缺字段，不重复 push
@@ -6909,14 +6936,17 @@
               continue;
             }
             this._threadsMeta.set(t.id, t);
-            all.push({
+            const chat = {
               id: t.id,
               title: t.title,
               updateTimeUtc: t.updatedMs,
               t: t.updatedMs,
-            });
+            };
+            all.push(chat);
+            pageChats.push(chat);
           }
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(pageChats, boundary)) break;
           if (!next) break;
           cursor = next;
           if (all.length >= limit) break;
@@ -7130,16 +7160,17 @@
       /** 收集 pWvJNd 内的顶层内容块（段落/小节标题/列表/表格），引用写进 refs */
       _bodyBlocks(pWvJNd, refs) {
         const blocks = [];
-        const ALLOW = 'div.n6owBd.awi2gc, div.otQkpb, ul.KsbFXc, table.NRefec';
+        const ALLOW = 'div.n6owBd.awi2gc, div[role="heading"][aria-level], ul.XSq4R, table.NRefec';
         for (const el of pWvJNd.querySelectorAll(ALLOW)) {
           if (el.closest('.DBd2Wb, .RkJvxe')) continue;   // 复制/分享/反馈等 UI
           if (blocks.some((b) => b.dom && b.dom.contains(el))) continue; // 嵌套块
           if (el.tagName === 'UL' && el.closest('li')) continue; // 由外层列表递归
           if (el.tagName === 'TABLE' && el.closest('li, div.n6owBd')) continue; // 表格在段落内罕见，跳过避免与段落串扰
-          if (el.classList.contains('otQkpb') && el.closest('div.n6owBd, li')) continue;
+          const isHeading = el.getAttribute('role') === 'heading';
+          if (isHeading && el.closest('div.n6owBd, li')) continue;
           if (el.classList.contains('n6owBd') && el.closest('li')) continue;
           let b = null;
-          if (el.classList.contains('otQkpb')) {
+          if (isHeading) {
             const t = this._inline(el, refs);
             if (t) {
               const bold = (t.startsWith('**') && t.endsWith('**')) ? t : '**' + t + '**';
@@ -7571,7 +7602,7 @@
         return this._convMeta.get(id) || null;
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const all = [];
         let cursor = '';
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
@@ -7588,6 +7619,7 @@
           for (const e of entries) this._convMeta.set(e.id, e);
           all.push(...entries);
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(entries, boundary)) break;
 
           const pag = body?.pagination || {};
           if (!pag.hasMore || !pag.cursor) break;
@@ -7911,9 +7943,10 @@
     //  ADAPTER[mistral]  Mistral Le Chat
     // ═══════════════════════════════════════════════════════
     // 列表: tRPC GET /api/trpc/chat.last?batch=1&input=...（cursor 翻页, nextCursor 结束）
-    // 详情: Next.js RSC 流 GET /chat/<id>?_rsc=<nonce>（需 RSC: 1 头），
-    //       从 flight 流提取 "chat":{...} 元数据 + "initialMessages":[...] 消息数组。
-    //       flight 里的 Date 带 $D 前缀（"$D2026-..."），提取后需剥离。
+    // 详情: Mistral 已将 /chat 迁移为 /work，详情改为 tRPC 批量：
+    //       /api/trpc/chat.byId,message.all,canva.all?batch=1&input=...
+    //       0=chat.byId({id}) → 会话元数据；1=message.all({chatId}) → items 消息（最新在前）；
+    //       2=canva.all({chatId}) → 画布/附件（当前导出不使用）。
     // 消息: {role: user|assistant, content: markdown 正文,
     //        contentChunks: [{type:'tool_call', publicResult:{<id>:{url,title,rank}}},
     //                        {type:'reference', referenceIds:[...]}, {type:'text', text}]}
@@ -7924,8 +7957,9 @@
 
       getCurrentConversationId: () => {
         const pathname = window.location.pathname;
-        if (pathname.startsWith('/chat/projects')) return null;
-        const m = pathname.match(/^\/chat\/([0-9a-f-]{36}|[a-zA-Z0-9_-]{10,})/i);
+        // Mistral 已将 /chat 迁移为 /work，同时兼容旧链接
+        if (/^\/(?:chat|work)\/projects/.test(pathname)) return null;
+        const m = pathname.match(/^\/(?:chat|work)\/([0-9a-f-]{36}|[a-zA-Z0-9_-]{10,})/i);
         return m ? m[1] : null;
       },
 
@@ -7951,7 +7985,7 @@
 
       getCurrentProject() {
         const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-        const m = pathname.match(/^\/chat\/projects\/([0-9a-f-]{36}|[a-zA-Z0-9_-]{8,})/i);
+        const m = pathname.match(/^\/(?:chat|work)\/projects\/([0-9a-f-]{36}|[a-zA-Z0-9_-]{8,})/i);
         if (!m) return null;
         const id = m[1];
         if (this._projectCache && this._projectCache[id]) {
@@ -8002,92 +8036,6 @@
         return data;
       },
 
-      /** 从 RSC flight 流里提取 "key":<json 值>（括号配对，支持嵌套对象/数组；fromIndex 可选搜索起点） */
-      _extractRscValue(t, key, fromIndex = 0) {
-        const start = t.indexOf(`"${key}":`, fromIndex);
-        if (start < 0) return undefined;
-        let i = start + key.length + 3; // 跳过 "key":
-        while (i < t.length && /\s/.test(t[i])) i++;
-        const ch = t[i];
-        if (ch === '{' || ch === '[') {
-          const open = ch;
-          const close = ch === '{' ? '}' : ']';
-          let depth = 0, inStr = false, esc = false;
-          for (let j = i; j < t.length; j++) {
-            const c = t[j];
-            if (inStr) {
-              if (esc) esc = false;
-              else if (c === '\\') esc = true;
-              else if (c === '"') inStr = false;
-              continue;
-            }
-            if (c === '"') inStr = true;
-            else if (c === open) depth++;
-            else if (c === close) { depth--; if (depth === 0) return t.slice(i, j + 1); }
-          }
-        } else if (ch === '"') {
-          for (let j = i + 1; j < t.length; j++) {
-            if (t[j] === '\\') j++;
-            else if (t[j] === '"') return t.slice(i, j + 1);
-          }
-        }
-        return undefined;
-      },
-
-      /** flight 流里可能有多处 "chat":，锚定到真正的对话对象（带 id 的那个） */
-      _findChatAnchor(t) {
-        const a = t.indexOf('"chat":{"id"');
-        if (a >= 0) return a;
-        // 兜底：没有 id 开头也试第一个
-        return t.indexOf('"chat":');
-      },
-
-      /** 从 RSC flight 流里解析 $N 引用（reasoning 文本以 "$90" 形式存在，指向流中 "90:" 行）
-       *  行格式: "90:T<hex>,<utf-8 文本...>" 或 "90:\"<json 字符串>\""；文本到下一个行号前缀结束 */
-      _resolveFlightRef(t, ref) {
-        const num = String(ref || '').replace(/^\$/, '');
-        if (!/^[0-9a-fA-F]+$/.test(num)) return '';
-        const m = t.match(new RegExp('(?:^|\\n)' + num + ':', 'm'));
-        if (!m) return '';
-        let rest = t.slice(m.index + m[0].length);
-        if (rest.startsWith('"')) {
-          let out = '';
-          for (let i = 1; i < rest.length; i++) {
-            const ch = rest[i];
-            if (ch === '\\') {
-              const n = rest[i + 1];
-              if (n === 'n') out += '\n';
-              else if (n === 't') out += '\t';
-              else if (n === 'r') out += '\r';
-              else if (n === '"') out += '"';
-              else if (n === '\\') out += '\\';
-              else out += n;
-              i++;
-              continue;
-            }
-            if (ch === '"') break;
-            out += ch;
-          }
-          return out;
-        }
-        if (rest.startsWith('T')) {
-          // T<hex 字节长度>,<utf-8 文本>：按长度精确截取（reasoning 文本可能含字面换行）
-          const comma = rest.indexOf(',');
-          if (comma < 0) return '';
-          const byteLen = parseInt(rest.slice(1, comma), 16);
-          const body = rest.slice(comma + 1);
-          if (byteLen > 0 && body.length >= byteLen) {
-            try {
-              const bytes = new TextEncoder().encode(body);
-              return new TextDecoder().decode(bytes.slice(0, byteLen)).trim();
-            } catch (e) { /* fallthrough */ }
-          }
-          // 兜底：到下一个行号前缀（\n<hex>:）
-          const end = body.search(/\n[0-9a-fA-F]+:/);
-          return (end >= 0 ? body.slice(0, end) : body).trim();
-        }
-        return '';
-      },
 
       /** 消息里 reasoning（思考）块文本：contentChunks 中 _context.type === 'reasoning' 的 text chunk */
       _extractThinking(m) {
@@ -8100,7 +8048,7 @@
         return parts.join('\n\n').trim();
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const all = [];
         let cursor = null;
         while (true) {
@@ -8108,7 +8056,7 @@
             chatVisibility: 'private',
             chatPermission: 'write',
             includeProjectChats: false,
-            productType: 'chat',
+            productType: 'work',
             direction: 'forward',
           };
           if (cursor) input.cursor = cursor;
@@ -8126,6 +8074,7 @@
             added++;
           }
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(all.slice(all.length - added), boundary)) break;
           if (!items.length || !added || !json.nextCursor) break;
           cursor = json.nextCursor;
           await sleep(CONFIG.API_PAGE_DELAY);
@@ -8168,7 +8117,7 @@
                 chatVisibility: 'private',
                 chatPermission: 'write',
                 includeProjectChats: true,
-                productType: 'chat',
+                productType: 'work',
                 direction: 'forward',
               };
               if (cursor) input.cursor = cursor;
@@ -8206,54 +8155,22 @@
 
       async getConversationDetails(id) {
         if (!id) throw new Error('缺少 Mistral chatId');
-        const r = await fetch(`/chat/${id}?_rsc=${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, {
-          credentials: 'include',
-          headers: { 'RSC': '1', 'accept': '*/*' },
+        // Mistral 已从 RSC 服务端渲染改为 tRPC 客户端拉取（/work 页面）：
+        //   chat.byId  → 会话元数据
+        //   message.all → 消息列表（最新在前，contentChunks 同旧结构）
+        //   canva.all   → 画布/附件（当前导出不使用）
+        const resp = await this._trpc('chat.byId,message.all,canva.all', {
+          0: { id },
+          1: { chatId: id },
+          2: { chatId: id },
         });
-        const text = await r.text();
-        if (!r.ok) throw new Error(`Mistral RSC ${r.status}: ${text.slice(0, 120)}`);
 
-        let chat = null;
-        try {
-          const anchor = this._findChatAnchor(text);
-          const raw = anchor >= 0 ? this._extractRscValue(text, 'chat', anchor) : undefined;
-          chat = raw ? JSON.parse(raw) : null;
-        } catch (e) { chat = null; }
-        let messages = [];
-        try {
-          const raw = this._extractRscValue(text, 'initialMessages');
-          messages = raw ? JSON.parse(raw) : [];
-        } catch (e) { messages = []; }
-        if (!Array.isArray(messages)) messages = [];
-
-        // 剥离 flight 的 $D Date 前缀（"$D2026-08-12T..." → "2026-08-12T..."）
-        const stripDates = (obj) => {
-          if (typeof obj === 'string') return obj.replace(/^\$D/, '');
-          if (Array.isArray(obj)) return obj.map(stripDates);
-          if (obj && typeof obj === 'object') {
-            const out = {};
-            for (const k of Object.keys(obj)) out[k] = stripDates(obj[k]);
-            return out;
-          }
-          return obj;
-        };
-        if (chat) chat = stripDates(chat);
-        if (messages.length) {
-          // reasoning chunk 的 text 是 "$N" 引用 → 在原始 flight 流里解析成真实文本
-          const resolveChunk = (ch) => {
-            if (ch?._context?.type === 'reasoning' && /^\$[0-9a-fA-F]+$/.test(String(ch.text || ''))) {
-              ch.text = this._resolveFlightRef(text, ch.text) || ch.text;
-            }
-            return ch;
-          };
-          messages = stripDates(messages.map((m) => ({
-            ...m,
-            contentChunks: Array.isArray(m?.contentChunks) ? m.contentChunks.map(resolveChunk) : m.contentChunks,
-          })));
-        }
+        const chat = resp?.[0]?.result?.data?.json || null;
+        const messages = resp?.[1]?.result?.data?.json?.items || [];
+        if (!chat && !messages.length) throw new Error('Mistral 详情接口返回空数据');
 
         const title = (chat?.userTitle || chat?.generatedTitle || '').trim();
-        return { id, title, chat, initialMessages: messages };
+        return { id, title, chat, initialMessages: Array.isArray(messages) ? messages : [] };
       },
 
       _collectRefs(contentChunks) {
@@ -8280,7 +8197,7 @@
           .sort((a, b) => timeOf(a) - timeOf(b));
         const updatedAt = data?.chat?.updatedAt || data?.updatedAt;
         const timeStr = updatedAt ? formatLocalTime(new Date(updatedAt)) : 'unknown';
-        const url = id ? `https://chat.mistral.ai/chat/${id}` : 'https://chat.mistral.ai';
+        const url = id ? `https://chat.mistral.ai/work/${id}` : 'https://chat.mistral.ai';
 
         const refCollector = new ReferenceCollector();
         for (const m of messages) {
@@ -8644,7 +8561,7 @@
       },
 
       /** 列表 API：chat_conversations_v2，offset 翻页 */
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const orgId = this._orgId();
         if (!orgId) throw new Error('无法读取 Claude 会话（lastActiveOrg cookie 缺失）——请确认已登录 claude.ai');
         const all = [];
@@ -8666,14 +8583,16 @@
           const chats = body?.data || [];
           if (!chats.length) break;
 
-          all.push(...chats.map((c) => ({
+          const mapped = chats.map((c) => ({
             id: c.uuid,
             title: c.name || '',
             created_at: c.created_at,
             updated_at: c.updated_at,
             project_uuid: c.project_uuid || c.project?.uuid || null,
-          })));
+          }));
+          all.push(...mapped);
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(mapped, boundary)) break;
 
           if (!body.has_more) break;
           offset += chats.length;
@@ -9000,7 +8919,7 @@
         return body;
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const all = [];
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
         let cursor = null;
@@ -9025,17 +8944,21 @@
           const edges = conn?.edges || [];
           if (!edges.length) break;
 
+          const pageChats = [];
           for (const e of edges) {
             const n = e.node || {};
             if (!n.chatCode) continue;
-            all.push({
+            const chat = {
               id: n.chatCode,
               title: n.title || '',
               created_at: this._ms(n.creationTime),
               updated_at: this._ms(n.lastInteractionTime),
-            });
+            };
+            all.push(chat);
+            pageChats.push(chat);
           }
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(pageChats, boundary)) break;
 
           if (!conn?.pageInfo?.hasNextPage) break;
           cursor = conn.pageInfo.endCursor;
@@ -9388,7 +9311,7 @@
         return await r.json();
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const all = [];
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
         const seen = new Set();
@@ -9400,6 +9323,7 @@
           pages++;
           const d = await this._rpc('ListConversations', { limit: 50, cursor });
           const items = Array.isArray(d.items) ? d.items : [];
+          let added = 0;
           for (const c of items) {
             if (!c || !c.conversation_id || seen.has(c.conversation_id)) continue;
             seen.add(c.conversation_id);
@@ -9408,8 +9332,10 @@
               title: (c.title || '').trim(),
               updated_at: c.last_message_at,
             });
+            added++;
           }
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(all.slice(all.length - added), boundary)) break;
 
           // 终止条件：空页 / 服务端无更多 / 无下一页游标 / 游标未前进（防死循环）
           if (!items.length || !d.has_more || !d.next_cursor || d.next_cursor === cursor) break;
@@ -9610,7 +9536,7 @@
         return await r.json();
       },
 
-      async getAllConversations(onProgress) {
+      async getAllConversations(onProgress, { boundary } = {}) {
         const all = [];
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
         const seen = new Set();
@@ -9622,6 +9548,7 @@
           pages++;
           const d = await this._rpc('ListChatSessions', { pageSize: 50, pageToken: cursor });
           const items = Array.isArray(d.chatSessions) ? d.chatSessions : [];
+          let added = 0;
           for (const c of items) {
             if (!c || !c.chatSessionId || seen.has(c.chatSessionId)) continue;
             seen.add(c.chatSessionId);
@@ -9631,8 +9558,10 @@
               updated_at: c.updateTime,
               created_at: c.createTime,
             });
+            added++;
           }
           if (onProgress) onProgress(all.length);
+          if (isPagePastBoundary(all.slice(all.length - added), boundary)) break;
 
           // 终止条件：空页 / 无下一页游标 / 游标未前进（防死循环）
           if (!items.length || !d.nextPageToken || d.nextPageToken === cursor) break;
@@ -10101,6 +10030,7 @@
       conv?.createTime,
       conv?.created_at,
       conv?.create_time,
+      conv?.modifiedTime,
       conv?.t,
     ];
     for (const value of candidates) {
@@ -10108,6 +10038,22 @@
       if (ts !== null) return ts;
     }
     return null;
+  }
+
+  /**
+   * 检查拉取到的一页会话是否已全部在锚点之前（用于分页提前终止）
+   * 必须满足：该页非空、且整页所有有时间戳的项均 <= boundary，且不存在任何一项 > boundary
+   */
+  function isPagePastBoundary(pageItems, boundary) {
+    if (!boundary || !Array.isArray(pageItems) || pageItems.length === 0) return false;
+    let hasValid = false;
+    for (const c of pageItems) {
+      const t = getConversationSortTime(c);
+      if (t === null) continue;
+      if (t > boundary) return false;
+      hasValid = true;
+    }
+    return hasValid;
   }
 
   // ---- 增量导出锚点（localStorage，仅存时间戳元数据，不含对话内容） ----
@@ -10464,6 +10410,9 @@
         const isProjectExport = !!project;
         let exportProjectName = project?.name || '';
         let conversations = [];
+        const boundary = (!isProjectExport && CONFIG.INCREMENTAL && !opts?.full)
+          ? (exportStartOverrideMs ?? loadExportAnchor(adapter.id))
+          : null;
 
         if (isProjectExport && typeof adapter.getProjectConversations === 'function') {
           ui.updateProgress(-1, TXT.fetching(0));
@@ -10479,7 +10428,7 @@
         } else {
           conversations = await adapter.getAllConversations((count) => {
             ui.updateProgress(-1, TXT.fetching(count));
-          });
+          }, { boundary });
         }
 
         if (!conversations || conversations.length === 0) {
@@ -10496,14 +10445,11 @@
         // 拿不到时间的会话保守处理：宁重复不漏，始终导出
         const runAt = Date.now();    // “本次下载时刻”：锚点下限，保证点完句子时间就前移
         let freshList = conversations;
-        if (!isProjectExport && CONFIG.INCREMENTAL) {
-          const boundary = opts?.full ? null : (exportStartOverrideMs ?? loadExportAnchor(adapter.id));
-          if (boundary !== null) {
-            freshList = conversations.filter((c) => {
-              const t = getConversationSortTime(c);
-              return t === null || t > boundary;
-            });
-          }
+        if (boundary !== null) {
+          freshList = conversations.filter((c) => {
+            const t = getConversationSortTime(c);
+            return t === null || t > boundary;
+          });
         }
 
         if (!freshList || freshList.length === 0) {
@@ -11027,6 +10973,8 @@
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
       PLATFORM_ADAPTERS,
+      getConversationSortTime,
+      isPagePastBoundary,
     };
   }
 })();
