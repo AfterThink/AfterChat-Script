@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.23.2
+// @version      1.23.4
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
@@ -95,219 +95,108 @@
 // =============================================================
 //  📜 Changelog 
 // =============================================================
+//  1.23.3 (2026-10-21)
+//    - 优化 Deep Link 外部捕获与标题提取：
+//      移除硬编码 workspace 参数，默认无缝保存到 AfterChat 桌面端当前活跃工作区；
+//      优化 getChatTitle 兜底链，优先采用页面 document.title 而非泛化占位符。
+//  1.23.2 (2026-10-18)
+//    - Google AI Mode 正文块选择器跟进 Google 改版（小节标题改为 div[role="heading"][aria-level]，列表改为 ul.XSq4R）。
+//  1.23.1 (2026-10-18)
+//    - Mistral Le Chat 迁移 /work 路由与 tRPC 批量详情接口（chat.byId,message.all,canva.all）；
+//      duck.ai 更新 E2E 实况测试会话。
+//  1.23.0 (2026-10-18)
+//    - 增量导出加速：24 个分页适配器接入 isPagePastBoundary，按时间锚点提前安全终止翻页拉取。
 //  1.22.1 (2026-09-29)
 //    - 修复 duck.ai 带图片会话导出报错（(intermediate value).trim is not a function）：
-//      带图用户消息的 content 是 { text, images[] } 对象而非字符串，新增 _contentText() 统一取正文
-//      图片按约定不导出（本地 IndexedDB chat-images 无云端 URL）；仅带 http(s) URL 时内嵌 ![name](url)
+//      带图用户消息的 content 是 { text, images[] } 对象而非字符串，新增 _contentText() 统一取正文；
+//      图片按约定不导出（本地 IndexedDB chat-images 无云端 URL）；仅带 http(s) URL 时内嵌。
 //  1.22.0 (2026-09-28)
 //    - 引入项目层级导出（Project Scope Export）三态架构：
-//      收敛为纯粹极简的三态交互（单会话 Leaf / 项目文件夹 Branch / 全局 Root）
-//      修复 ChatGPT 与 Claude 在项目内单会话被误判为全部导出的正则路径匹配
-//      ChatGPT 支持 /g/g-p-.../project 项目页探测、项目元信息拉取与项目专属 ZIP 导出
-//      Claude 支持 /project/{uuid} 项目页探测、项目元信息与项目会话批量打包
-//      Qwen 支持 /p/{id} 项目文件夹探测与 /api/v2/chats/?project_id={id} 分页拉取
-//      Kimi（www.kimi.com）支持 /project/{uuid} 项目页探测、ProjectService/GetProject 元数据与 FeedService/ListFeeds 项目会话打包
-//      Perplexity（www.perplexity.ai）支持 /projects/{id}（及 collections/spaces）主页探测、get_collection 元数据与 list_collection_threads 会话打包
-//      Grok（grok.com）支持 /project/{uuid} 主页探测、/rest/workspaces 元数据与 app-chat/conversations?workspaceId 项目会话打包，支持 ?chat={id} 项目内单会话
-//      MiniMax（agent.minimax.io / agent.minimaxi.com）支持 ?project={id} 项目页探测、/v1/project 与 sidebar/session 分页打包
-//      Mistral（chat.mistral.ai）修复项目页被误判为单会话 projects 的缺陷，支持 /chat/projects/{id} 识别与 project.byId 会话打包
-//      豆包（www.doubao.com）支持 ?project={id} 识别与 /im/project/list 项目专属会话打包
-//      千问（www.qianwen.com）支持 /group/{id} 分组识别与 /api/v2/session/page/list group_id 会话分页打包
-//      腾讯元宝（yuanbao.tencent.com）支持 ?projectId={id} 识别与 project-home-page 元数据及 conversation/v3/list 会话分页打包
-//      Google Gemini（gemini.google.com）支持 /notebook/{id} 项目主页识别，对接 HcT8bb 与 MaZiqc RPC 批量导出 Notebook 会话
-//      Google AI Mode（gaim）支持 ?ajid={b64} 项目主页识别，对接 AimThreadsService/GetJourney 获取项目元数据与 Threads 会话
-//      ZIP 文件独立命名标记为 chat-export-{platform}-project-{projectName}-{timestamp}.zip
-//      全局增量时间锚点实现作用域隔离保护，项目导出不污染全局增量时间线
+//      收敛为纯粹极简的三态交互（单会话 Leaf / 项目文件夹 Branch / 全局 Root）；
+//      支持 ChatGPT、Claude、Qwen、Kimi、Perplexity、Grok、MiniMax、Mistral、豆包、千问、元宝、Gemini、Google AI Mode 13平台项目级导出与独立打包。
 //  1.21.0 (2026-09-27)
 //    - 全平台搜索引用格式标准化与重构收敛（RFC 1.0.0-draft）：
-//      沉淀通用 ReferenceCollector / normalizeRefUrl / formatRefLine / parseRefEntry 辅助体系
-//      文末 References 统一三级标题 ### References，空行自然承接彻底移除 --- 分隔线
-//      列表项全面标准化为标准 Markdown 链接 - [N] [标题](URL)（无标题时为 [URL](URL)）
-//      全面消除平台内部错位（Gemini / Grok / Sakana 错置单回合助手体内改为全文末汇总）
-//      全平台跨回合 URL 规范化全局去重与单调递增编号映射（ChatGPT / Perplexity /
-//      DeepSeek / 豆包 / 腾讯元宝 / 腾讯混元 / Kimi / 智谱清言 / Z.ai / 千问 / Mistral /
-//      Monica / DuckDuckGo / Arena / StepFun 等 20+ 平台 100% 满分合规对齐）
+//      沉淀通用 ReferenceCollector / normalizeRefUrl / formatRefLine / parseRefEntry 辅助体系；
+//      文末 References 统一三级标题 ### References，列表项全面标准化为 - [N] [标题](URL)；
+//      全平台跨回合 URL 规范化全局去重与单调递增编号映射。
 //  1.20.0 (2026-09-27)
-//    - 新增 StepFun Chat（阶跃 AI 对话端 chat.stepfun.com）适配器：
-//      与 Studio 是两套独立应用（本适配器 id 为 stepfunchat，appid 10200）
-//      Connect RPC /api/agent/capy.agent.v1.AgentService/<Method>
-//      列表 ListChatSessions（pageToken 翻页）+ 单条 GetChatSessionByID
-//      + 消息 ListMessages（pageToken 翻页；页序最新在前、页内升序，汇总后按
-//      messageId 升序还原时间正序）
-//      思考链取自 assistantMessage.qa.pipeSteps[PIPE_STEP_TYPE_REASONING]
-//      （qa.reasoningContent 常为空）；搜索来源取自 qa.indexReferences，
-//      汇总到文末 ### References；认证走 localStorage 'oasis-token'
+//    - 新增 StepFun Chat（阶跃 AI 对话端 chat.stepfun.com）适配器：Connect RPC AgentService，
+//      支持思考链、搜索来源汇总文末 References。
 //  1.19.0 (2026-09-27)
-//    - 新增 StepFun AI Studio（阶跃星辰）适配器：国际版 studio.stepfun.ai
-//      + 国内版 studio.stepfun.com（API 同构）。Connect 风格 RPC，统一前缀
-//      /api/step.openapi.devcenter.Dashboard/<Method>
-//      列表 ListConversations（cursor 翻页）+ 消息 ListMessages（cursor 翻页）
-//      + 正文 BatchGetMessages（messageIds 分批）；block.type 1=TEXT 2=THINKING
-//      3=TOOL_CALL 4=ASSETS，role 1=user 2=assistant 3=system
-//      支持思考链；工具调用块不输出正文；认证走同源 Cookie（oasis-* 头仅标记）
-//  1.1.0 (2026-08-05)
-//    - 新增 arena.ai 适配器：battle / side-by-side / direct-chat / agent
-//      四种模式（含投票、引用、思维链；格式规范见 docs/ChatFormat.arena.md）
-//    - 时间格式：全平台 UTC → 本地时间 + 时区偏移（如 16:00:53 +08:00）
-//    - 修复 aistudio 多账号切换（/u/<n>/ 前缀）后的导出
-//  1.2.0 (2026-08-06)
-//    - 新增腾讯 ima 适配器：列表 get_history_list（cursor 翻页）+ 详情 get_session
-//      认证走 localStorage accountInfo → x-ima-cookie；支持思考链、引用重编号
-//      注意：get_session 仅返回最近 20 轮（服务端上限，无翻页）
-//  1.3.0 (2026-08-06)
-//    - 新增 Z.ai 适配器：列表 get chats（页码翻页）+ 详情两步走
-//      （消息树 + messages/batch 批量正文）；支持思考链、引用重编号
-//      消息树含全部消息 id，长对话也能完整导出
-//  1.4.0 (2026-08-06)
-//    - 新增智谱清言 chatglm.cn 适配器：列表 recent_list + 详情 messages
-//      认证走 cookie chatglm_token；请求需 x-sign 签名（md5(ts-nonce-盐)）
-//      支持思考链（原样保留）、引用重编号
-//  1.5.0 (2026-08-06)
-//    - 新增 duck.ai 适配器：无后端 API，直接读写浏览器 IndexedDB（savedAIChatData/saved-chats）
-//      支持思考链、搜索引用（<citation src> → [N]）；无会话 URL，仅全部导出
-//  1.6.0 (2026-08-08)
-//    - 新增 Perplexity 适配器：列表 /rest/thread/list_recent + 详情 /rest/thread/{uuid}
-//      （schematized 响应 blocks 分块）；每条 entry 一轮问答，正文 [N] 引用按
-//      web_results[N-1].url 汇总到末尾 References；详情接口游标翻页
-//  1.7.0 (2026-08-12)
-//    - 新增腾讯混元适配器（aistudio.tencent.com + 海外站 aistudio.tencent.ai）：
-//      列表 /api/new-portal/chat/conversation/list（offset 翻页）
-//      + 详情 /api/new-portal/user/agent/conversation/v1/detail（lastId 游标翻页，整轮返回）
-//      URL /chat/<agentId>/<conversationId>，支持思考链、搜索引用汇总 References
-//      海外站 API 域自动切到 api.hy.tencent.ai（路径与国内站一致）
-//  1.7.1 (2026-08-12)
-//    - 修复 chatgpt.com 等站点按钮消失：应用挂载后会重建 body/html 顶层子节点，
-//      把按钮容器一并清掉；新增 ensureUIAlive 自愈观察器，被移除后自动重建
-//  1.8.0 (2026-08-12)
-//    - 新增 Mistral Le Chat 适配器：列表 tRPC chat.last（cursor 翻页）
-//      + 详情 Next.js RSC 流（提取 initialMessages，支持搜索引用）
-//  1.9.0 (2026-08-12)
-//    - 新增 Sakana AI 适配器：列表 /api/v2/conversations + 详情 /api/v2/conversations/<id>
-//      content 里 <plan>/<think> 思考 → Thought Process，<answer> → Response
-//      <source-chip title url /> 搜索引用 → [标题](链接)
-//  1.10.0 (2026-08-13)
-//    - Dola（豆包国际版 www.dola.com）：与豆包 API 同构，按 hunyuan 模式并入 doubao 适配器
-//      一站双域（_siteHost 区分 aid/region/导出 URL/Model 兜底），README 拆分为独立平台
-//    - 新增 MiniMax 适配器（agent.minimax.io + 国内版 agent.minimaxi.com，API 同构）：
-//      列表 /minimax-cloud/api/v1/sidebar/session/tree + 详情 /session/{id} + /session/{id}/message
-//      认证 token 头+query（localStorage _token）；x-signature = md5(x-timestamp + 固定盐 + body)
-//      （盐与算法从页面 webpack 逆向，cURL 交叉验证）；yy 头实测不校验；msg_type 2 中间消息跳过
-//      国内版仅前端代码确认同构，消息接口未实测（无账号）
-//  1.10.1 (2026-08-14)
-//    - 修复 AI Studio 下载按钮空白：页面 CSP require-trusted-types-for 拦截 innerHTML 写入，
-//      新增 setInnerHTML 走 trustedTypes policy，无 Trusted Types 的平台自动回退普通赋值
-//  1.11.0 (2026-08-14)
-//    - 全部导出改为增量：记录上次导出的时间锚点（localStorage 仅存时间戳，无对话内容），
-//      下次跳过 updatedAt ≤ 锚点的会话，只导新增/更新的；全部成功才推进锚点（有失败保留旧锚点）
-//    - Shift+左键点击按钮 = 强制全量导出（先把锚点重置到最早，走普通流程；失败时锚点保持为空下次仍全量重试）
-//    - ZIP 文件名改时间前缀 YYYYMMDD-HHMMSS-标题.md（本地时间），跨平台/跨批次混排按时间排序；
-//      ZIP 内顺序改为降序（最新在前）；无时间会话回退序号前缀
-//    - AI Studio 列表接口补提取时间戳（item[4][4][0]）；getConversationSortTime 补 kimi/ima/duck 时间字段
-//      锚点缺失或时间拿不到的会话宁重复不漏，始终导出；全跳过时提示“已是最新”
-//  1.12.0 (2026-09-07)
-//    - 新增 Claude（claude.ai/claude.com）适配器:
-//      列表 GET /api/organizations/{orgId}/chat_conversations_v2?limit&offset（offset 翻页，has_more 判断）
-//      + 详情 GET .../chat_conversations/{id}?tree=True&rendering_mode=messages&render_all_tools=true&include_inline_comparison=true&consistency=strong
-//      支持思考链、Widget/artifact/file 工具块、附件；tool_use.input 为 JSON 字符串需 parse
-//  1.13.0 (2026-09-07)
-//    - 新增 Poe（poe.com）适配器:
-//      列表 gql chatsHistoryPageQuery + ChatHistoryListWithMessageSearchPaginationQuery（cursor 分页）
-//      + 详情 gql ChatPageQuery（chatCode，消息即 UI 所渲染部分）；请求需 poe-queryname/poe-tag-id 头
-//      会话内捕获 poe-formkey/tchannel/revision；实测 revision 不校验值、formkey/tchannel 可省略
-//  1.14.0 (2026-09-07)
-//    - 新增 Monica（monica.im）适配器:
-//      列表 agent_v1/session.v1.SessionService/ListSessions（limit，返回即全量）
-//      + 详情 api/custom_bot/get_chat_item_list_v2（conversation_id；item_list 倒序按 seq 排；next_offset 翻页）
-//      认证走 session_id cookie；item_type question/reply 区分角色，welcome 哨兵跳过
-//  1.15.0 (2026-09-07)
-//    - 增量导出升级：把隐式锚点显式化、可点改起点
-//      hover 气泡 = “从 {上次导出时刻} 起导出”，点时间可改成任意起点（回导/重导）
-//      单击=按当前起点导出；Shift+单击=全量快键（本次起点=最早，不再删除锚点）
-//      锚点推进到 max(本次下载时刻, 列表最新会话时间)，零新增也推进；有失败保留旧锚点
-//      起点改动一次性、成功自愈；完成汇报复用气泡（详见 docs/start-anchor-export-spec.md）
-//  1.16.0 (2026-09-07)
-//    - duck.ai 支持单条导出：打开会话时 document.title = 会话标题，取它当定位串反查
-//      IndexedDB（saved-chats 按 title 对齐匹配，多条同名取 lastEdit 最新）→ 单条 .md；
-//      首页/未开会话（固定站点标题）仍走全部导出；定位不到报错，绝不静默全量
-//  1.17.0 (2026-09-08)
-//    - 新增 Google AI Mode（www.google.com/ai → /search?udm=50 AI 模式）适配器：
-//      列表 AimThreadsService/ListThreads（mtid + mstk + q 元数据）
-//      + 详情隐藏 iframe 导航线程页（fetch 拿不到个性化内容，必须真导航）+ DOM 提取
-//      （段落/小节标题/嵌套列表/表格/引用 chip→[N] References）；支持单条/全部导出；
-//      单条导出缺精确时间时回查 ListThreads 补 updatedMs
-//    - Gemini 导出补 Time：每回合自带时间戳 turn[4]=[秒,纳秒]，取最新回合作为最后活跃时间
-//  1.17.1 (2026-09-08)
-//    - 列表页 Shift 悬停预览全量快键：按住 Shift 悬停按钮时，气泡从“从 {时间} 起导出”
-//      临时换成“Shift + 单击全部导出”，松开即恢复；无锚点/编辑中不切换（详见 spec）
-//  1.17.2 (2026-09-08)
-//    - 修复 Perplexity（pplx）详情接口失效：补齐站点新增的客户端校验请求头
-//      （X-Perplexity-Request-Reason: view-thread、X-Perplexity-Request-Endpoint、
-//      X-Request-ID 等及 credentials: 'include'），解决 /rest/thread/{uuid} 报 403 问题
-//  1.17.3 (2026-09-08)
-//    - 修复 duck.ai 新聊天/首页状态误识别为单条会话报错：
-//      放宽首页固定标题判断（支持中文等本地化站点标题 /^Duck\.ai.*DuckDuckGo/i），
-//      并增加模式卡片入口 [data-testid="mode-entry-points"] DOM 检查，返回 null 走全部导出；
-//      watchURL 增加会话 ID 变更检查，在无 URL 变化的 SPA 中即时刷新按钮状态
-//  1.17.4 (2026-09-08)
-//    - 修复 duck.ai 普通回复（无思考链/引用，parts 为空）漏导出助手内容：
-//      _assistantParts 增加 msg.content 回退，保证纯文本回答完整导出
-//  1.17.5 (2026-09-08)
-//    - 修复 duck.ai 批量下载每次全量导出（增量过滤失效）：
-//      Duck.ai IndexedDB 中 lastEdit 为原生 Date 实例，normalizeTimestamp 补充 Date 对象
-//      （及 getTime() 接口）毫秒解析；解决时间被判为 null 导致全部会话被强制全量导出的问题；
-//      _findByTitle 比较 lastEdit 同样使用 normalizeTimestamp 归一化时间戳
-//  1.18.0 (2026-09-11)
-//    - 新增 Grok.com（grok.com）官方 Web 端适配器：
-//      列表 GET /rest/app-chat/conversations（分页）+ 详情 response-node 响应拓扑树
-//      + load-responses 批量拉正文，按时间正序还原多轮对话，解析 <grok:render> 引用卡片
-//    - Google AI 模式（gaim）支持未登录/临时搜索会话直接从当前 DOM 导出；
-//      引用统一归集为文末 ### References，与豆包/DeepSeek 金标准对齐
-//  1.18.1 (2026-09-12)
-//    - M365 Copilot 域名迁移：m365.cloud.microsoft → copilot.cloud.microsoft
-//      新增新域 @match/detect/详情导出 URL，保留旧域 m365.cloud.microsoft 作兜底；
-//      E2E/金标准/Python 脚本/文档同步更新；
-//      localStorage 锚点按源隔离，新域首次全量后自动恢复增量
-//  1.18.2 (2026-09-12)
-//    - 修复 Kimi 导出消息顺序错位：createTime 为微秒精度，被 Date.parse 截断到毫秒后
-//      同轮 user/assistant 判等，稳定排序保留接口「最新在前」顺序，assistant 错位
-//      到 user 之前；新增 _sortTime 以亚毫秒精度排序，金标准快照同步重刷
-//  1.18.3 (2026-09-12)
-//    - 修复 Perplexity 全量导出“点完直接对号”：站点弃用 /rest/thread/list_recent
-//      （恒返回 []），会话列表改走 GraphQL SidebarRecentThreadsRelayQuery
-//      （persisted query，取 entryId/name/updatedAt）；E2E 新增列表接口回归断言
-//  1.18.4 (2026-09-17)
-//    - 修复 Google AI 模式（gaim）导出公式混乱与无障碍读屏器杂音：
-//      精准识别 [data-xpm-latex] 提取原始 LaTeX 源码，区分行内公式（$...$）与
-//      独立块级/对齐公式（$$...$$）；支持 code 标签；彻底消除读屏器描述及 MathML 字符伪影
-//  1.18.5 (2026-09-19)
-//    - 修复 Qwen 导出丢失思考过程、且可能把思维链混入回复正文：
-//      content_list 现按 phase 分派（think/thinking_summary → Thought Process，
-//      answer → 正文，web_search/image_gen_tool/空 → 工具过程不输出）；
-//      thinking_summary 正文取自 extra.summary_title/summary_thought（item.content 为空）；
-//      同时消除非 answer 空项造成的正文前多余空行
-//  1.18.6 (2026-09-19)
-//    - 修复 Qwen 井号转加粗会误伤代码块：stripHashes 改为围栏感知，
-//      ``` / ~~~ 围栏内的 # 注释/代码原样保留（此前会被改成 **注释**）
-//  1.18.7 (2026-09-19)
-//    - 重构：stripHashes 收敛为模块级唯一实现（此前 27 个适配器各写一份：26 份
-//      `const stripHashes` + aistudio 一份名叫 convertHeadings 的内联实现，
-//      并漂移成 4 种不一致实现：朴素包裹 / null 安全 / 末尾守卫 / 围栏感知，
-//      同一个输入在不同适配器下产出不同 Markdown）
-//    - 修复 aistudio：代码块内的 # 注释被改写成加粗（其 convertHeadings 注释
-//      写着“代码块内的不转”，实现里却没有围栏判断）
-//    - aistudio：Time 恒为“导出当下”（new Date()），
-//      改为取对话自身时间戳 arr[4][4][0]，快照不再每次生成都变
-//    - 标题现在【整条】加粗：吸收标题内原有的 **（行内代码除外），避免内外层 **
-//      同级交错导致强调不全 / 残留可见星号
+//    - 新增 StepFun AI Studio（阶跃星辰）适配器：支持国际版与国内版 Connect RPC，
+//      支持思考链，工具调用块不输出正文。
+//  1.18.9 (2026-09-22)
+//    - 修复 gaim / yuanbao / hunyuan / pplx 多轮搜索引用标号重复与 References 汇总冲突。
 //  1.18.8 (2026-09-19)
-//    - 修复 arena agent 模式导出报 “messages block not found”：RSC payload 键序变化，
-//      messages 不再是所在对象首键，且页面 i18n 也有同名 "messages" 键（值为对象，非数组）；
-//      _parseAgentRsc 改为定位 `"messages":[` 并逐候选括号配平解析，
-//      _extractBalancedJson 泛化为同时支持 { / [
-//    - 修复 arena E2E：金标准文件名映射错误，side-by-side / direct-chat 一直只告警未比对；
-//      启用此前被注释掉的 agent 模式；修正 References 结构断言（### 而非 ##）；
-//      比对前预置 arena_models.json 全量注册表（页面 initialModels 只含当前可选模型，
-//      历史会话旧模型会退回 UUID）；debug userscript 改写临时目录并跑完清理
+//    - 修复 arena agent 模式导出报 “messages block not found”，配平提取 React Flight payload；
+//      修复 arena E2E 四种模式比对与模型映射。
+//  1.18.7 (2026-09-19)
+//    - 重构：stripHashes 收敛为模块级唯一实现，消除27个适配器间4种互不一致的实现漂移；
+//      代码块内 # 注释围栏保护，标题整条加粗；修复 aistudio 时间取值。
+//  1.18.6 (2026-09-19)
+//    - 修复 Qwen 井号转加粗误伤代码块：stripHashes 改为围栏感知，``` / ~~~ 围栏内的 # 注释原样保留。
+//  1.18.5 (2026-09-19)
+//    - 修复 Qwen 导出丢失思考过程，content_list 按 phase 分派。
+//  1.18.4 (2026-09-17)
+//    - 修复 Google AI 模式（gaim）导出公式混乱与读屏器杂音，精准识别 LaTeX 源码并区分行内/块级。
+//  1.18.3 (2026-09-12)
+//    - 修复 Perplexity 全量导出点完直接对号，列表改走 GraphQL SidebarRecentThreadsRelayQuery。
+//  1.18.2 (2026-09-12)
+//    - 修复 Kimi 导出消息顺序错位，新增 _sortTime 以亚毫秒精度排序。
+//  1.18.1 (2026-09-12)
+//    - M365 Copilot 域名迁移至 copilot.cloud.microsoft，新增新域检测与匹配。
+//  1.18.0 (2026-09-11)
+//    - 新增 Grok.com（grok.com）官方 Web 端适配器；
+//      Google AI 模式支持未登录临时会话从 DOM 导出。
+//  1.17.5 (2026-09-08)
+//    - 修复 duck.ai 批量下载增量过滤失效，normalizeTimestamp 支持原生 Date 解析。
+//  1.17.4 (2026-09-08)
+//    - 修复 duck.ai 普通回复漏导出助手内容，增加 msg.content 回退。
+//  1.17.3 (2026-09-08)
+//    - 修复 duck.ai 首页/新聊天误判为单条会话报错。
+//  1.17.2 (2026-09-08)
+//    - 修复 Perplexity 详情接口失效，补齐客户端校验请求头。
+//  1.17.1 (2026-09-08)
+//    - 列表页 Shift 悬停预览全量快键。
+//  1.17.0 (2026-09-08)
+//    - 新增 Google AI Mode 适配器；Gemini 补齐精确时间。
+//  1.16.0 (2026-09-07)
+//    - duck.ai 支持单条导出，从 IndexedDB 反查会话。
+//  1.15.0 (2026-09-07)
+//    - 增量导出升级：显式化时间锚点并支持悬浮修改起点。
+//  1.14.0 (2026-09-07)
+//    - 新增 Monica（monica.im）适配器。
+//  1.13.0 (2026-09-07)
+//    - 新增 Poe（poe.com）适配器。
+//  1.12.0 (2026-09-07)
+//    - 新增 Claude（claude.ai/claude.com）适配器。
+//  1.11.0 (2026-08-14)
+//    - 全部导出改为增量模式（记录上次导出时间锚点）；Shift+左键强制全量导出；
+//      ZIP 文件名改时间前缀 YYYYMMDD-HHmmss-标题.md。
+//  1.10.1 (2026-08-14)
+//    - 修复 AI Studio 下载按钮空白（接入 Trusted Types 策略）。
+//  1.10.0 (2026-08-13)
+//    - 新增 Dola 及 MiniMax 适配器。
+//  1.9.0 (2026-08-12)
+//    - 新增 Sakana AI 适配器。
+//  1.8.0 (2026-08-12)
+//    - 新增 Mistral Le Chat 适配器。
+//  1.7.1 (2026-08-12)
+//    - 修复 ChatGPT 等站点按钮被框架重建移除，新增 ensureUIAlive 自愈观察器。
+//  1.7.0 (2026-08-12)
+//    - 新增腾讯混元适配器（国内站与海外站双域支持）。
+//  1.6.0 (2026-08-08)
+//    - 新增 Perplexity 适配器。
+//  1.5.0 (2026-08-06)
+//    - 新增 duck.ai 适配器。
+//  1.4.0 (2026-08-06)
+//    - 新增智谱清言 chatglm.cn 适配器。
+//  1.3.0 (2026-08-06)
+//    - 新增 Z.ai 适配器。
+//  1.2.0 (2026-08-06)
+//    - 新增腾讯 ima 适配器。
+//  1.1.0 (2026-08-05)
+//    - 新增 arena.ai 适配器；全平台时间改为本地时间 + 时区偏移。
 // =============================================================
 
 (function () {
@@ -321,7 +210,7 @@
 
   const CONFIG = {
     EXPORT_PREFIX: 'chat-export',
-    AFTERCHAT_WORKSPACE: 'downloadchats', // AfterChat workspace basename; localStorage 可覆盖
+    AFTERCHAT_WORKSPACE: '', // AfterChat workspace basename (可选，默认留空自动导入至当前活跃工作区)
     API_PAGE_DELAY: 300,   // 列表分页请求间隔（毫秒）
     API_DELAY: 1200,       // 单条对话导出间隔（毫秒）
     DEBUG_LIMIT: 0,        // 调试限条数，0 或 null 表示不限
@@ -6879,6 +6768,9 @@
       /** 列表元数据缓存：mtid -> { title, mstk, createdMs, updatedMs } */
       _threadsMeta: new Map(),
 
+      /** /goto?url=... token -> 真实目标 URL（线程间复用） */
+      _resolvedTokens: new Map(),
+
       /** 调 ListThreads：reqpld=[游标,null,0]，第一页传 null */
       async _listThreads(cursor) {
         const reqpld = cursor ? `[null,${JSON.stringify(cursor)},0]` : '[null,null,0]';
@@ -7101,27 +6993,54 @@
           if (attempt) await sleep(2500 * attempt);
           try {
             const doc = await this._loadOneThreadDoc(url);
-            return this._parseThreadDoc(doc, url, meta);
+            const info = await this._prepareDocSources(doc);
+            return this._parseThreadDoc(doc, url, meta, info);
           } catch (e) { lastErr = e; }
         }
         throw lastErr || new Error('无法加载线程页');
       },
 
       /** 从线程页 DOM 提取对话 → 归一化数据 */
-      _parseThreadDoc(doc, url, meta) {
+      _parseThreadDoc(doc, url, meta, sourceInfo) {
         meta = meta || {};
         const messages = [];
         const fallbackQ = meta.title || (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('q') : '') || '';
+        const info = sourceInfo || this._buildSourceInfo(doc);
+
+        // 已登录 DOM：用户提问在回合内 h2.iMqumd；未登录 DOM：用户提问在独立的 .sUKAcb 容器里，
+        // 与助手回答同为 turn 根节点的子节点。这里按文档顺序合并两类标记，避免只靠 fallbackQ 补出首问。
+        const markers = [];
         for (const el of doc.querySelectorAll('div.CKgc1d')) {
           if (el.parentElement && el.parentElement.closest('div.CKgc1d')) continue; // 只要最外层回合
-          const h2 = el.querySelector('h2.iMqumd');
-          let userText = h2 ? h2.textContent.replace(/^您说：/, '').trim() : '';
-          if (!userText && messages.length === 0 && fallbackQ) {
-            userText = fallbackQ;
+          markers.push({ el, kind: 'assistant' });
+        }
+        for (const el of doc.querySelectorAll('div.sUKAcb, span.VndcI[role="heading"][aria-level="2"]')) {
+          const host = (el.closest && el.closest('.sUKAcb')) || el;
+          if (host.closest && host.closest('div.CKgc1d')) continue; // 已包含在回合内
+          if (markers.some((m) => m.el === host || m.el.contains(host) || host.contains(m.el))) continue;
+          markers.push({ el: host, kind: 'user' });
+        }
+        markers.sort((a, b) => {
+          if (a.el === b.el) return 0;
+          return (a.el.compareDocumentPosition(b.el) & 4) ? -1 : 1;
+        });
+
+        for (const m of markers) {
+          if (m.kind === 'user') {
+            const userText = this._userTextOf(m.el);
+            if (userText) messages.push({ role: 'user', text: userText });
+            continue;
           }
+          const userEl = m.el.querySelector('h2.iMqumd, .sUKAcb [role="heading"], span.VndcI[role="heading"][aria-level="2"]');
+          const userText = userEl ? this._userTextOf(userEl) : '';
           if (userText) messages.push({ role: 'user', text: userText });
-          const bodyMd = this._extractAnswerMd(el);
+          const bodyMd = this._extractAnswerMd(m.el, info);
           if (bodyMd) messages.push({ role: 'assistant', text: bodyMd });
+        }
+
+        // 兜底：老页面/异常 DOM 完全找不到用户提问时，才用 URL 的 q 补首问（避免与真实首问重复）。
+        if (fallbackQ && !messages.some((m) => m.role === 'user')) {
+          messages.unshift({ role: 'user', text: fallbackQ });
         }
         if (!messages.length) throw new Error('线程内容为空');
         return {
@@ -7134,12 +7053,297 @@
         };
       },
 
+      /** 提取用户提问文本（兼容已登录 h2.iMqumd / 未登录 .sUKAcb） */
+      _userTextOf(el) {
+        if (!el) return '';
+        const head = el.querySelector
+          ? el.querySelector('h2.iMqumd, span.VndcI[role="heading"][aria-level="2"], [role="heading"][aria-level="2"]')
+          : null;
+        return String((head || el).textContent || '').replace(/^您说[：:]\s*/, '').trim();
+      },
+
+      /** 遍历 DOM 中的注释节点（linkedom / 浏览器通用） */
+      _walkComments(root, cb) {
+        const walk = (node) => {
+          if (!node || !node.childNodes) return;
+          for (let i = 0; i < node.childNodes.length; i++) {
+            const n = node.childNodes[i];
+            if (n.nodeType === 8) cb(n);
+            else if (n.nodeType === 1) walk(n);
+          }
+        };
+        walk(root);
+      },
+
+      /** 解析 Google 内联 TgQPHd 注释 JSON（注释里是 HTML 实体转义过的 JSON） */
+      _parseTgqPayload(raw) {
+        if (typeof raw !== 'string') return null;
+        const at = raw.indexOf('|||');
+        if (at < 0) return null;
+        let body = raw.slice(at + 3)
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>');
+        // 部分 payload 的 URL 字段是二次转义的 \uXXXX
+        body = body
+          .replace(/\\u003d/g, '=')
+          .replace(/\\u0026/g, '&')
+          .replace(/\\u003a/g, ':')
+          .replace(/\\u002f/g, '/');
+        try { return JSON.parse(body); } catch (e) { return null; }
+      },
+
+      _hostOf(value) {
+        if (!value) return '';
+        try { return new URL(value, 'https://www.google.com').hostname.replace(/^www\./, ''); }
+        catch (e) { return ''; }
+      },
+
+      _isUsefulSourceUrl(url) {
+        if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) return false;
+        if (/encrypted-tbn\d*\.gstatic\.com|(?:^|\.)gstatic\.com|googleusercontent\.com|(?:^|\/\/)(?:www\.)?google\.com\/(?:goto|url|search|imgres)/i.test(url)) return false;
+        return true;
+      },
+
+      /** 在一条 Google source record 里找出最像最终文章链接的 URL（排除 favicon / 图片代理 / 裸域名） */
+      _bestUrlInSource(record, domain) {
+        const urls = [];
+        const seen = new Set();
+        const walk = (v) => {
+          if (typeof v === 'string') {
+            if (this._isUsefulSourceUrl(v) && !seen.has(v)) { seen.add(v); urls.push(v); }
+            return;
+          }
+          if (Array.isArray(v)) for (const x of v) walk(x);
+        };
+        walk(record);
+        if (!urls.length) return '';
+        const host = this._hostOf(domain);
+        let pool = urls;
+        if (host) {
+          const same = urls.filter((u) => {
+            const h = this._hostOf(u);
+            return h && (h === host || h.endsWith('.' + host) || host.endsWith('.' + h));
+          });
+          if (same.length) pool = same;
+        }
+        const score = (u) => {
+          try { const x = new URL(u); return x.pathname.length + x.search.length; }
+          catch (e) { return 0; }
+        };
+        let best = '';
+        for (const u of pool) if (score(u) > score(best)) best = u;
+        return score(best) > 1 ? best : '';
+      },
+
+      _gotoToken(href) {
+        if (!href) return '';
+        try {
+          const u = new URL(href, 'https://www.google.com');
+          if (u.pathname === '/goto' || u.pathname === '/url') return u.searchParams.get('url') || '';
+        } catch (e) { /* ignore */ }
+        return '';
+      },
+
+      /**
+       * 预先建立本线程的信源索引：
+       * - 分组引用 chip（站点名 +N）的真实链接藏在隐藏的 TgQPHd 注释里；
+       * - 部分条目同时带最终 URL，部分只有 /goto?url=... token，稍后由 _prepareDocSources 解析。
+       */
+      _buildSourceInfo(root) {
+        const info = {
+          byTitle: new Map(),
+          byUrl: new Map(),
+          byHost: new Map(),
+          recordsByUuid: new Map(),
+          summaries: new Map(),
+          tokens: new Set(),
+        };
+        if (!root) return info;
+
+        const addRecord = (uuid, rec) => {
+          if (!Array.isArray(rec)) return;
+          let title = typeof rec[0] === 'string' ? rec[0].trim() : '';
+          if (/^\d+$/.test(title)) title = '';
+          const domain = typeof rec[3] === 'string' ? rec[3].trim() : '';
+          const href = typeof rec[5] === 'string' ? rec[5].trim() : '';
+          if (!domain && !href) return;
+          const actual = this._bestUrlInSource(rec, domain);
+          if (actual) {
+            if (title) {
+              info.byTitle.set(title.toLowerCase(), actual);
+              info.byUrl.set(actual, title);
+            }
+            const h = this._hostOf(domain || actual);
+            if (h && (!info.byHost.has(h) || info.byHost.get(h).length < actual.length)) info.byHost.set(h, actual);
+          }
+          if (href) {
+            const token = this._gotoToken(href);
+            if (token) info.tokens.add(token);
+          }
+          if (uuid) {
+            if (!info.recordsByUuid.has(uuid)) info.recordsByUuid.set(uuid, []);
+            const arr = info.recordsByUuid.get(uuid);
+            const key = (title + '\u0000' + domain + '\u0000' + href).toLowerCase();
+            if (!arr.some((x) => x.key === key)) {
+              arr.push({ title, domain, href, record: rec, key, actual });
+            }
+          }
+        };
+
+        const walkPayload = (v) => {
+          if (!v || typeof v !== 'object') return;
+          if (Array.isArray(v)) {
+            // chip 摘要：[uuid, null, null, 0, favicon, title, count, finalUrl, ...]
+            if (typeof v[0] === 'string' && v[0].includes('-') && typeof v[6] === 'number' && typeof v[7] === 'string') {
+              const uuid = v[0];
+              const title = typeof v[5] === 'string' ? v[5].trim() : '';
+              const url = v[7];
+              if (this._isUsefulSourceUrl(url)) {
+                info.summaries.set(uuid, { title, count: v[6], url });
+                if (title) {
+                  info.byTitle.set(title.toLowerCase(), url);
+                  info.byUrl.set(url, title);
+                }
+              }
+            }
+            // 单条信源：[uuid, [title, snippet, favicon, domain, labels, href, ...]]
+            if (typeof v[0] === 'string' && v[0].includes('-')
+              && Array.isArray(v[1]) && typeof v[1][0] === 'string'
+              && typeof v[1][3] === 'string' && v[1][3].includes('.')) {
+              addRecord(v[0], v[1]);
+            }
+            // 紧凑信源：[uuid, [label...], null, 0, "/goto?url=..." | "https://...", favicon, snippet]
+            if (typeof v[0] === 'string' && v[0].includes('-')
+              && typeof v[4] === 'string'
+              && (/^\/(?:goto|url)\?/i.test(v[4]) || this._isUsefulSourceUrl(v[4]))) {
+              const labels = Array.isArray(v[1]) ? v[1] : [];
+              const label = labels.find((x) => typeof x === 'string' && x.trim().length > 2 && !/^\d+(?:[_-]\d+)*$/.test(x.trim())) || '';
+              const favicon = typeof v[5] === 'string' ? v[5] : '';
+              const favMatch = favicon.match(/[?&]url=(https?:\/\/[^&]+)/i);
+              const domain = favMatch ? decodeURIComponent(favMatch[1]) : '';
+              const snippet = typeof v[6] === 'string' ? v[6] : '';
+              addRecord(v[0], [label, snippet, favicon, domain, [], v[4], null]);
+            }
+            // 全量信源列表里的裸条目：[title, snippet, favicon, domain, labels, finalUrl, ...]
+            if (typeof v[0] === 'string' && v[0] && !/^https?:\/\//i.test(v[0])
+              && typeof v[3] === 'string' && Array.isArray(v[4]) && typeof v[5] === 'string') {
+              addRecord(null, v);
+            }
+            for (const x of v) walkPayload(x);
+          }
+        };
+
+        this._walkComments(root, (node) => {
+          const raw = node.nodeValue || '';
+          if (raw.indexOf('TgQPHd') < 0 || raw.indexOf('http') < 0) return;
+          const payload = this._parseTgqPayload(raw);
+          if (payload) walkPayload(payload);
+        });
+        return info;
+      },
+
+      /** 解析 /goto token → 真实目标 URL（Google /url 同源返回可读的 redirectUrl） */
+      async _resolveGotoToken(token) {
+        if (!token) return '';
+        if (this._resolvedTokens.has(token)) return this._resolvedTokens.get(token);
+        const url = '/url?sa=t&source=web&rct=j&url=' + encodeURIComponent(token) + '&uoh=1&opi=89978449';
+        const resp = await fetch(url, { credentials: 'include' });
+        if (!resp.ok) return '';
+        const text = await resp.text();
+        const m = text.match(/redirectUrl\s*=\s*['"]([^'"]+)['"]/)
+          || text.match(/content=["']0;\s*url=([^"']+)["']/i);
+        if (!m) return '';
+        const target = m[1].replace(/&amp;/g, '&').replace(/\\u0026/g, '&').replace(/\\u002f/g, '/');
+        return /^https?:\/\//i.test(target) ? target : '';
+      },
+
+      /** 打开线程页前后预解析 token；解析失败的依旧退回 /goto 链接，不阻断导出 */
+      async _prepareDocSources(doc) {
+        const info = this._buildSourceInfo(doc);
+        if (typeof fetch !== 'function' || !info.tokens.size) return info;
+        const pending = [...info.tokens].filter((t) => t && !this._resolvedTokens.has(t));
+        const maxResolve = 40;
+        for (let i = 0; i < pending.length && i < maxResolve; i++) {
+          try {
+            const target = await this._resolveGotoToken(pending[i]);
+            if (target) this._resolvedTokens.set(pending[i], target);
+          } catch (e) { /* ignore */ }
+          if (i < pending.length - 1 && i < maxResolve - 1) await sleep(80);
+        }
+        return info;
+      },
+
+      /** 一个引用 chip 可能聚合多个信源（“站点名 +2”）；全部展开，而不是只取第一个 <a>。 */
+      _chipSources(chip, info) {
+        info = info || this._buildSourceInfo((chip && chip.ownerDocument) || chip);
+        const btn = chip.querySelector('button[data-icl-uuid]');
+        let uuid = btn ? btn.getAttribute('data-icl-uuid') : '';
+        if (!uuid) {
+          const su = (chip.getAttribute && chip.getAttribute('data-suuid')) || '';
+          const m = su.match(/\|([^|]+?)-?\|/);
+          if (m) uuid = m[1].replace(/-$/, '');
+        }
+        const summary = uuid ? info.summaries.get(uuid) : null;
+        const records = uuid ? (info.recordsByUuid.get(uuid) || []) : [];
+        const anchors = [...chip.querySelectorAll('a[href]')].map((a) => ({
+          title: (a.getAttribute('aria-label') || this._textOf(a) || '').trim(),
+          href: a.getAttribute('href') || '',
+        }));
+
+        const resolveHref = (href) => {
+          if (!href) return '';
+          if (/^https?:\/\//i.test(href) && !/\/\/(?:www\.)?google\.com\/(?:goto|url)\b/i.test(href)) return href;
+          const token = this._gotoToken(href);
+          if (token && this._resolvedTokens.has(token)) return this._resolvedTokens.get(token);
+          return '';
+        };
+
+        const out = [];
+        const add = (title, url) => {
+          const clean = String(url || '').trim();
+          if (!clean || out.some((x) => x.url === clean)) return;
+          out.push({ title: String(title || '').trim() || clean, url: clean });
+        };
+
+        for (let i = 0; i < records.length; i++) {
+          const r = records[i];
+          let url = r.actual || info.byTitle.get((r.title || '').toLowerCase()) || '';
+          if (!url) {
+            const host = this._hostOf(r.domain || r.href);
+            if (host && info.byHost.has(host)) url = info.byHost.get(host);
+          }
+          if (!url) url = resolveHref(r.href);
+          if (!url && i === 0 && summary && summary.url) url = summary.url;
+          if (!url && i === 0 && anchors[0]) url = resolveHref(anchors[0].href);
+          if (!url && r.domain && /^https?:\/\//i.test(r.domain)) url = r.domain;
+          const knownTitle = url ? info.byUrl.get(url) : '';
+          const title = r.title || knownTitle || (i === 0 && anchors[0] ? anchors[0].title : '')
+            || (r.domain ? this._hostOf(r.domain) : '') || (summary && summary.title) || '';
+          add(title, url);
+        }
+
+        // 隐藏卡片缺失/格式变化时，退回 chip 里可见的锚点；摘要 URL 仍是首选。
+        if (!records.length || out.length < (summary?.count || 0)) {
+          for (let i = 0; i < anchors.length; i++) {
+            let url = resolveHref(anchors[i].href);
+            if (!url && i === 0 && summary && summary.url) url = summary.url;
+            add(anchors[i].title || (summary && summary.title), url);
+          }
+        }
+        if (!out.length && summary && summary.url) add(summary.title, summary.url);
+        return out;
+      },
+
       /** 回合内全部 pWvJNd 正文 → markdown 字符串（引用跨块连续编号，末尾汇总 References） */
-      _extractAnswerMd(turnEl) {
+      _extractAnswerMd(turnEl, sourceInfo) {
+        const info = sourceInfo || this._buildSourceInfo((turnEl && turnEl.ownerDocument) || turnEl);
         const refs = [];
         const blocks = [];
         for (const pWvJNd of turnEl.querySelectorAll('div.pWvJNd')) {
-          blocks.push(...this._bodyBlocks(pWvJNd, refs));
+          blocks.push(...this._bodyBlocks(pWvJNd, refs, info));
         }
         if (!blocks.length) return '';
         const chunks = [];
@@ -7158,7 +7362,7 @@
       },
 
       /** 收集 pWvJNd 内的顶层内容块（段落/小节标题/列表/表格），引用写进 refs */
-      _bodyBlocks(pWvJNd, refs) {
+      _bodyBlocks(pWvJNd, refs, sourceInfo) {
         const blocks = [];
         const ALLOW = 'div.n6owBd.awi2gc, div[role="heading"][aria-level], ul.XSq4R, table.NRefec';
         for (const el of pWvJNd.querySelectorAll(ALLOW)) {
@@ -7171,19 +7375,19 @@
           if (el.classList.contains('n6owBd') && el.closest('li')) continue;
           let b = null;
           if (isHeading) {
-            const t = this._inline(el, refs);
+            const t = this._inline(el, refs, sourceInfo);
             if (t) {
               const bold = (t.startsWith('**') && t.endsWith('**')) ? t : '**' + t + '**';
               b = { type: 'heading', text: bold };
             }
           } else if (el.tagName === 'TABLE') {
-            const md = this._tableMd(el, refs);
+            const md = this._tableMd(el, refs, sourceInfo);
             if (md) b = { type: 'table', md };
           } else if (el.tagName === 'UL') {
-            const md = this._listMd(el, 0, refs);
+            const md = this._listMd(el, 0, refs, sourceInfo);
             if (md) b = { type: 'list', md };
           } else {
-            const t = this._inline(el, refs);
+            const t = this._inline(el, refs, sourceInfo);
             if (t) b = { type: 'para', text: t };
           }
           if (b) { b.dom = el; blocks.push(b); }
@@ -7227,7 +7431,7 @@
       },
 
       /** 行内序列化：公式处理；strong→**；code→`；引用 chip→[N] 并登记 refs；普通 a→纯文本 */
-      _inline(root, refs) {
+      _inline(root, refs, sourceInfo) {
         const parts = [];
         const walk = (el) => {
           el.childNodes.forEach((n) => {
@@ -7279,18 +7483,19 @@
               return;
             }
 
-            // 4. 引用 chip
+            // 4. 引用 chip（可能聚合多个信源：站点名 +2）
             if (tag === 'SPAN' && cls.includes('WBgIic')) {
-              // 引用 chip：读站点名 + 提取所有有效链接；无链接的纯图标 chip 静默丢弃
+              // 纯「相关结果」图标按钮没有站点名/锚点，也不是正文引用，跳过；
+              // 否则会把“延伸阅读”旁边的相关按钮误当成一组 citation。
               const label = this._textOf(n.querySelector('.QNca8b'));
-              const links = n.querySelectorAll('a.PMDqCb, a[href]');
-              const seenHref = new Set();
-              for (const a of links) {
-                const href = (a.getAttribute('href') || '').split('#')[0];
-                if (!href || href.startsWith('javascript:') || seenHref.has(href)) continue;
-                seenHref.add(href);
-                const title = this._textOf(a) || label;
-                refs.push({ n: refs.length + 1, title: title || label, url: href });
+              const hasAnchor = !!n.querySelector('a[href]');
+              const visible = (n.textContent || '').replace(/\s+/g, ' ').trim();
+              const btn = n.querySelector('button[data-icl-uuid]');
+              const aria = (btn && btn.getAttribute('aria-label')) || '';
+              if (!label && !hasAnchor && (!visible || /^相关结果$/.test(aria))) return;
+              const sources = this._chipSources(n, sourceInfo);
+              for (const src of sources) {
+                refs.push({ n: refs.length + 1, title: src.title || src.url, url: src.url });
                 parts.push('[' + refs.length + ']');
               }
               return;
@@ -7329,10 +7534,10 @@
       },
 
       /** 表格 → 管道表格 */
-      _tableMd(table, refs) {
+      _tableMd(table, refs, sourceInfo) {
         const rows = [...table.querySelectorAll('tr')];
         const grids = rows.map((tr) => [...tr.children]
-          .map((td) => this._inline(td, refs).replace(/\|/g, '\\|')));
+          .map((td) => this._inline(td, refs, sourceInfo).replace(/\|/g, '\\|')));
         const cols = Math.max(0, ...grids.map((r) => r.length));
         const norm = (r) => { const a = r.slice(); while (a.length < cols) a.push(''); return a; };
         const g = grids.map(norm);
@@ -7346,7 +7551,7 @@
       },
 
       /** 嵌套列表 → markdown 无序列表 */
-      _listMd(ul, depth, refs) {
+      _listMd(ul, depth, refs, sourceInfo) {
         const lines = [];
         const pad = '  '.repeat(depth);
         for (const li of ul.children) {
@@ -7357,10 +7562,10 @@
             if (c.nodeType === 1 && (c.tagName === 'UL' || c.tagName === 'OL')) continue;
             wrap.appendChild(c.cloneNode(true));
           }
-          const text = this._inline(wrap, refs);
+          const text = this._inline(wrap, refs, sourceInfo);
           if (text) lines.push(pad + '- ' + text);
           for (const s of sub) {
-            const inner = this._listMd(s, depth + 1, refs);
+            const inner = this._listMd(s, depth + 1, refs, sourceInfo);
             if (inner) inner.split('\n').forEach((l) => lines.push(l));
           }
         }
@@ -7378,7 +7583,12 @@
             createdMs: Date.now(),
             updatedMs: Date.now(),
           };
-          return this._parseThreadDoc(document, window.location.href, meta);
+          return this._parseThreadDoc(
+            document,
+            window.location.href,
+            meta,
+            await this._prepareDocSources(document)
+          );
         }
         let meta = this._metaOf(id);
         if (!meta || !meta.updatedMs) {
@@ -9925,7 +10135,6 @@
   function buildAfterChatCaptureUrl(title, options) {
     options = options || {};
     const workspace = getAfterChatWorkspace();
-    if (!workspace) throw new Error('Missing AfterChat workspace');
 
     const params = new URLSearchParams();
     if (workspace) params.set('workspace', workspace);
@@ -9971,6 +10180,9 @@
   }
 
   function getChatTitle(data, fallbackTitle) {
+    const docTitle = (typeof document !== 'undefined' && document.title)
+      ? document.title.replace(/\s*[-—|].*$/, '').trim()
+      : '';
     return data?.store?.rawConversationResponse?.chatName
       || data?.chat?.name
       || data?.chatResp?.chat?.name
@@ -9980,8 +10192,9 @@
       || data?.sessionResp?.data?.title
       || data?.title
       || data?.chat_session?.title
+      || (fallbackTitle && fallbackTitle !== '当前对话' && fallbackTitle !== 'untitled' ? fallbackTitle : '')
+      || docTitle
       || fallbackTitle
-      || (typeof document !== 'undefined' ? document.title : '')
       || 'untitled';
   }
 
