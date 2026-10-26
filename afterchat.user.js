@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.23.4
+// @version      1.23.5
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
@@ -270,6 +270,17 @@
         });
       })
       .join('\n');
+  }
+
+  // ---- 通用：剥除 Google 系 UI 专属的「继续追问」建议卡 ----
+  // Gemini 会把 ElicitationsGroup（含若干 Elicitation 建议）直接追加在助手正文末尾，
+  // 它属于界面交互元素而非模型回答，导出时必须丢弃。
+  function stripElicitations(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+      .replace(/<ElicitationsGroup\b[^>]*>[\s\S]*?<\/ElicitationsGroup>/gi, '')
+      .replace(/<ElicitationsGroup\b[^>]*\/>/gi, '')
+      .replace(/<Elicitation\b[^>]*\/>/gi, '');
   }
 
   // ---- 通用：引用与信源区标准化工具（RFC 1.0.0 规范，见 docs/ChatFormat.md 4.4） ----
@@ -5572,12 +5583,21 @@
             const role = msgArr[8] === 'user' ? 'user' : 'model';
 
             // 判断是否为思考过程：
-            // 模型消息，以 ** 开头，且内容含分析/评估类关键词
+            // AI Studio 在消息数组里用显式标记区分：
+            //   [19] === 1 → 思考过程（thought）
+            //   [16] === 1 → 最终回复（text）
+            // 旧响应可能没有这些标记，再按首行文本特征兜底。
+            const isThoughtFlag = msgArr[19] === 1 || msgArr[19] === '1';
+            const isResponseFlag = msgArr[16] === 1 || msgArr[16] === '1';
             let partType = 'text';
-            if (role === 'model' && /^\s*\*\*/.test(text)) {
-              const firstLine = text.split('\n')[0].replace(/\*\*/g, '').trim().toLowerCase();
-              if (/^(assess|evaluat|analyz|consider|classify|identif|defin|determin|reflect|break down|dissect|categoriz|think|thought|构思|评估|分析|思考|拆解)/.test(firstLine)) {
+            if (role === 'model') {
+              if (isThoughtFlag) {
                 partType = 'thought';
+              } else if (!isResponseFlag && /^\s*\*\*/.test(text)) {
+                const firstLine = text.split('\n')[0].replace(/\*\*/g, '').trim().toLowerCase();
+                if (/^(assess|evaluat|analyz|consider|classify|identif|defin|determin|reflect|break down|dissect|categoriz|think|thought|构思|评估|分析|思考|拆解)/.test(firstLine)) {
+                  partType = 'thought';
+                }
               }
             }
 
@@ -6693,7 +6713,7 @@
                 }
               }
 
-              body = body.trim();
+              body = stripElicitations(body).trim();
               if (!body) continue;
               lines.push('### 🤖 Assistant');
               lines.push('');
@@ -7794,9 +7814,45 @@
         return map;
       },
 
-      _modelName(id) {
+      _modelName(id, revealedMap) {
         if (!id) return 'unknown';
-        return (this._models && this._models.get(id)) || id;
+        // 页面/测试预置的完整模型注册表优先；revealedModels 只补注册表缺失的
+        // 历史模型与匿名对战模型，避免覆盖已有显示名（例如 battle 的 max/low 变体）。
+        if (this._models && this._models.has(id)) return this._models.get(id);
+        if (revealedMap && revealedMap.has(id)) return revealedMap.get(id);
+        return id;
+      },
+
+      /** 单条会话响应里自带的模型显示名（battle 匿名对局会在 revealedModels 中揭示） */
+      _revealedModelMap(data) {
+        const list = [];
+        for (const m of (data && data.revealedModels) || []) {
+          if (!m || !m.id) continue;
+          list.push({
+            id: m.id,
+            display: m.displayName || m.publicName || m.name,
+            publicName: m.publicName || m.name,
+          });
+        }
+
+        // 同一场对战里可能有多个变体共用 displayName（如 deepseek-v4.1-flash 的 max/low）。
+        // 此时回退到 publicName，避免两个助手消息头重名、丢失变体信息。
+        const counts = new Map();
+        for (const e of list) {
+          if (e.display) counts.set(e.display, (counts.get(e.display) || 0) + 1);
+        }
+        const used = new Set();
+        const map = new Map();
+        for (const e of list) {
+          if (!e.display) continue;
+          let label = counts.get(e.display) > 1
+            ? (e.publicName || e.display)
+            : e.display;
+          if (used.has(label)) label = label + ' (' + e.id.slice(0, 8) + ')';
+          used.add(label);
+          map.set(e.id, label);
+        }
+        return map;
       },
 
       /** 拉取单个会话的列表元信息（agent 模式需要 title/createdAt） */
@@ -7965,16 +8021,17 @@
       /** 将 Arena 数据转为 Markdown（契约见 docs/ChatFormat.arena.md） */
       toMarkdown(data, title, convId) {
         const mode = this._detectMode(data);
+        const modelMap = this._revealedModelMap(data);
 
         const lines = [];
         lines.push('## Metadata');
         lines.push('');
         lines.push('- **Mode:** `' + mode + '`');
         if (mode !== 'agent') {
-          const models = this._collectModels(data);
+          const models = this._collectModels(data, modelMap);
           if (models.length) lines.push('- **Models:** ' + models.map((m) => '`' + m + '`').join(', '));
         }
-        const votes = this._collectVotes(data);
+        const votes = this._collectVotes(data, modelMap);
         if (votes.length) lines.push('- **Votes:** ' + votes.join(', '));
         lines.push('- **Time:** ' + this._formatTime(data?.createdAt));
         const url = mode === 'agent'
@@ -7986,7 +8043,7 @@
         lines.push('');
 
         if (mode === 'agent') this._renderAgentBody(lines, data, stripHashes);
-        else this._renderEvaluationBody(lines, data, stripHashes);
+        else this._renderEvaluationBody(lines, data, stripHashes, modelMap);
 
         return lines.join('\n');
       },
@@ -7999,7 +8056,7 @@
       },
 
       /** battle / side-by-side / direct-chat 共用渲染：一轮 = User + 各模型回答 + 投票 */
-      _renderEvaluationBody(lines, data, stripHashes) {
+      _renderEvaluationBody(lines, data, stripHashes, modelMap) {
         const messages = data?.messages || [];
         const pendingVotes = new Map();
         for (const fb of data?.pairwiseFeedbacks || []) {
@@ -8019,7 +8076,7 @@
             continue;
           }
 
-          lines.push('### 🤖 Assistant — ' + this._modelName(msg.modelId));
+          lines.push('### 🤖 Assistant — ' + this._modelName(msg.modelId, modelMap));
           lines.push('');
           lines.push(stripHashes(content));
           lines.push('');
@@ -8030,7 +8087,7 @@
             if (fb.messageAId === msg.id || fb.messageBId === msg.id) {
               emitted.add(msg.id);
               if (emitted.size >= 2) {
-                lines.push('> 🏆 **Vote:** ' + this._voteText(fb));
+                lines.push('> 🏆 **Vote:** ' + this._voteText(fb, modelMap));
                 lines.push('');
                 pendingVotes.delete(fb.id);
               }
@@ -8105,12 +8162,12 @@
         return out;
       },
 
-      _collectModels(data) {
+      _collectModels(data, modelMap) {
         const seen = new Set();
         const out = [];
         for (const msg of data?.messages || []) {
           if (msg?.role !== 'assistant' || !msg.modelId) continue;
-          const name = this._modelName(msg.modelId);
+          const name = this._modelName(msg.modelId, modelMap);
           if (!seen.has(name)) {
             seen.add(name);
             out.push(name);
@@ -8119,20 +8176,20 @@
         return out;
       },
 
-      _collectVotes(data) {
+      _collectVotes(data, modelMap) {
         const counts = new Map();
         for (const fb of data?.pairwiseFeedbacks || []) {
-          const v = this._voteText(fb);
+          const v = this._voteText(fb, modelMap);
           if (!v) continue;
           counts.set(v, (counts.get(v) || 0) + 1);
         }
         return [...counts.entries()].map(([v, n]) => v + ' × ' + n);
       },
 
-      _voteText(fb) {
+      _voteText(fb, modelMap) {
         const v = fb?.value;
-        if (v === 'a' || v === 'model_a') return this._modelName(fb.modelAId) + ' wins';
-        if (v === 'b' || v === 'model_b') return this._modelName(fb.modelBId) + ' wins';
+        if (v === 'a' || v === 'model_a') return this._modelName(fb.modelAId, modelMap) + ' wins';
+        if (v === 'b' || v === 'model_b') return this._modelName(fb.modelBId, modelMap) + ' wins';
         if (v === 'tie') return 'tie';
         if (v === 'both_bad') return 'both bad';
         if (v === 'both_good') return 'both good';
