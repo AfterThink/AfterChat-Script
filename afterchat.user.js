@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.23.5
+// @version      1.23.6
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
@@ -95,6 +95,15 @@
 // =============================================================
 //  📜 Changelog 
 // =============================================================
+//  1.23.6 (2026-10-28)
+//    - Qwen 导出恢复：/api/v2/* 现在必须带 Authorization: Bearer <access_token>，
+//      仅 Cookie 会返回 200 + data.code="Unauthorized"；新增 token 读取（qwen_access_token_state /
+//      旧版 token / Cookie）与 /auths/refresh 自动刷新重试；兼容 chat.history.messages 映射结构。
+//    - Qwen 格式对齐 AC Format：thinking_summary 标题单独成行加粗（不加编号）、思考合并成段；
+//      正文 [[N]] 重编号为 [M]，文末新增 ### References（只列被引用的来源）。
+//    - Gemini 支持多账号（/u/<n>/）：会话/项目 ID 解析、batchexecute 路径、source-path、
+//      Metadata URL 全部带账号前缀；u0/单账号行为不变。
+//    - E2E：Gemini / AI Studio 固定走 u1，AI Studio 的 X-Goog-AuthUser 从 URL 推导。
 //  1.23.3 (2026-10-21)
 //    - 优化 Deep Link 外部捕获与标题提取：
 //      移除硬编码 workspace 参数，默认无缝保存到 AfterChat 桌面端当前活跃工作区；
@@ -2402,16 +2411,162 @@
 
       _projectCache: {},
 
+      // 鉴权：Qwen 的 /api/v2/* 现在必须带 Authorization: Bearer <access_token>，
+      // 只靠 Cookie 会返回 200 + {success:false, data:{code:'Unauthorized'}}。
+      // 前端把 token 存于 localStorage['qwen_access_token_state']（JSON），旧版为 localStorage['token']。
+      _token() {
+        try {
+          const ls = typeof localStorage !== 'undefined' ? localStorage : null;
+          const asJwt = (v) => (typeof v === 'string' && /^ey[\w-]+\.[\w-]+\.[\w-]+$/.test(v.trim()) ? v.trim() : '');
+          let token = '';
+
+          // 1. 新版状态对象 {version,stateId,token,expiresAt,updatedAt,sourceId}
+          const stateRaw = ls?.getItem('qwen_access_token_state');
+          if (stateRaw) {
+            try {
+              const state = JSON.parse(stateRaw);
+              token = asJwt(state?.token) || (typeof state?.token === 'string' ? state.token : '');
+            } catch (e) { /* ignore */ }
+          }
+
+          // 2. 旧版直接存 JWT（localStorage['token']）
+          if (!token) {
+            const legacy = ls?.getItem('token');
+            token = asJwt(legacy) || '';
+            if (!token && legacy) {
+              try {
+                const parsed = JSON.parse(legacy);
+                token = asJwt(parsed?.token) || asJwt(parsed?.value) || asJwt(parsed?.access_token) || '';
+              } catch (e) { /* ignore */ }
+            }
+          }
+
+          // 3. Cookie 兜底
+          if (!token) {
+            const m = (typeof document !== 'undefined' ? document.cookie : '').match(/(?:^|; )token=([^;]+)/);
+            token = m ? asJwt(decodeURIComponent(m[1])) : '';
+          }
+
+          return token;
+        } catch (e) {
+          return '';
+        }
+      },
+
+      _headers(token) {
+        const h = {
+          'source': 'web',
+          'version': this._webVersion(),
+          'timezone': new Date().toString().replace(/\s*\(.+\)$/, ''),
+        };
+        const t = token || this._token();
+        if (t) h['authorization'] = 'Bearer ' + t;
+        return h;
+      },
+
+      // 页面发的是 `Version: <前端构建版本>`；从已加载的 qwen-chat-fe 资源路径里取，取不到用兜底值
+      _webVersion() {
+        try {
+          const entries = (typeof performance !== 'undefined' && performance.getEntriesByType)
+            ? performance.getEntriesByType('resource')
+            : [];
+          for (const entry of entries) {
+            const m = String(entry?.name || '').match(/\/qwen-chat-fe\/(\d+\.\d+\.\d+)\//);
+            if (m) return m[1];
+          }
+        } catch (e) { /* ignore */ }
+        return '0.3.26';
+      },
+
+      _isAuthError(resp, body) {
+        if (resp && (resp.status === 401 || resp.status === 403)) return true;
+        const code = String(body?.data?.code || body?.code || '');
+        return /unauthorized|invalid token|forbidden|not.?login/i.test(code);
+      },
+
+      // 复刻前端 TokenManager.performHttpRefresh：GET {auth}/api/v2/auths/refresh
+      // 凭 refresh_token Cookie，且 /auths/* 必须带 x-request-origin（缺失会返回 Missing origin）。
+      async _refreshToken() {
+        const isQwenCom = typeof window !== 'undefined' && window.location
+          && /\.qwen\.com$/i.test(window.location.hostname);
+        const hosts = isQwenCom
+          ? ['https://auth.qwen.com', 'https://auth.qwen.ai']
+          : ['https://auth.qwen.ai'];
+        const origin = typeof window !== 'undefined' && window.location
+          ? window.location.origin
+          : 'https://chat.qwen.ai';
+
+        for (const host of hosts) {
+          try {
+            const r = await fetch(`${host}/api/v2/auths/refresh`, {
+              method: 'GET',
+              credentials: 'include',
+              headers: {
+                'accept': 'application/json, text/plain, */*',
+                'source': 'web',
+                'x-request-origin': origin,
+                // auth 网关会校验这两个头（缺任一 → Bad_Request: Invalid request header）
+                'version': this._webVersion(),
+                'timezone': new Date().toString().replace(/\s*\(.+\)$/, ''),
+              },
+            });
+            const body = await r.json().catch(() => null);
+            const token = body?.data?.access_token;
+            if (r.ok && typeof token === 'string' && token) return token;
+          } catch (e) { /* 尝试下一个 host */ }
+        }
+        return '';
+      },
+
+      // 统一请求：自动附带 Bearer；401/Unauthorized 时刷新一次 token 再重试。
+      async _readJson(resp) {
+        try {
+          if (typeof resp.text === 'function') {
+            const text = await resp.text();
+            if (!text) return null;
+            try { return JSON.parse(text); } catch (e) { return null; }
+          }
+          if (typeof resp.json === 'function') return await resp.json();
+        } catch (e) { /* ignore */ }
+        return null;
+      },
+
+      async _request(path) {
+        // 存储里没有 token（首次/被清空）时先刷新：否则服务端会把「未授权」伪装成「对话已删除」
+        let token = this._token();
+        if (!token) token = await this._refreshToken();
+
+        let resp = await fetch(path, { headers: this._headers(token) });
+        let body = await this._readJson(resp);
+
+        if (this._isAuthError(resp, body)) {
+          const token = await this._refreshToken();
+          if (token) {
+            resp = await fetch(path, { headers: this._headers(token) });
+            body = await this._readJson(resp);
+          }
+        }
+
+        if (!resp.ok) throw new Error(`通义千问 API ${resp.status}: ${resp.statusText}`);
+        if (this._isAuthError(resp, body)) {
+          throw new Error(`通义千问鉴权失败（${body?.data?.code || 'Unauthorized'}）：请确认已登录 chat.qwen.ai 后重试`);
+        }
+        // 非 JSON（典型是风控/验证页 HTML）不能当成空会话静默导出
+        if (body === null) {
+          throw new Error(`通义千问接口返回非 JSON（HTTP ${resp.status}），可能被风控拦截，请稍后重试`);
+        }
+        if (body?.success === false) {
+          throw new Error(`通义千问 API: ${body?.data?.details || body?.data?.code || '请求失败'}`);
+        }
+        return body;
+      },
+
       _fetchProjectMeta(projectId) {
         if (!projectId || (this._projectCache && this._projectCache[projectId])) return;
         this._projectFetching = this._projectFetching || new Set();
         if (this._projectFetching.has(projectId)) return;
         this._projectFetching.add(projectId);
-        fetch(`/api/v2/projects/${encodeURIComponent(projectId)}`, {
-          headers: { 'source': 'web' },
-        }).then(async (r) => {
-          if (!r.ok) return;
-          const body = await r.json().catch(() => null);
+        this._request(`/api/v2/projects/${encodeURIComponent(projectId)}`).then((body) => {
           const name = body?.data?.name?.trim();
           if (name) {
             this._projectCache = this._projectCache || {};
@@ -2439,16 +2594,11 @@
       async getProjectConversations(projectId, onProgress) {
         let projectName = (this._projectCache && this._projectCache[projectId]) || '';
         try {
-          const rProj = await fetch(`/api/v2/projects/${encodeURIComponent(projectId)}`, {
-            headers: { 'source': 'web' },
-          });
-          if (rProj.ok) {
-            const pBody = await rProj.json();
-            projectName = pBody?.data?.name?.trim() || projectName;
-            if (projectName) {
-              this._projectCache = this._projectCache || {};
-              this._projectCache[projectId] = projectName;
-            }
+          const pBody = await this._request(`/api/v2/projects/${encodeURIComponent(projectId)}`);
+          projectName = pBody?.data?.name?.trim() || projectName;
+          if (projectName) {
+            this._projectCache = this._projectCache || {};
+            this._projectCache[projectId] = projectName;
           }
         } catch (e) {
           console.warn('[AfterChat] 获取通义千问项目详情失败:', e);
@@ -2460,12 +2610,9 @@
 
         while (conversations.length < limit) {
           const url = `/api/v2/chats/?project_id=${encodeURIComponent(projectId)}&page=${page}`;
-          const r = await fetch(url, {
-            headers: { 'source': 'web' },
-          });
-          if (!r.ok) throw new Error(`通义千问项目会话列表API ${r.status}: ${r.statusText}`);
-          const body = await r.json();
-          const chats = body?.data || [];
+          const body = await this._request(url);
+          if (!Array.isArray(body?.data)) throw new Error('通义千问项目会话列表返回格式异常');
+          const chats = body.data;
           if (!chats.length) break;
 
           for (const c of chats) {
@@ -2498,11 +2645,9 @@
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
 
         while (allChats.length < limit) {
-          const r = await fetch(`/api/v2/chats/?page=${page}&exclude_project=true`, {
-            headers: { 'source': 'web' },
-          });
-          const body = await r.json();
-          const chats = body?.data || [];
+          const body = await this._request(`/api/v2/chats/?page=${page}&exclude_project=true`);
+          if (!Array.isArray(body?.data)) throw new Error('通义千问会话列表返回格式异常');
+          const chats = body.data;
           if (!chats.length) break;
 
           allChats.push(...chats);
@@ -2523,16 +2668,100 @@
       },
 
       async getConversationDetails(id) {
-        const r = await fetch(`/api/v2/chats/${id}`, {
-          headers: { 'source': 'web' },
-        });
-        const body = await r.json();
-        return body?.data || {};
+        const body = await this._request(`/api/v2/chats/${id}`);
+        if (!body?.data || typeof body.data !== 'object') {
+          throw new Error('通义千问会话详情为空，请稍后重试');
+        }
+        return body.data;
+      },
+
+      // 兼容两种消息结构：chat.messages（数组）与 chat.history.messages（以 id 为键的对象）。
+      _orderedMessages(chat) {
+        if (Array.isArray(chat?.messages) && chat.messages.length) return chat.messages;
+
+        const history = chat?.history || {};
+        const map = history.messages;
+        if (!map || typeof map !== 'object') return [];
+
+        const byId = new Map(Object.entries(map).filter(([, m]) => m && typeof m === 'object'));
+        const ordered = [];
+        const seen = new Set();
+
+        // 沿 currentId → parentId 回溯出当前分支，再反转成时间正序
+        let cursor = history.currentId && byId.has(history.currentId) ? history.currentId : '';
+        while (cursor && byId.has(cursor) && !seen.has(cursor)) {
+          seen.add(cursor);
+          const msg = byId.get(cursor);
+          ordered.push(msg);
+          cursor = msg.parentId || '';
+        }
+        ordered.reverse();
+
+        for (const [id, msg] of byId) {
+          if (seen.has(id)) continue;
+          seen.add(id);
+          ordered.push(msg);
+        }
+
+        if (ordered.length && ordered.every((m) => Number.isFinite(Number(m.timestamp)))) {
+          ordered.sort((a, b) => Number(a.timestamp) - Number(b.timestamp));
+        }
+        return ordered;
+      },
+
+      // 单条助手消息可用的网页搜索信源（下标对应正文里的 [[N]]，1-based）
+      _turnSources(msg) {
+        const out = [];
+        const items = Array.isArray(msg?.content_list) ? msg.content_list : [];
+        for (const item of items) {
+          const extra = item?.extra || {};
+          const info = Array.isArray(extra.web_search_info)
+            ? extra.web_search_info
+            : (Array.isArray(extra.tool_result?.docs) ? extra.tool_result.docs : null);
+          if (!info) continue;
+          for (const ref of info) {
+            const url = ref?.url || ref?.raw_url || '';
+            out.push(url ? { title: String(ref.title || ref.name || '').trim(), url } : null);
+          }
+        }
+        return out;
+      },
+
+      // thinking_summary 的正文是模型自己的断行，导出时合并成一段（中英混排按需补空格）
+      _mergeThoughtLines(text) {
+        return String(text || '')
+          .split(/\n+/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .reduce((acc, line) => {
+            if (!acc) return line;
+            const needSpace = /[A-Za-z0-9]$/.test(acc) && /^[A-Za-z0-9]/.test(line);
+            return acc + (needSpace ? ' ' : '') + line;
+          }, '');
+      },
+
+      // 网页版思考摘要：summary_title[] 与 summary_thought[] 一一对应，
+      // 标题单独成行加粗（不加 1. 2. 编号），思考合并成一段跟在下方。
+      _summarySteps(item) {
+        const extra = item?.extra || {};
+        const titles = Array.isArray(extra.summary_title?.content) ? extra.summary_title.content : [];
+        const thoughts = Array.isArray(extra.summary_thought?.content) ? extra.summary_thought.content : [];
+        const total = Math.max(titles.length, thoughts.length);
+        const blocks = [];
+        for (let i = 0; i < total; i++) {
+          const title = String(titles[i] || '').trim();
+          const thought = this._mergeThoughtLines(thoughts[i]);
+          const parts = [];
+          if (title) parts.push(`**${title}**`);
+          if (thought) parts.push(thought);
+          if (parts.length) blocks.push(parts.join('\n\n'));
+        }
+        return blocks.join('\n\n');
       },
 
       toMarkdown(data, title, convId) {
         const chat = data?.chat || {};
-        const messages = chat?.messages || [];
+        const messages = this._orderedMessages(chat);
 
         // 从第一条消息的 models 或 assistant 的 modelName 推断模型名
         let modelName = 'unknown';
@@ -2560,6 +2789,7 @@
         lines.push('## Conversation');
         lines.push('');
 
+        const refCollector = new ReferenceCollector();
 
         for (const msg of messages) {
           if (msg.role === 'user') {
@@ -2578,6 +2808,20 @@
               if (t && !arr.includes(t)) arr.push(t);
             };
 
+            // 正文 [[N]] → [M]：N 是本回合 web_search_info 的 1-based 下标，
+            // M 是全局去重后的引用编号（仅正文真的引用了的来源才进 References）
+            const sources = this._turnSources(msg);
+            const numByIndex = new Map();
+            const replaceCitations = (text) => String(text || '').replace(/\[\[(\d+)\]\]/g, (md, d) => {
+              const idx = Number(d);
+              if (!numByIndex.has(idx)) {
+                const ref = sources[idx - 1];
+                numByIndex.set(idx, ref && ref.url ? refCollector.add(ref.title, ref.url) : null);
+              }
+              const num = numByIndex.get(idx);
+              return num ? `[${num}]` : '';
+            });
+
             // 兼容旧字段：reasoning_content 非空时视为思考
             pushUnique(thoughts, msg.reasoning_content);
 
@@ -2589,23 +2833,15 @@
                   pushUnique(thoughts, item.content);
                 } else if (phase === 'thinking_summary') {
                   // 摘要形态：content 为空，内容在 extra.summary_title / extra.summary_thought
-                  const extra = item.extra || {};
-                  const titleArr = Array.isArray(extra.summary_title?.content) ? extra.summary_title.content : [];
-                  const thoughtArr = Array.isArray(extra.summary_thought?.content) ? extra.summary_thought.content : [];
-                  const parts = [];
-                  if (titleArr.length) parts.push(`**${titleArr.join(' ')}**`);
-                  for (const line of thoughtArr) {
-                    const t = String(line || '').trim();
-                    if (t) parts.push(`- ${t}`);
-                  }
-                  if (parts.length) pushUnique(thoughts, parts.join('\n'));
+                  const steps = this._summarySteps(item);
+                  if (steps) pushUnique(thoughts, steps);
                 } else if (phase === 'answer') {
-                  pushUnique(responses, item.content);
+                  pushUnique(responses, replaceCitations(item.content));
                 }
                 // 其它 phase（web_search / image_gen_tool / 空）属于工具过程，不输出
               }
             } else {
-              pushUnique(responses, msg.content);
+              pushUnique(responses, replaceCitations(msg.content));
             }
 
             if (thoughts.length === 0 && responses.length === 0) continue;
@@ -2630,6 +2866,10 @@
 
             lines.push('');
           }
+        }
+
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
         }
 
         return lines.join('\n');
@@ -6397,9 +6637,18 @@
         return { bl, sid };
       },
 
+      /** 多账号前缀：/u/<n>/，n=0 或单账号时为空串 */
+      _accountPrefix() {
+        try {
+          const m = window.location.pathname.match(/^\/u\/(\d+)\//);
+          return m && m[1] !== '0' ? `/u/${m[1]}` : '';
+        } catch (e) { return ''; }
+      },
+
       /** batchexecute 通用调用：单次请求，at 从页面 HTML 提取 */
       async _rpc(rpc, proto, path) {
         const { bl, sid } = this._pageParams();
+        const prefix = this._accountPrefix();
 
         // XSRF/at：页面 HTML 里 "SNlM0e":"<token>:<timestamp>"（备用正则兜底）
         let at = '';
@@ -6434,7 +6683,7 @@
 
         const params = new URLSearchParams({
           rpcids: rpc,
-          'source-path': path,
+          'source-path': prefix + path,
           bl,
           'f.sid': sid,
           hl: 'en',
@@ -6445,7 +6694,7 @@
         // f.req 需要三层数组：[[["rpc","<proto>",null,"generic"]]]（两层会被 400 拒绝）
         const body = 'f.req=' + encodeURIComponent(JSON.stringify([[[rpc, proto, null, 'generic']]])) + '&at=' + encodeURIComponent(at) + '&';
 
-        const r = await fetch('/_/BardChatUi/data/batchexecute?' + params.toString(), { method: 'POST', headers, body });
+        const r = await fetch(prefix + '/_/BardChatUi/data/batchexecute?' + params.toString(), { method: 'POST', headers, body });
         if (!r.ok) throw new Error(`RPC ${rpc} ${r.status}: ${r.statusText}`);
         const t = await r.text();
         const m = t.match(/^\)\]\}['"]?\s*\n\d+\n([\s\S]*?)\n\d+\n/);
@@ -6457,7 +6706,7 @@
       },
 
       getCurrentConversationId: () => {
-        const match = window.location.pathname.match(/^\/app\/([^\/?]+)/);
+        const match = window.location.pathname.match(/^(?:\/u\/\d+)?\/app\/([^\/?]+)/);
         return match ? match[1] : null;
       },
 
@@ -6491,7 +6740,7 @@
       getCurrentProject() {
         const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
         if (pathname.includes('/app/')) return null;
-        const m = pathname.match(/^\/notebook\/([0-9a-f-]{36}|[0-9a-zA-Z_-]{8,})/i);
+        const m = pathname.match(/^(?:\/u\/\d+)?\/notebook\/([0-9a-f-]{36}|[0-9a-zA-Z_-]{8,})/i);
         if (!m) return null;
         const id = m[1];
 
@@ -6646,8 +6895,8 @@
         }
 
         const convUrl = convId
-          ? `https://gemini.google.com/app/${convId}`
-          : 'https://gemini.google.com/app';
+          ? `https://gemini.google.com${this._accountPrefix()}/app/${convId}`
+          : `https://gemini.google.com${this._accountPrefix()}/app`;
 
 
         const lines = [];
