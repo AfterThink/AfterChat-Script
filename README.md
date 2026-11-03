@@ -99,7 +99,7 @@ The script runs with `@grant none`, sends no data to any third party, and export
 
 ## Related Projects
 
-- [AfterChat-Converter](https://github.com/AfterThink/AfterChat-Converter): batch-convert official exports and third-party client backups (Claude/Qwen official exports, Cherry Studio, RikkaHub, etc.) into Markdown, the same format this script exports.
+- [AfterChat-Converter](https://github.com/AfterThink/AfterChat-Converter): Converts scattered chat history backups from various AI platforms and third-party clients into consistently formatted Markdown documents in one click. Supports official exports and client backups from ChatGPT, Claude, Qwen, Google AI Studio, Cherry Studio, RikkaHub, and more.
 - [AfterChat Desktop App](https://github.com/AfterThink/AfterChat-App-Download): manage your conversations and build a knowledge base locally.
 
 ## About

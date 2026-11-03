@@ -99,7 +99,7 @@ AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工�
 
 ## 相关项目
 
-- [AfterChat-Converter](https://github.com/AfterThink/AfterChat-Converter)：把官方导出和第三方客户端备份（Claude/Qwen 官方导出、Cherry Studio、RikkaHub 等）批量转换为 Markdown，与本脚本导出格式一致。
+- [AfterChat-Converter](https://github.com/AfterThink/AfterChat-Converter)：把分散在各 AI 平台与第三方客户端的历史聊天备份，一键转换为格式一致的 Markdown 文档。支持 ChatGPT、Claude、Qwen、Google AI Studio、Cherry Studio、RikkaHub 等官方导出与客户端备份。
 - [AfterChat 桌面端](https://github.com/AfterThink/AfterChat-App-Download)：在本地管理、构建聊天会话知识库。
 
 ## 关于
