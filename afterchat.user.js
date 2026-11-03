@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.23.6
+// @version      1.24.0
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
@@ -44,7 +44,7 @@
 // @match        https://x.com/*
 // @match        https://grok.com/*
 // @match        https://chat.deepseek.com/*
-// @match        https://copilot.microsoft.com/*
+// @match        https://copilot.com/*
 // @match        https://copilot.cloud.microsoft/*
 // @match        https://m365.cloud.microsoft/*
 // @match        https://www.perplexity.ai/*
@@ -95,6 +95,12 @@
 // =============================================================
 //  📜 Changelog 
 // =============================================================
+//  1.24.0 (2026-11-03)
+//    - Microsoft Copilot 迁移 copilot.com：列表改 POST /resources/app-shell-action，
+//      详情改 NDJSON 流（GET /chat/conversation/{id}?direction=Backward，必须带 x-streaming: true），
+//      新增 _mergeStream 合并分页；正文取 .text，引用取 targetLink + displayData.content；
+//      修正【key】独占行/表格行首的落位问题；移除已下线的 copilot.microsoft.com 适配器。
+//    - 工具调用（contentType=Code/SearchResults 的 Progress）不再写入 Thought Process，相邻重复去重。
 //  1.23.6 (2026-10-28)
 //    - Qwen 导出恢复：/api/v2/* 现在必须带 Authorization: Bearer <access_token>，
 //      仅 Cookie 会返回 200 + data.code="Unauthorized"；新增 token 读取（qwen_access_token_state /
@@ -677,6 +683,406 @@
             },
           }));
         });
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ADAPTER[copilot]  Microsoft Copilot (copilot.com)
+    // ═══════════════════════════════════════════════════════
+    // 与 ADAPTER[m365] 是同一套 SSR 前端（React Router 7）换了域名，差别只有两处：
+    //   - 列表：POST /resources/app-shell-action（action=GetConversationPageHistoryList）
+    //     请求体 / 响应体与 m365 完全一致（store.conversationPageHistoryList），
+    //     服务端返回“累加式”列表（第 N 页 = 前 N 页并集），syncState 为下一页游标。
+    //   - 详情：GET /chat/conversation/{id}?direction=Backward → NDJSON 流。
+    //     必须带 x-streaming: true，否则服务端只回 SSR bootstrap JSON（没有 messages）。
+    //     流内逐行是 {messages,...} / {isLastPage} / {__shell} / {__metrics}；
+    //     多页时按 pageDirection 合并（backward 页前置、forward 页后置，messageId 去重）。
+    //   - 鉴权：同源 Cookie（MSAL token 在 localStorage，但请求不需要手动带 Bearer）。
+    {
+      id: 'copilot',
+      name: 'Microsoft Copilot',
+      detect: () => window.location.hostname === 'copilot.com',
+
+      getCurrentConversationId: () => {
+        const match = window.location.pathname.match(/^\/chat\/conversation\/([^\/?]+)/);
+        return match ? match[1] : null;
+      },
+
+      _hostContext() {
+        return JSON.stringify({
+          clientPlatform: 'web', hostName: 'officeweb', appName: 'SSR', appMode: 'default',
+        });
+      },
+
+      _uuid() {
+        try {
+          if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return crypto.randomUUID();
+          }
+        } catch (e) { /* ignore */ }
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          return (c === 'x' ? r : ((r & 0x3) | 0x8)).toString(16);
+        });
+      },
+
+      async getAllConversations(onProgress, { boundary } = {}) {
+        let allChats = [];
+        let syncState = '';
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+
+        while (allChats.length < limit) {
+          const page = await this._fetchListPage(syncState, allChats);
+          if (!page || !Array.isArray(page.chats)) break;
+          if (page.chats.length <= allChats.length) break;
+
+          const newItems = page.chats.slice(allChats.length);
+          allChats = page.chats;
+          syncState = page.syncState || '';
+          if (onProgress) onProgress(allChats.length);
+          if (isPagePastBoundary(newItems, boundary)) break;
+          if (!syncState) break;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        return allChats.slice(0, limit).map((c) => ({
+          id: c.conversationId || '',
+          title: (c.chatName || '').trim(),
+          createTimeUtc: c.createTimeUtc,
+          updateTimeUtc: c.updateTimeUtc,
+          tone: c.tone,
+          path: c.path,
+        })).filter((c) => c.id);
+      },
+
+      // 列表分页请求（返回 store.conversationPageHistoryList）
+      async _fetchListPage(syncState, existingChats) {
+        const resp = await fetch('/resources/app-shell-action', {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'x-route-id': 'app-shell-action',
+            'x-host-context': this._hostContext(),
+            'x-session-id': this._uuid(),
+          },
+          body: JSON.stringify({
+            action: 'GetConversationPageHistoryList',
+            syncState: syncState || '',
+            enableLastMessage: true,
+            conversationHistoryFilter: null,
+            state: {
+              conversationPageHistoryList: {
+                chats: existingChats || [],
+                syncState: syncState || '',
+              },
+            },
+          }),
+        });
+        if (!resp.ok) throw new Error(`列表API ${resp.status}: ${resp.statusText}`);
+        const body = await resp.json();
+        return body?.store?.conversationPageHistoryList ?? null;
+      },
+
+      async getConversationDetails(id) {
+        const url = `/chat/conversation/${encodeURIComponent(id)}?direction=Backward`;
+        const resp = await fetch(url, {
+          headers: {
+            'accept': 'application/x-ndjson,application/json',
+            // 关键：缺了 x-streaming，服务端只回 SSR bootstrap JSON（无 messages）
+            'x-streaming': 'true',
+            'x-streaming-shell': 'true',
+            'x-streaming-direction': 'Backward',
+            'x-route-id': 'chat-history',
+            'x-slim-rehydration': 'true',
+            'x-host-context': this._hostContext(),
+            'x-session-id': this._uuid(),
+            'x-rehydration-id': this._uuid(),
+          },
+        });
+        if (!resp.ok) throw new Error(`详情API ${resp.status}: ${resp.statusText}`);
+
+        const { messages, meta } = this._mergeStream(await resp.text());
+        if (!messages.length) throw new Error('无消息数据');
+
+        const chatName = (meta?.chatName || '').trim();
+        return {
+          // 供核心 getChatTitle 读取（单条导出的文件名兜底）
+          title: chatName,
+          chatName,
+          tone: meta?.tone || '',
+          createTimeUtc: meta?.createTimeUtc,
+          updateTimeUtc: meta?.updateTimeUtc,
+          conversationId: meta?.conversationId || id,
+          messages,
+        };
+      },
+
+      /**
+       * 解析 NDJSON 流并按客户端同款规则合并多页消息。
+       * 客户端实现见 main bundle 的 readConversationStreamLoaderPayload：
+       *   backward 页 → [...newMessages, ...existing]（更早的消息放前面）
+       *   forward  页 → [...existing, ...newMessages]
+       *   messageId 已存在则丢弃重复项
+       */
+      _mergeStream(text) {
+        let messages = [];
+        let meta = null;
+
+        for (const line of String(text || '').split('\n')) {
+          const raw = line.trim();
+          if (!raw) continue;
+          let obj;
+          try { obj = JSON.parse(raw); } catch (e) { continue; }
+
+          // 流首尾的壳/指标行，不含消息
+          if (obj.__shell || obj.__metrics) continue;
+          if (!Array.isArray(obj.messages)) continue;
+
+          const pageMsgs = obj.messages;
+          if (!meta) meta = obj;
+
+          if (!pageMsgs.length) continue;
+          const ids = new Set(pageMsgs.map((m) => m && m.messageId).filter(Boolean));
+          const kept = ids.size
+            ? messages.filter((m) => !m || !m.messageId || !ids.has(m.messageId))
+            : messages;
+          messages = obj.pageDirection === 'Forward'
+            ? [...kept, ...pageMsgs]
+            : [...pageMsgs, ...kept];
+        }
+
+        return { messages, meta };
+      },
+
+      /** 将 copilot.com 聊天数据转为 Markdown */
+      toMarkdown(data, title, convId) {
+        const messages = data?.messages || [];
+        if (!messages.length) throw new Error('无消息数据');
+
+        const modelName = data?.tone || 'Microsoft Copilot';
+        const timeMs = normalizeTimestamp(data?.createTimeUtc);
+        const timeStr = timeMs ? formatLocalTime(new Date(timeMs)) : 'unknown';
+        const convUrl = convId
+          ? `https://copilot.com/chat/conversation/${convId}`
+          : 'https://copilot.com';
+
+        const lines = [];
+        lines.push('## Metadata');
+        lines.push('');
+        lines.push('- **Model:** `' + modelName + '`');
+        lines.push(`- **Time:** ${timeStr}`);
+        lines.push(`- **URL:** ${convUrl}`);
+        lines.push('');
+        lines.push('## Conversation');
+        lines.push('');
+
+        // ---- 第一遍：收集引用，按 URL 全局去重编号 ----
+        const refCollector = new ReferenceCollector();
+        const msgCitationMap = new Map(); // msgIndex → Map<refKey, globalNum>
+
+        for (let i = 0; i < messages.length; i++) {
+          const msg = messages[i];
+          if (!this._isFinalResponse(msg)) continue;
+          const text = this._getResponseText(msg);
+          if (!text) continue;
+
+          const refs = msg.references || {};
+          const localMap = new Map();
+          const keys = [...new Set([...text.matchAll(/【([^】]+)】/g)].map((m) => m[1]))];
+
+          for (const key of keys) {
+            const info = this._resolveReference(refs[key]);
+            // 无外链的引用（如 maikit-sdl 图片卡）不登记，正文里连同标记一起去掉
+            if (!info) continue;
+            localMap.set(key, refCollector.add(info.title, info.url));
+          }
+          msgCitationMap.set(i, localMap);
+        }
+
+        // ---- 第二遍：生成正文 ----
+        for (let i = 0; i < messages.length; i++) {
+          const msg = messages[i];
+          const author = msg?.author;
+
+          if (author === 'user') {
+            const text = this._getMessageText(msg).trim();
+            if (!text) continue;
+            lines.push('### 🧑‍💻 User');
+            lines.push('');
+            lines.push(stripHashes(text));
+            lines.push('');
+            continue;
+          }
+
+          if (author !== 'bot') continue;
+          if (this._isThinkingMsg(msg)) continue;
+
+          const responseText = this._getResponseText(msg);
+          if (!responseText) continue;
+
+          // 紧邻本条回复之前的思考过程（Progress）
+          const thoughts = [];
+          for (let j = i - 1; j >= 0; j--) {
+            if (!this._isThinkingMsg(messages[j])) break;
+            const t = this._thinkingText(messages[j]);
+            if (!t) continue;
+            // 连续重复的同一句状态（工具调用常见）只留一条
+            if (thoughts.length && thoughts[0] === t) continue;
+            thoughts.unshift(t);
+          }
+
+          const citeMap = msgCitationMap.get(i) || new Map();
+          // copilot.com 会把引用标记单独成行（甚至跑到表格行首），先并回上一行再替换
+          const normalized = this._normalizeCitationPlacement(responseText);
+          const cleaned = normalized.replace(/【([^】]+)】/g, (_, key) => {
+            const n = citeMap.get(key);
+            return n !== undefined && n !== null ? `[${n}]` : '';
+          });
+
+          lines.push('### 🤖 Assistant');
+          lines.push('');
+
+          if (thoughts.length > 0) {
+            lines.push('#### 🤔 Thought Process');
+            lines.push('');
+            for (const t of thoughts) {
+              lines.push(stripHashes(t));
+              lines.push('');
+            }
+            lines.push('#### 💡 Response');
+            lines.push('');
+          }
+
+          // 去掉引用标记被移除后残留的行尾空行
+          lines.push(stripHashes(cleaned).replace(/\s+$/, ''));
+          lines.push('');
+        }
+
+        // ---- References ----
+        if (refCollector.hasReferences()) {
+          lines.push(...refCollector.render());
+        }
+
+        return lines.join('\n');
+      },
+
+      // ---- 内部辅助方法 ----
+      _isThinkingMsg(msg) {
+        if (!msg) return false;
+        return msg.messageType === 'Progress'
+          || msg.addToChainOfThought === true
+          || msg.contentType === 'SearchResults';
+      },
+
+      _isFinalResponse(msg) {
+        if (!msg || msg.author !== 'bot') return false;
+        if (this._isThinkingMsg(msg)) return false;
+        return this._getResponseText(msg) !== null;
+      },
+
+      /**
+       * Progress 消息里只有模型自己的思考链才值得导出。
+       * contentType=Code（代码解释器）/ SearchResults 等是工具调用：text 只是「正在编码和执行」
+       * 这类状态标签，真正内容在 hiddenText 的脚本里，导出正文时跳过（与其它适配器「工具调用不输出正文」一致）。
+       */
+      _thinkingText(msg) {
+        if (!msg) return '';
+        if (msg.addToChainOfThought === true) return this._getMessageText(msg).trim();
+        if (msg.messageType === 'Progress' && !msg.contentType) return this._getMessageText(msg).trim();
+        return '';
+      },
+
+      /** copilot.com 正文在 .text（adaptiveCards 只剩 type/version，没有 body） */
+      _getMessageText(msg) {
+        if (!msg) return '';
+        return typeof msg.text === 'string' ? msg.text : '';
+      },
+
+      /** 优先用 adaptiveCards 正文（老结构兼容），否则回退 .text */
+      _getResponseText(msg) {
+        if (!msg) return null;
+        try {
+          const ac = msg.adaptiveCards[0].body[0].text;
+          if (typeof ac === 'string' && ac.trim()) return ac;
+        } catch (e) { /* 新版没有 body，回落 .text */ }
+        const text = this._getMessageText(msg);
+        return text.trim() ? text : null;
+      },
+
+      /**
+       * Copilot 的引用标记【key】常常独占一行（表格里甚至落到下一行行首），
+       * 直接替换会留下空行或把表格打断。这里把它并回上一非空行末尾：
+       *   - 上一行是表格行（| ... |）→ 插到结尾 | 之前，仍在单元格内
+       *   - 否则 → 直接贴到上一行行尾（中文标点后不留空格）
+       */
+      _normalizeCitationPlacement(text) {
+        const lines = String(text || '').split('\n');
+        const out = [];
+
+        for (const line of lines) {
+          const m = line.match(/^[ \t]*(【[^】]+】)(.*)$/);
+          if (!m) {
+            out.push(line);
+            continue;
+          }
+
+          const marker = m[1];
+          const rest = m[2];
+
+          // 往上找最近的非空行作为落点（跳过中间的空行）
+          let target = out.length - 1;
+          while (target >= 0 && !out[target].trim()) target--;
+          if (target < 0) {
+            out.push(line);
+            continue;
+          }
+
+          const prev = out[target];
+          if (/^\s*\|.*\|\s*$/.test(prev)) {
+            out[target] = prev.replace(/\|\s*$/, marker + '|');
+          } else {
+            out[target] = prev.replace(/\s*$/, '') + marker;
+          }
+
+          if (rest.trim()) out.push(rest);
+        }
+
+        return out.join('\n');
+      },
+
+      /**
+       * 解析单条引用：新结构把外链放在 targetLink，标题在 displayData.content(JSON)。
+       * 没有 targetLink 的（如图片卡 maikit-sdl）返回 null。
+       */
+      _resolveReference(ref) {
+        if (!ref || typeof ref !== 'object') return null;
+        const url = typeof ref.targetLink === 'string' ? ref.targetLink.trim() : '';
+        if (!url) return null;
+        return { url, title: this._referenceTitle(ref) };
+      },
+
+      /** 引用标题：displayData.title / content JSON 里的可读名 → 域名兜底 */
+      _referenceTitle(ref) {
+        const dd = ref && ref.displayData;
+        if (dd && typeof dd === 'object') {
+          for (const key of ['title', 'name']) {
+            if (typeof dd[key] === 'string' && dd[key].trim()) return dd[key].trim();
+          }
+          if (typeof dd.content === 'string') {
+            try {
+              const c = JSON.parse(dd.content);
+              // 注意：label 是角标数字（"1"），不能当标题
+              for (const key of ['title', 'name', 'providerDisplayName']) {
+                if (typeof c?.[key] === 'string' && c[key].trim()) return c[key].trim();
+              }
+            } catch (e) { /* 非 JSON，忽略 */ }
+          }
+          if (typeof dd.providerDisplayName === 'string' && dd.providerDisplayName.trim()) {
+            return dd.providerDisplayName.trim();
+          }
+        }
+        return typeof ref.title === 'string' ? ref.title.trim() : '';
       },
     },
 
@@ -5341,175 +5747,6 @@
         function add32(a, b) { return a + b & 4294967295; }
         var hex_chr = '0123456789abcdef'.split('');
         return hex(md51(s));
-      },
-    },
-
-    // ═══════════════════════════════════════════════════════
-    //  ADAPTER[copilot]  Microsoft Copilot (copilot.microsoft.com)
-    // ═══════════════════════════════════════════════════════
-    {
-      id: 'copilot',
-      name: 'Microsoft Copilot',
-      detect: () => window.location.hostname === 'copilot.microsoft.com',
-
-      getCurrentConversationId: () => {
-        const match = window.location.pathname.match(/^\/chats\/([^\/?]+)/);
-        return match ? match[1] : null;
-      },
-
-      /**
-       * 从 MSAL localStorage 缓存中提取 Bearer token。
-       * MSAL.js v2 将 token 存储在 localStorage，key 包含 |accesstoken|，
-       * value 为 JSON 对象，secret 字段即 Bearer token。
-       */
-      _token() {
-        try {
-          let fallback = '';
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (!key || !key.includes('accesstoken')) continue;
-            const raw = localStorage.getItem(key);
-            if (!raw) continue;
-            const parsed = JSON.parse(raw);
-            if (!parsed.secret) continue;
-            // 优先返回 copilot API 需要的 ChatAI.ReadWrite scope 的 token
-            const target = (parsed.target || '').toLowerCase();
-            if (target.includes('chatai.readwrite')) {
-              return parsed.secret;
-            }
-            // 兜底：记录第一个有效的 token
-            if (!fallback) fallback = parsed.secret;
-          }
-          return fallback;
-        } catch (e) { /* ignore */ }
-        return '';
-      },
-
-      _headers() {
-        const h = { 'accept': '*/*' };
-        const token = this._token();
-        if (token) h['authorization'] = 'Bearer ' + token;
-        return h;
-      },
-
-
-
-      async getAllConversations(onProgress, { boundary } = {}) {
-        const allChats = [];
-        let cursor = '';
-        const limit = CONFIG.DEBUG_LIMIT || Infinity;
-
-        while (allChats.length < limit) {
-          const params = new URLSearchParams({
-            cursor: cursor,
-            types: 'chat,character,xbox,group',
-            features: 'anonymous-block-page',
-            setflight: 'anonymous-block-page',
-          });
-          const url = `/c/api/conversations?${params}`;
-          const r = await fetch(url, { headers: this._headers() });
-          if (!r.ok) throw new Error(`列表API ${r.status}: ${r.statusText}`);
-          const body = await r.json();
-          const items = body?.results || [];
-          if (!items.length) break;
-
-          allChats.push(...items);
-          if (onProgress) onProgress(allChats.length);
-          if (isPagePastBoundary(items, boundary)) break;
-
-          if (!body.next) break;
-          cursor = body.next;
-          await sleep(CONFIG.API_PAGE_DELAY);
-        }
-
-        return allChats.slice(0, limit).map((c) => ({
-          id: c.id || '',
-          title: (c.title || '').trim(),
-          updated_at: c.updatedAt,
-        }));
-      },
-
-      async getConversationDetails(id) {
-        const params = new URLSearchParams({
-          'api-version': '2',
-          'features': 'anonymous-block-page',
-          'setflight': 'anonymous-block-page',
-        });
-        const url = `/c/api/conversations/${encodeURIComponent(id)}/history?${params}`;
-        const r = await fetch(url, { headers: this._headers() });
-        if (!r.ok) throw new Error(`详情API ${r.status}: ${r.statusText}`);
-        const data = await r.json();
-
-        // 从对话元数据 API 获取标题，供文件命名用
-        try {
-          const metaR = await fetch(`/c/api/conversations/${encodeURIComponent(id)}`, { headers: this._headers() });
-          if (metaR.ok) {
-            const meta = await metaR.json();
-            if (meta.title) data.title = meta.title;
-          }
-        } catch (e) { /* 标题不影响核心导出 */ }
-
-        return data;
-      },
-
-      /** 将 copilot 聊天数据转为 Markdown */
-      toMarkdown(data, title, convId) {
-        const results = data?.results || [];
-        if (!results.length) throw new Error('无消息数据');
-
-        // API 返回 newest-first，翻转成时间正序
-        const messages = [...results].reverse();
-
-        const modelName = 'Microsoft Copilot';
-
-        // 取最早消息的时间作为对话创建时间
-        const firstMsg = messages[0];
-        const timeStr = firstMsg?.createdAt
-          ? formatLocalTime(new Date(firstMsg.createdAt))
-          : 'unknown';
-        const convUrl = convId
-          ? `https://copilot.microsoft.com/chats/${convId}`
-          : 'https://copilot.microsoft.com';
-
-
-        const lines = [];
-        lines.push('## Metadata');
-        lines.push('');
-        lines.push(`- **Model:** \`${modelName}\``);
-        lines.push(`- **Time:** ${timeStr}`);
-        lines.push(`- **URL:** ${convUrl}`);
-        lines.push('');
-        lines.push('## Conversation');
-        lines.push('');
-
-        for (const msg of messages) {
-          const authorType = msg?.author?.type;
-          const contentItems = msg?.content || [];
-
-          // 拼接所有 content 中的文本片段
-          let text = '';
-          for (const c of contentItems) {
-            if (c.type === 'text' && c.text) {
-              text += c.text;
-            }
-          }
-          text = text.trim();
-          if (!text) continue;
-
-          if (authorType === 'human') {
-            lines.push('### 🧑‍💻 User');
-            lines.push('');
-            lines.push(stripHashes(text));
-            lines.push('');
-          } else if (authorType === 'ai') {
-            lines.push('### 🤖 Assistant');
-            lines.push('');
-            lines.push(stripHashes(text));
-            lines.push('');
-          }
-        }
-
-        return lines.join('\n');
       },
     },
 

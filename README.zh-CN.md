@@ -15,7 +15,46 @@ AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工�
 
 一键将 **ChatGPT、Claude、Gemini、DeepSeek、GLM、千问** 等 30 个主流 AI 平台的聊天记录导出为 **Markdown 文件**，完整保留**思考过程**与**引用来源**，方便个人备份、迁移与离线阅读。
 
-安装 [AfterChat 桌面端](https://github.com/AfterThink/AfterChat-App-Download)后，支持一键保存当前对话到 AfterChat 工作区。
+<p align="center">
+  <img src="https://fastly.jsdelivr.net/gh/AfterThink/assets@main/afterchat-script/demo-export-markdown.gif" alt="导出 Markdown 演示" width="300" />
+  <br>
+  <sub>左键点击页面右下角悬浮按钮，一键下载当前对话为 Markdown 文件</sub>
+</p>
+
+## 安装
+
+安装暴力猴（[Chrome](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) / [Firefox](https://addons.mozilla.org/firefox/addon/violentmonkey/)）或 Tampermonkey（[Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) / [Firefox](https://addons.mozilla.org/firefox/addon/tampermonkey/)）后，点击下面的链接，在弹出的确认框中点安装即可：
+
+👉 **[安装 AfterChat — LLM 对话导出器 (Greasy Fork)](https://update.greasyfork.org/scripts/589622/AfterChat%20%E2%80%94%20LLM%20Chat%20Exporter.user.js)**
+
+## 使用方式
+
+脚本在页面右下角显示一个常驻下载按钮：
+
+| 场景 | 操作 | 行为 |
+| --- | --- | --- |
+| 对话页 | **左键** | **导出当前对话**（下载为 `.md` 文件） |
+| 对话页 | **右键** | **一键存入 AfterChat**（同步到桌面端工作区） |
+| 项目页 | **左键** | **项目批量导出**：一键打包当前项目/工作区内的全部对话 |
+| 默认页 | **左键** | **增量批量导出**：仅打包新增对话，自动跳过已导出的记录 |
+| 默认页 | **Shift + 左键** | **强制全量导出**：重新拉取并打包所有对话 |
+
+安装 [AfterChat 桌面端](https://github.com/AfterThink/AfterChat-App-Download)，在对话页**右键点击按钮**，即可将对话直存到客户端工作区：
+
+<p align="center">
+  <img src="https://fastly.jsdelivr.net/gh/AfterThink/assets@main/afterchat-script/demo-save-to-afterchat.gif" alt="保存到 AfterChat 演示" width="85%" />
+  <br>
+  <sub>右键直传 AfterChat 桌面端，免去手动存盘与文件分类整理</sub>
+</p>
+
+## 功能特性
+
+- **多平台适配**：支持 30 个主流 LLM 平台。
+- **单条 / 批量导出**：同时支持导出当前对话和全部对话。
+- **项目 / 工作区导出**：智能识别项目/工作区文件夹，一键打包项目内会话。
+- **增量导出**：列表页批量导出默认跳过已下载过的对话，只拉取新增/更新对话。
+- **内容保真**：导出内容包含用户消息、AI 回复、**思考过程**，以及**引用来源**。
+- **一键存到 AfterChat**：在对话详情页**右键点击按钮**，将当前对话直接存入 [AfterChat 桌面端](https://github.com/AfterThink/AfterChat-App-Download) 工作区。
 
 ## 支持平台
 
@@ -28,7 +67,7 @@ AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工�
 | Grok（X） | `x.com/i/grok` |
 | Grok | `grok.com` |
 | DeepSeek | `chat.deepseek.com` |
-| Microsoft Copilot | `copilot.microsoft.com` |
+| Microsoft Copilot | `copilot.com` |
 | M365 Copilot | `copilot.cloud.microsoft` |
 | Perplexity | `perplexity.ai` |
 | Kimi | `kimi.com` |
@@ -51,33 +90,6 @@ AfterChat 是一个免费开源的 **AI 对话导出器 / 聊天记录备份工�
 | Dola | `dola.com` |
 | 阶跃星辰 StepFun AI Studio | `studio.stepfun.ai` / `studio.stepfun.com` |
 | 阶跃星辰 StepFun Chat | `chat.stepfun.com` |
-
-## 安装
-
-安装暴力猴（[Chrome](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) / [Firefox](https://addons.mozilla.org/firefox/addon/violentmonkey/)）或 Tampermonkey（[Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) / [Firefox](https://addons.mozilla.org/firefox/addon/tampermonkey/)）后，点击下面的链接，在弹出的确认框中点安装即可：
-
-[安装 AfterChat — LLM 对话导出器](https://update.greasyfork.org/scripts/589622/AfterChat%20%E2%80%94%20LLM%20Chat%20Exporter.user.js)
-
-## 功能特性
-
-- **多平台适配**：支持 30 个主流 LLM 平台。
-- **单条 / 批量导出**：同时支持导出当前对话和全部对话。
-- **项目 / 工作区导出**：智能识别项目/工作区文件夹，一键打包项目内会话。
-- **增量导出**：列表页批量导出默认跳过已下载过的对话，只拉取新增/更新对话。
-- **内容保真**：导出内容包含用户消息、AI 回复、**思考过程**，以及**引用来源**。
-- **一键存到 AfterChat**：在对话详情页**右键点击按钮**，将当前对话直接存入 AfterChat 工作区。
-
-## 使用
-
-脚本在页面右下角显示一个下载按钮：
-
-| 场景 | 操作 | 行为 |
-| --- | --- | --- |
-| 对话页 | **左键** | 导出当前对话 |
-| 对话页 | **右键** | 将当前对话保存到 AfterChat 工作区 |
-| 项目页 | **左键** | 项目导出：仅打包当前项目/工作区内的全部对话 |
-| 默认页 | **左键** | 增量导出：仅打包新增的对话，跳过已导出的 |
-| 默认页 | **Shift + 左键** | 强制全量导出，重新下载全部对话 |
 
 ## 隐私与安全
 
