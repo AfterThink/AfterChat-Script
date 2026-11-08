@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.24.0
+// @version      1.24.1
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
@@ -95,6 +95,12 @@
 // =============================================================
 //  📜 Changelog 
 // =============================================================
+//  1.24.1 (2026-11-08)
+//    - 修复 Google AI Mode（gaim）代码块丢失及纯代码回复 Assistant 消息丢失：
+//      _bodyBlocks 增加 .aiModeUiCodeBlock__Container / pre 提取，_countTurns 补充代码块感知；
+//      优先从内联 TgQPHd 解析语言与格式化代码。
+//    - 修复 Google AI Mode（gaim）下划线外链丢失 URL：_resolveAnchorUrl 递归解析自身及父级
+//      TgQPHd 注释与 _resolvedTokens，正文普通链接导出为 [title](url)。
 //  1.24.0 (2026-11-03)
 //    - Microsoft Copilot 迁移 copilot.com：列表改 POST /resources/app-shell-action，
 //      详情改 NDJSON 流（GET /chat/conversation/{id}?direction=Backward，必须带 x-streaming: true），
@@ -7452,7 +7458,7 @@
           let n = 0;
           for (const el of doc.querySelectorAll('div.CKgc1d')) {
             if (!(el.parentElement && el.parentElement.closest('div.CKgc1d'))) {
-              if (el.querySelector('h2.iMqumd') || el.querySelector('div.pWvJNd') || el.querySelector('div.n6owBd')) n++;
+              if (el.querySelector('h2.iMqumd') || el.querySelector('div.pWvJNd') || el.querySelector('div.n6owBd') || el.querySelector('.aiModeUiCodeBlock__Container, pre')) n++;
             }
           }
           return n;
@@ -7748,7 +7754,83 @@
           const payload = this._parseTgqPayload(raw);
           if (payload) walkPayload(payload);
         });
+
+        if (root && root.querySelectorAll) {
+          for (const a of root.querySelectorAll('a[href]')) {
+            const href = a.getAttribute('href') || '';
+            const token = this._gotoToken(href);
+            if (token) info.tokens.add(token);
+          }
+        }
         return info;
+      },
+
+      /** 解析正文内普通 <a> 链接的真实目标 URL */
+      _resolveAnchorUrl(a, title, sourceInfo) {
+        if (!a) return '';
+        let directUrl = '';
+        // 1. 优先从 <a> 自身注释中的 TgQPHd 获取真实目标 URL
+        this._walkComments(a, (node) => {
+          if (directUrl) return;
+          const p = this._parseTgqPayload(node.nodeValue);
+          if (p) {
+            const findHttp = (v) => {
+              if (typeof v === 'string' && this._isUsefulSourceUrl(v)) return v;
+              if (Array.isArray(v)) {
+                for (const x of v) {
+                  const res = findHttp(x);
+                  if (res) return res;
+                }
+              }
+              return '';
+            };
+            directUrl = findHttp(p);
+          }
+        });
+
+        // 2. 检查直接父元素注释
+        if (!directUrl && a.parentElement) {
+          this._walkComments(a.parentElement, (node) => {
+            if (directUrl) return;
+            const p = this._parseTgqPayload(node.nodeValue);
+            if (p) {
+              const findHttp = (v) => {
+                if (typeof v === 'string' && this._isUsefulSourceUrl(v)) return v;
+                if (Array.isArray(v)) {
+                  for (const x of v) {
+                    const res = findHttp(x);
+                    if (res) return res;
+                  }
+                }
+                return '';
+              };
+              directUrl = findHttp(p);
+            }
+          });
+        }
+
+        if (directUrl) return directUrl;
+
+        // 3. 从 sourceInfo 按标题匹配
+        if (sourceInfo && title && sourceInfo.byTitle && sourceInfo.byTitle.has(title.toLowerCase())) {
+          return sourceInfo.byTitle.get(title.toLowerCase());
+        }
+
+        // 4. 解析 href 属性
+        const href = a.getAttribute('href') || '';
+        if (this._isUsefulSourceUrl(href)) return href;
+        const token = this._gotoToken(href);
+        if (token && this._resolvedTokens && this._resolvedTokens.has(token)) {
+          return this._resolvedTokens.get(token);
+        }
+        if (href.startsWith('/goto') || href.startsWith('/url')) {
+          try {
+            return new URL(href, 'https://www.google.com').href;
+          } catch (e) {
+            return href;
+          }
+        }
+        return '';
       },
 
       /** 解析 /goto token → 真实目标 URL（Google /url 同源返回可读的 redirectUrl） */
@@ -7854,7 +7936,7 @@
         if (!blocks.length) return '';
         const chunks = [];
         for (const b of blocks) {
-          const piece = b.type === 'table' || b.type === 'list' ? b.md : b.text;
+          const piece = b.type === 'table' || b.type === 'list' || b.type === 'code' ? b.md : b.text;
           if (piece) chunks.push(piece);
         }
         let md = chunks.join('\n\n').replace(/\n{3,}/g, '\n\n');
@@ -7867,20 +7949,29 @@
         return md.trim();
       },
 
-      /** 收集 pWvJNd 内的顶层内容块（段落/小节标题/列表/表格），引用写进 refs */
+      /** 收集 pWvJNd 内的顶层内容块（段落/小节标题/列表/表格/代码块），引用写进 refs */
       _bodyBlocks(pWvJNd, refs, sourceInfo) {
         const blocks = [];
-        const ALLOW = 'div.n6owBd.awi2gc, div[role="heading"][aria-level], ul.XSq4R, table.NRefec';
+        const ALLOW = 'div.n6owBd.awi2gc, div[role="heading"][aria-level], ul.XSq4R, table.NRefec, div.aiModeUiCodeBlock__Container, div.BpxUDf, pre';
         for (const el of pWvJNd.querySelectorAll(ALLOW)) {
-          if (el.closest('.DBd2Wb, .RkJvxe')) continue;   // 复制/分享/反馈等 UI
+          if (el.closest('.DBd2Wb, .RkJvxe, .QRnEfb')) continue;   // 复制/分享/反馈等 UI
           if (blocks.some((b) => b.dom && b.dom.contains(el))) continue; // 嵌套块
           if (el.tagName === 'UL' && el.closest('li')) continue; // 由外层列表递归
           if (el.tagName === 'TABLE' && el.closest('li, div.n6owBd')) continue; // 表格在段落内罕见，跳过避免与段落串扰
           const isHeading = el.getAttribute('role') === 'heading';
+          const isCode = el.classList.contains('aiModeUiCodeBlock__Container') ||
+            el.classList.contains('BpxUDf') ||
+            el.tagName === 'PRE';
           if (isHeading && el.closest('div.n6owBd, li')) continue;
           if (el.classList.contains('n6owBd') && el.closest('li')) continue;
+          if (isCode && el.closest('li')) continue;
+          if (el.tagName === 'PRE' && el.parentElement && el.parentElement.closest('.aiModeUiCodeBlock__Container, div.BpxUDf')) continue;
+          if (el.classList.contains('BpxUDf') && el.parentElement && el.parentElement.closest('.aiModeUiCodeBlock__Container')) continue;
           let b = null;
-          if (isHeading) {
+          if (isCode) {
+            const md = this._codeBlockMd(el);
+            if (md) b = { type: 'code', md };
+          } else if (isHeading) {
             const t = this._inline(el, refs, sourceInfo);
             if (t) {
               const bold = (t.startsWith('**') && t.endsWith('**')) ? t : '**' + t + '**';
@@ -8007,11 +8098,16 @@
               return;
             }
 
-            // 5. 链接
+            // 5. 链接（含正文下划线外链）
             if (tag === 'A') {
-              // 引用锚文本/普通链接：正文优先可读性，链接不内嵌（编号引用已由 chip 表达）
-              const t = this._textOf(n);
-              if (t) parts.push(t);
+              if (n.closest('.WBgIic')) return;
+              const t = this._textOf(n) || n.getAttribute('aria-label') || '';
+              const url = this._resolveAnchorUrl(n, t, sourceInfo);
+              if (t && url) {
+                parts.push('[' + t + '](' + url + ')');
+              } else if (t) {
+                parts.push(t);
+              }
               return;
             }
 
@@ -8037,6 +8133,40 @@
         // 连续引用紧凑连排：`[1] [2]` → `[1][2]`
         s = s.replace(/(?<=\[\d+\]) +(?=\[\d+\])/g, '');
         return s.trim();
+      },
+
+      /** 提取代码块（支持 Google AI Mode 的 .aiModeUiCodeBlock__Container / TgQPHd / pre code） */
+      _codeBlockMd(el) {
+        if (!el) return '';
+        let lang = '';
+        let code = '';
+        // 1. 优先从代码块内联的 TgQPHd 注释提取精确的语言与代码文本
+        this._walkComments(el, (node) => {
+          if (code) return;
+          const raw = node.nodeValue || '';
+          if (raw.indexOf('TgQPHd') < 0) return;
+          const payload = this._parseTgqPayload(raw);
+          if (Array.isArray(payload)) {
+            const item = Array.isArray(payload[0]) ? payload[0] : payload;
+            if (typeof item[0] === 'string' && typeof item[1] === 'string' && (item[1].includes('\n') || item[1].length > 0)) {
+              lang = item[0].trim().toLowerCase();
+              code = item[1];
+            }
+          }
+        });
+
+        // 2. DOM 提取兜底
+        if (!code) {
+          const codeEl = el.querySelector('pre code, code, pre') || (el.tagName === 'PRE' ? el : null);
+          if (codeEl) code = codeEl.textContent || '';
+        }
+        if (!lang) {
+          const langEl = el.querySelector('.GlO4G, .a2TNg');
+          if (langEl) lang = (langEl.textContent || '').trim().toLowerCase();
+        }
+
+        code = code.replace(/\r\n/g, '\n').replace(/\n+$/, '');
+        return '```' + (lang || '') + '\n' + code + '\n```';
       },
 
       /** 表格 → 管道表格 */
