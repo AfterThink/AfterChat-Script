@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.24.1
+// @version      1.24.2
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
@@ -95,6 +95,10 @@
 // =============================================================
 //  📜 Changelog 
 // =============================================================
+//  1.24.2 (2026-11-17)
+//    - 修复 Google AI Mode（gaim）手机端 UA 导出缺失 Assistant 回复：
+//      手机端 DOM 正文未包裹在 div.pWvJNd 中，_extractAnswerMd 增加回退容器兼容；
+//      _bodyBlocks 排除用户提问容器干扰，_countTurns 增强手机端语义块识别。
 //  1.24.1 (2026-11-08)
 //    - 修复 Google AI Mode（gaim）代码块丢失及纯代码回复 Assistant 消息丢失：
 //      _bodyBlocks 增加 .aiModeUiCodeBlock__Container / pre 提取，_countTurns 补充代码块感知；
@@ -7458,7 +7462,7 @@
           let n = 0;
           for (const el of doc.querySelectorAll('div.CKgc1d')) {
             if (!(el.parentElement && el.parentElement.closest('div.CKgc1d'))) {
-              if (el.querySelector('h2.iMqumd') || el.querySelector('div.pWvJNd') || el.querySelector('div.n6owBd') || el.querySelector('.aiModeUiCodeBlock__Container, pre')) n++;
+              if (el.querySelector('h2.iMqumd, div.pWvJNd, div.n6owBd, ul.XSq4R, table.NRefec, .aiModeUiCodeBlock__Container, div.BpxUDf, pre')) n++;
             }
           }
           return n;
@@ -7925,13 +7929,15 @@
         return out;
       },
 
-      /** 回合内全部 pWvJNd 正文 → markdown 字符串（引用跨块连续编号，末尾汇总 References） */
+      /** 回合内全部正文（桌面端 div.pWvJNd 或手机端/无 pWvJNd 时回退 turnEl 容器） → markdown 字符串 */
       _extractAnswerMd(turnEl, sourceInfo) {
         const info = sourceInfo || this._buildSourceInfo((turnEl && turnEl.ownerDocument) || turnEl);
         const refs = [];
         const blocks = [];
-        for (const pWvJNd of turnEl.querySelectorAll('div.pWvJNd')) {
-          blocks.push(...this._bodyBlocks(pWvJNd, refs, info));
+        const pWvRoots = turnEl.querySelectorAll('div.pWvJNd');
+        const containers = pWvRoots.length ? pWvRoots : [turnEl];
+        for (const c of containers) {
+          blocks.push(...this._bodyBlocks(c, refs, info));
         }
         if (!blocks.length) return '';
         const chunks = [];
@@ -7949,12 +7955,13 @@
         return md.trim();
       },
 
-      /** 收集 pWvJNd 内的顶层内容块（段落/小节标题/列表/表格/代码块），引用写进 refs */
+      /** 收集 pWvJNd（或桌面/移动端 turnEl 容器）内的顶层内容块（段落/小节标题/列表/表格/代码块），引用写进 refs */
       _bodyBlocks(pWvJNd, refs, sourceInfo) {
         const blocks = [];
-        const ALLOW = 'div.n6owBd.awi2gc, div[role="heading"][aria-level], ul.XSq4R, table.NRefec, div.aiModeUiCodeBlock__Container, div.BpxUDf, pre';
+        const ALLOW = 'div.n6owBd, div[role="heading"][aria-level], ul.XSq4R, table.NRefec, div.aiModeUiCodeBlock__Container, div.BpxUDf, pre';
         for (const el of pWvJNd.querySelectorAll(ALLOW)) {
           if (el.closest('.DBd2Wb, .RkJvxe, .QRnEfb')) continue;   // 复制/分享/反馈等 UI
+          if (el.closest('.sUKAcb, h2.iMqumd')) continue; // 排除回合内可能存在的用户提问容器
           if (blocks.some((b) => b.dom && b.dom.contains(el))) continue; // 嵌套块
           if (el.tagName === 'UL' && el.closest('li')) continue; // 由外层列表递归
           if (el.tagName === 'TABLE' && el.closest('li, div.n6owBd')) continue; // 表格在段落内罕见，跳过避免与段落串扰
@@ -8193,7 +8200,8 @@
         for (const li of ul.children) {
           if (li.tagName !== 'LI') continue;
           const sub = [...li.children].filter((c) => c.tagName === 'UL' || c.tagName === 'OL');
-          const wrap = document.createElement('span');
+          const doc = ul.ownerDocument || (typeof document !== 'undefined' ? document : null);
+          const wrap = doc ? doc.createElement('span') : document.createElement('span');
           for (const c of li.childNodes) {
             if (c.nodeType === 1 && (c.tagName === 'UL' || c.tagName === 'OL')) continue;
             wrap.appendChild(c.cloneNode(true));
