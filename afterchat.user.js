@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.24.2
+// @version      1.24.3
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
@@ -95,6 +95,12 @@
 // =============================================================
 //  📜 Changelog 
 // =============================================================
+//  1.24.3 (2026-11-18)
+//    - 移动端避让：针对窄屏（max-width: 768px）将导出按钮位置从贴底抬高至
+//      calc(88px + env(safe-area-inset-bottom, 0px))，避开输入栏与原生发送按键。
+//    - 修复增量时间编辑体验：移除 datetime-local 的 change 即时销毁 Bug，
+//      消除逐段失焦反复双击问题；支持 Enter 确认、Esc 取消、外部点击提交；
+//      采用一体化胶囊包装确认对勾，消除外挂方块边框，保证 Firefox/Chrome/Safari 跨浏览器原生体验。
 //  1.24.2 (2026-11-17)
 //    - 修复 Google AI Mode（gaim）手机端 UA 导出缺失 Assistant 回复：
 //      手机端 DOM 正文未包裹在 div.pWvJNd 中，_extractAnswerMd 增加回退容器兼容；
@@ -2006,7 +2012,7 @@
           ) {
             return null;
           }
-        } catch (_) {}
+        } catch (_) { }
 
         const t = (document.title || '').trim();
         // 2. 首页/未打开任何会话时的固定标题（各语言版本均为 Duck.ai 开头并包含 DuckDuckGo，
@@ -2303,7 +2309,7 @@
             this._projectCache = this._projectCache || {};
             this._projectCache[projectId] = name;
           }
-        }).catch(() => {}).finally(() => {
+        }).catch(() => { }).finally(() => {
           this._projectFetching.delete(projectId);
         });
       },
@@ -2418,7 +2424,7 @@
         try {
           const activeAccount = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('pplx-active-account') : null;
           if (activeAccount) headers['x-pplx-account'] = activeAccount;
-        } catch (_) {}
+        } catch (_) { }
         return headers;
       },
 
@@ -2454,7 +2460,7 @@
         try {
           const activeAccount = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('pplx-active-account') : null;
           if (activeAccount) headers['x-pplx-account'] = activeAccount;
-        } catch (_) {}
+        } catch (_) { }
         const r = await fetch('/rest/perplexity_ask/graphql', {
           method: 'POST',
           headers,
@@ -2988,7 +2994,7 @@
             this._projectCache = this._projectCache || {};
             this._projectCache[projectId] = name;
           }
-        }).catch(() => {}).finally(() => {
+        }).catch(() => { }).finally(() => {
           this._projectFetching.delete(projectId);
         });
       },
@@ -3325,7 +3331,7 @@
               this._projectCache[gid] = gname;
             }
           }
-        }).catch(() => {}).finally(() => {
+        }).catch(() => { }).finally(() => {
           this._projectFetching.delete(groupId);
         });
       },
@@ -3384,7 +3390,7 @@
             const match = name.match(/\/qianwen-web\/(\d+\.\d+\.\d+)\//);
             if (match) return match[1];
           }
-        } catch (e) {}
+        } catch (e) { }
         return '4.0.7';
       },
 
@@ -3396,7 +3402,7 @@
         const version = this._webVersion();
         const nav = typeof navigator !== 'undefined' ? navigator : { language: 'zh-CN' };
         let tz = 'Asia/Shanghai';
-        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai'; } catch (e) {}
+        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai'; } catch (e) { }
         return new URLSearchParams({
           biz_id: 'ai_qwen',
           chat_client: 'h5',
@@ -3917,7 +3923,7 @@
             this._projectCache = this._projectCache || {};
             this._projectCache[projectId] = name;
           }
-        }).catch(() => {}).finally(() => {
+        }).catch(() => { }).finally(() => {
           this._projectFetching.delete(projectId);
         });
       },
@@ -4592,7 +4598,7 @@
             this._projectCache = this._projectCache || {};
             this._projectCache[projectId] = name;
           }
-        }).catch(() => {}).finally(() => {
+        }).catch(() => { }).finally(() => {
           this._projectFetching.delete(projectId);
         });
       },
@@ -4958,7 +4964,7 @@
               window.__m365Controller.updateLabel();
             }
           })
-          .catch(() => {})
+          .catch(() => { })
           .finally(() => {
             this._fetchingProjectId = null;
           });
@@ -5416,7 +5422,7 @@
             this._projectCache = this._projectCache || {};
             this._projectCache[projectId] = p.name;
           }
-        }).catch(() => {}).finally(() => {
+        }).catch(() => { }).finally(() => {
           this._projectFetching.delete(projectId);
         });
       },
@@ -5866,7 +5872,7 @@
 
         for (let i = 0; i < messages.length; i++) {
           const msg = messages[i];
-          const prev = i > 0 ? messages[i-1] : null;
+          const prev = i > 0 ? messages[i - 1] : null;
           const isContinuedModel = (msg.role === 'model' || msg.role === 'assistant') && prev && (prev.role === 'model' || prev.role === 'assistant');
 
           const tp = convertParts(msg.parts.filter(p => p.type === 'thought'));
@@ -5971,7 +5977,7 @@
                 this._apiKey = data.WIu0Nc;
                 return this._apiKey;
               }
-            } catch {}
+            } catch { }
           }
         }
         throw new Error('API key 未找到：页面 JSON config 结构可能已变更');
@@ -6155,7 +6161,7 @@
             this._projectCache = this._projectCache || {};
             this._projectCache[projectId] = name;
           }
-        })().catch(() => {}).finally(() => {
+        })().catch(() => { }).finally(() => {
           this._projectFetching.delete(projectId);
         });
       },
@@ -6618,7 +6624,7 @@
           const params = new URLSearchParams(window.location.search);
           const chat = params.get('chat');
           if (chat && /^[a-zA-Z0-9-]+$/.test(chat)) return chat;
-        } catch (_) {}
+        } catch (_) { }
         return null;
       },
 
@@ -6638,7 +6644,7 @@
               this._projectCache = this._projectCache || {};
               this._projectCache[projectId] = name;
             }
-          }).catch(() => {}).finally(() => {
+          }).catch(() => { }).finally(() => {
             this._projectFetching.delete(projectId);
           });
       },
@@ -6915,10 +6921,10 @@
           uuid = (crypto.randomUUID
             ? crypto.randomUUID()
             : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-                const r = Math.random() * 16 | 0;
-                const v = c === 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-              })).toUpperCase();
+              const r = Math.random() * 16 | 0;
+              const v = c === 'x' ? r : (r & 0x3 | 0x8);
+              return v.toString(16);
+            })).toUpperCase();
         } catch (e) { /* ignore */ }
 
         const headers = {
@@ -6978,7 +6984,7 @@
               }
             }
           })
-          .catch(() => {})
+          .catch(() => { })
           .finally(() => {
             this._fetchingNotebookId = null;
           });
@@ -8869,7 +8875,7 @@
               this._projectCache = this._projectCache || {};
               this._projectCache[projectId] = name;
             }
-          }).catch(() => {}).finally(() => {
+          }).catch(() => { }).finally(() => {
             this._projectFetching.delete(projectId);
           });
       },
@@ -8921,7 +8927,7 @@
           const lines = text.trim().split('\n').filter(Boolean);
           data = [];
           for (const line of lines) {
-            try { data.push(JSON.parse(line)); } catch (_) {}
+            try { data.push(JSON.parse(line)); } catch (_) { }
           }
         }
         return data;
@@ -9344,7 +9350,7 @@
             this._projectCache = this._projectCache || {};
             this._projectCache[projectId] = name;
           }
-        }).catch(() => {}).finally(() => {
+        }).catch(() => { }).finally(() => {
           this._projectFetching.delete(projectId);
         });
       },
@@ -9820,17 +9826,17 @@
           const isFirst = !cursor;
           const body = isFirst
             ? await this._gql(
-                'chatsHistoryPageQuery',
-                { handle: '', useBot: false },
-                '6150ca8d3d6664d4bce8cdf8a92ac5bf',
-                '1',
-                '7f7c6b3d348be34312ad66d53fd7e2b860094fa6caf6cb85321c2b2ae698d357')
+              'chatsHistoryPageQuery',
+              { handle: '', useBot: false },
+              '6150ca8d3d6664d4bce8cdf8a92ac5bf',
+              '1',
+              '7f7c6b3d348be34312ad66d53fd7e2b860094fa6caf6cb85321c2b2ae698d357')
             : await this._gql(
-                'ChatHistoryListWithMessageSearchPaginationQuery',
-                { count: 10, cursor },
-                'c7fb5dc11dde1707fb00eebe7bb04761',
-                '0',
-                '115be578cf6b1914d7139f7258325c5d1418f5e24b104bfe1d639067887974cd');
+              'ChatHistoryListWithMessageSearchPaginationQuery',
+              { count: 10, cursor },
+              'c7fb5dc11dde1707fb00eebe7bb04761',
+              '0',
+              '115be578cf6b1914d7139f7258325c5d1418f5e24b104bfe1d639067887974cd');
           const conn = body?.data?.chats;
           const edges = conn?.edges || [];
           if (!edges.length) break;
@@ -10645,16 +10651,16 @@
   // ---- i18n ----
   const LANG = (navigator.language || '').startsWith('zh') ? 'zh' : 'en';
   const TXT = {
-    exportAll:   LANG === 'zh' ? '导出全部聊天' : 'Export all chats',
+    exportAll: LANG === 'zh' ? '导出全部聊天' : 'Export all chats',
     exportSingle: LANG === 'zh' ? '导出当前对话' : 'Export this chat',
     exportProject: (name) => LANG === 'zh' ? (name ? `导出项目「${name}」` : '导出当前项目') : (name ? `Export project "${name}"` : 'Export current project'),
-    fetching:    LANG === 'zh' ? (n) => `获取列表 ${n} 条` : (n) => `Fetching ${n} chats`,
-    packing:     LANG === 'zh' ? '打包 ZIP' : 'Packing ZIP',
+    fetching: LANG === 'zh' ? (n) => `获取列表 ${n} 条` : (n) => `Fetching ${n} chats`,
+    packing: LANG === 'zh' ? '打包 ZIP' : 'Packing ZIP',
     saveAfterChat: LANG === 'zh' ? '保存到 AfterChat' : 'Save to AfterChat',
     singleOnly: LANG === 'zh' ? '请在单条对话页使用' : 'Open one chat first',
-    noNew:       LANG === 'zh' ? '没有新会话 · Shift + 单击全部导出' : 'No new chats · Shift + click for full export',
-    shiftFull:   LANG === 'zh' ? '全部导出' : 'Full export',
-    editStart:   LANG === 'zh' ? '点击修改' : 'Click to edit',
+    noNew: LANG === 'zh' ? '没有新会话 · Shift + 单击全部导出' : 'No new chats · Shift + click for full export',
+    shiftFull: LANG === 'zh' ? '全部导出' : 'Full export',
+    editStart: LANG === 'zh' ? '点击修改' : 'Click to edit',
     reportExported: (n) => LANG === 'zh' ? `已导出 ${n} 条` : `Exported ${n}`,
   };
 
@@ -10798,7 +10804,7 @@
     try {
       const stored = localStorage.getItem('chat-export-afterchat-workspace');
       if (stored && stored.trim()) return stored.trim();
-    } catch {}
+    } catch { }
     return CONFIG.AFTERCHAT_WORKSPACE || '';
   }
 
@@ -11588,11 +11594,11 @@
     const mo = new MutationObserver(() => heal());
     const state = {
       reattach() {
-        try { mo.disconnect(); } catch {}
+        try { mo.disconnect(); } catch { }
         // 只观察两层，不扫全树：站点重建 body 子节点或替换 body 元素都能捕获，
         // 聊天流式输出的深层变更不会触发回调，避免不必要的开销。
-        try { mo.observe(document.documentElement, { childList: true, subtree: false }); } catch {}
-        try { if (document.body) mo.observe(document.body, { childList: true, subtree: false }); } catch {}
+        try { mo.observe(document.documentElement, { childList: true, subtree: false }); } catch { }
+        try { if (document.body) mo.observe(document.body, { childList: true, subtree: false }); } catch { }
       },
     };
     state.reattach();
@@ -11669,7 +11675,13 @@
       s.textContent =
         `@keyframes m365-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 #m365-export-btn svg { width: 18px !important; height: 18px !important; max-width: none !important; }
-#m365-ring svg { width: 36px !important; height: 36px !important; max-width: none !important; }`;
+#m365-ring svg { width: 36px !important; height: 36px !important; max-width: none !important; }
+@media (max-width: 768px) {
+  #m365-export-container {
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 16px !important;
+  }
+}`;
       document.head.appendChild(s);
     }
 
@@ -11681,7 +11693,11 @@
         `#m365-export-tooltip .m365-start { border-bottom: 1px dashed #b0b0b0; cursor: text; font-weight: 600; }
 #m365-export-tooltip .m365-start:hover { background: #f2f2f2; }
 #m365-export-tooltip .m365-start.m365-pending { color: #8a6d00; border-bottom-color: #c9a227; }
-#m365-export-tooltip input.m365-time-input { font: 12px "Segoe Sans","Segoe UI",sans-serif; width: 158px; padding: 1px 4px; border: 1px solid #ccc; border-radius: 5px; color: #242424; background: #fff; }`;
+#m365-export-tooltip .m365-editor-wrap { display: inline-flex; align-items: center; background: #fff; border: 1px solid #ccc; border-radius: 5px; padding: 1px 3px 1px 4px; box-sizing: border-box; vertical-align: middle; transition: border-color 0.15s ease; }
+#m365-export-tooltip .m365-editor-wrap:focus-within { border-color: #0078d4; }
+#m365-export-tooltip input.m365-time-input { font: 12px "Segoe Sans","Segoe UI",sans-serif; border: none; outline: none; background: transparent; color: #242424; padding: 1px 2px; margin: 0; vertical-align: middle; box-sizing: border-box; width: 150px; }
+#m365-export-tooltip .m365-time-ok { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border: none; background: transparent; padding: 0; margin-left: 2px; cursor: pointer; color: #5f5f5f; border-radius: 3px; flex-shrink: 0; line-height: 1; transition: color 0.15s, background 0.15s; }
+#m365-export-tooltip .m365-time-ok:hover { color: #1a1a1a; background: rgba(0, 0, 0, 0.08); }`;
       document.head.appendChild(st);
     }
 
@@ -11773,18 +11789,39 @@
       if (!anchor || editingStart) return;
       editingStart = true;
       tooltip.textContent = '';
+
+      const wrap = document.createElement('div');
+      wrap.className = 'm365-editor-wrap';
+
       const input = document.createElement('input');
       input.type = 'datetime-local';
       input.className = 'm365-time-input';
       input.value = fmtStartInputValue(exportStartOverrideMs ?? anchor);
       input.max = fmtStartInputValue(Date.now());
-      tooltip.appendChild(input);
+
+      const okBtn = document.createElement('button');
+      okBtn.type = 'button';
+      okBtn.className = 'm365-time-ok';
+      okBtn.innerHTML = '<svg viewBox="0 0 16 16" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 L6.5 12 L13 4"></path></svg>';
+      okBtn.title = LANG === 'zh' ? '确定 (Enter)' : 'Confirm (Enter)';
+
+      wrap.appendChild(input);
+      wrap.appendChild(okBtn);
+      tooltip.appendChild(wrap);
       tooltip.style.display = 'block';
       tooltip.style.pointerEvents = 'auto';
       input.focus();
 
+      let cleanedUp = false;
+      const cleanupListeners = () => {
+        if (cleanedUp) return;
+        cleanedUp = true;
+        document.removeEventListener('pointerdown', onDocPointerDown, true);
+      };
+
       const finalize = (apply) => {
         if (!editingStart) return;
+        cleanupListeners();
         if (apply) {
           const ms = parseStartInput(input.value);
           if (ms !== null) exportStartOverrideMs = ms;
@@ -11794,10 +11831,31 @@
         else tooltip.textContent = '';
         if (!hoverInside) tooltip.style.display = 'none';
       };
-      input.addEventListener('change', () => finalize(true));
-      input.addEventListener('blur', () => finalize(true));
+
+      const onDocPointerDown = (ev) => {
+        if (tooltip.contains(ev.target)) return;
+        finalize(true);
+      };
+
+      setTimeout(() => {
+        if (editingStart) {
+          document.addEventListener('pointerdown', onDocPointerDown, true);
+        }
+      }, 50);
+
+      okBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        finalize(true);
+      });
+
       input.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Escape') finalize(false);   // 取消本次修改
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          finalize(true);
+        } else if (ev.key === 'Escape') {
+          ev.preventDefault();
+          finalize(false);
+        }
       });
     }
 
@@ -11861,7 +11919,7 @@
     }
   }
 
-  try { initialize(); } catch {}
+  try { initialize(); } catch { }
 
   // 导出给 Bun 测试（浏览器下 module 不存在，无副作用）
   if (typeof module !== 'undefined' && module.exports) {
