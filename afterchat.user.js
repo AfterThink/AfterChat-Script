@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.24.3
+// @version      1.25.0
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
@@ -95,6 +95,17 @@
 // =============================================================
 //  📜 Changelog 
 // =============================================================
+//  1.25.0 (2026-11-19)
+//    - 【接口变更】M365 Copilot 详情：旧接口 GET /chat/conversation/{id}?auth=2 不再返回
+//      store.rawConversationResponse（服务端已下线），导致单条导出报“未找到 rawConversationResponse”。
+//      详情改走 NDJSON 流 GET /chat/conversation/{id}?direction=Bidirectional&startTimeUtc=now，
+//      必须带 x-streaming: true / x-streaming-shell / x-streaming-direction；
+//      新增 _parseStream 合并流内多段 messages，按 messageId 去重 + createdAt 升序排序，
+//      isLastPage=false 时以最早消息时间锚点继续取；正文仍优先 adaptiveCards，
+//      引用标题改取 displayData.content（title/name/providerDisplayName）。
+//      导出章节结构不变（Thought Process / References 规则照旧）。
+//    - copilot.com 的 _mergeStream 不再依赖 pageDirection：去重后补一次 createdAt 升序排序，
+//      避免流内分页乱序（同源 M365 实测形状）导致对话错位。
 //  1.24.3 (2026-11-18)
 //    - 移动端避让：针对窄屏（max-width: 768px）将导出按钮位置从贴底抬高至
 //      calc(88px + env(safe-area-inset-bottom, 0px))，避开输入栏与原生发送按键。
@@ -494,37 +505,137 @@
           .filter((c) => c.id);
       },
 
+      /**
+       * 详情：NDJSON 流式接口（旧版 store.rawConversationResponse 已下线）。
+       * 一次 Bidirectional + startTimeUtc=now 就能拿到整条对话（含更早的历史分页）；
+       * isLastPage=false 时以最早消息的时间戳为锚点继续往更早取。
+       */
       async getConversationDetails(id) {
-        const url = `/chat/conversation/${id}?auth=2`;
+        const limit = 20;
+        let anchor = Date.now();
+        let meta = null;
+        let isLastPage = true;
+        const byId = new Map();
+
+        for (let round = 0; round < limit; round++) {
+          const page = await this._streamPage(id, anchor);
+          if (!meta) meta = page.meta;
+
+          let added = 0;
+          for (const msg of page.messages) {
+            const key = msg && msg.messageId;
+            if (!key || byId.has(key)) continue;
+            byId.set(key, msg);
+            added++;
+          }
+
+          isLastPage = page.isLastPage;
+          if (!added || isLastPage) break;
+
+          const earliest = Math.min(...[...byId.values()].map((m) => this._messageTime(m)).filter(Number.isFinite));
+          if (!Number.isFinite(earliest) || earliest + 1 === anchor) break;
+          anchor = earliest + 1;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        const messages = [...byId.values()].sort((a, b) => this._messageTime(a) - this._messageTime(b));
+        if (!messages.length) throw new Error('无消息数据');
+
+        const chatName = (meta?.chatName || '').trim();
+        return {
+          // 供核心 getChatTitle 读取（单条导出的文件名兜底）
+          title: chatName,
+          chatName,
+          tone: meta?.tone || '',
+          createTimeUtc: meta?.createTimeUtc,
+          updateTimeUtc: meta?.updateTimeUtc,
+          conversationId: meta?.conversationId || id,
+          messages,
+        };
+      },
+
+      /** 取一页 NDJSON 流并解析（direction=Bidirectional + startTimeUtc=锚点） */
+      async _streamPage(id, startTimeUtc) {
+        const url = `/chat/conversation/${encodeURIComponent(id)}?direction=Bidirectional&startTimeUtc=${startTimeUtc}`;
         const resp = await fetch(url, {
           headers: {
-            'accept': 'application/json',
+            'accept': 'application/x-ndjson,application/json',
+            // 关键：缺了 x-streaming，服务端只回 SSR bootstrap JSON（没有 messages）
+            'x-streaming': 'true',
+            'x-streaming-shell': 'true',
+            'x-streaming-direction': 'Bidirectional',
+            'x-streaming-start-time-utc': String(startTimeUtc),
             'x-route-id': 'chat-history',
             'x-slim-rehydration': 'true',
-            'x-host-context': JSON.stringify({
-              clientPlatform: 'web',
-              hostName: 'officeweb',
-              appName: 'SSR',
-              appMode: 'default',
-            }),
+            'x-host-context': this._hostContext(),
+            'x-session-id': this._uuid(),
+            'x-rehydration-id': this._uuid(),
           },
         });
-        if (!resp.ok) throw new Error(`API ${resp.status}: ${resp.statusText}`);
-        return resp.json();
+        if (!resp.ok) throw new Error(`详情API ${resp.status}: ${resp.statusText}`);
+        return this._parseStream(await resp.text());
+      },
+
+      /**
+       * 解析 NDJSON 流：跳过 __shell / __metrics 行，合并所有 {messages:[...]} 行。
+       * 注意流内分页顺序不保证（新页可能排在旧页前面），所以最终按时间排序。
+       */
+      _parseStream(text) {
+        const messages = [];
+        let meta = null;
+        let isLastPage = true;
+
+        for (const line of String(text || '').split('\n')) {
+          const raw = line.trim();
+          if (!raw) continue;
+          let obj;
+          try { obj = JSON.parse(raw); } catch (e) { continue; }
+
+          if (obj.__shell || obj.__metrics) continue;
+          if (typeof obj.isLastPage === 'boolean') isLastPage = obj.isLastPage;
+          if (!Array.isArray(obj.messages)) continue;
+          if (!meta) meta = obj;
+          messages.push(...obj.messages);
+        }
+
+        return { messages, meta, isLastPage };
+      },
+
+      _messageTime(msg) {
+        const t = Date.parse(msg?.createdAt || msg?.timestamp || '');
+        return Number.isFinite(t) ? t : 0;
+      },
+
+      _hostContext() {
+        return JSON.stringify({
+          clientPlatform: 'web', hostName: 'officeweb', appName: 'SSR', appMode: 'default',
+        });
+      },
+
+      _uuid() {
+        try {
+          if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return crypto.randomUUID();
+          }
+        } catch (e) { /* ignore */ }
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          return (c === 'x' ? r : ((r & 0x3) | 0x8)).toString(16);
+        });
       },
 
       /** 将 M365 聊天数据转为 Markdown */
       toMarkdown(data, title, convId) {
-        const rcr = data?.store?.rawConversationResponse;
-        if (!rcr) throw new Error('未找到 rawConversationResponse');
+        const messages = data?.messages || [];
+        if (!messages.length) throw new Error('无消息数据');
 
-        const tone = rcr.tone || 'unknown';
-        const createTimeMs = rcr.createTimeUtc;
+        const tone = data?.tone || 'unknown';
+        const createTimeMs = data?.createTimeUtc;
         const timeStr = createTimeMs
           ? formatLocalTime(new Date(createTimeMs))
           : 'unknown';
         const convUrl = convId
-          ? `https://copilot.cloud.microsoft/chat/conversation/${convId}?auth=2`
+          ? `https://copilot.cloud.microsoft/chat/conversation/${convId}`
           : 'https://copilot.cloud.microsoft';
 
         const lines = [];
@@ -538,9 +649,6 @@
         lines.push('');
         lines.push('## Conversation');
         lines.push('');
-
-        const messages = rcr.messages || [];
-
 
         // ---- 第一遍：收集引用，按 URL 去重全局编号 ----
         const refCollector = new ReferenceCollector();
@@ -562,12 +670,10 @@
 
           for (const key of uniqueKeys) {
             if (!refKeyToNum.has(key)) {
-              const refInfo = refs[key];
-              if (refInfo && refInfo.targetLink) {
-                const link = refInfo.targetLink;
-                const title = refInfo.title || '';
-                const gn = refCollector.add(title, link);
-                refKeyToNum.set(key, gn);
+              const info = this._resolveReference(refs[key]);
+              // 无外链的引用（如 maikit-sdl 图片卡）不登记，正文里连同标记一起去掉
+              if (info) {
+                refKeyToNum.set(key, refCollector.add(info.title, info.url));
               } else {
                 refKeyToNum.set(key, null);
               }
@@ -586,7 +692,7 @@
           const author = msg.author;
 
           if (author === 'user') {
-            const text = (msg.text || '').trim();
+            const text = this._getMessageText(msg).trim();
             if (!text) continue;
             lines.push('### 🧑‍💻 User');
             lines.push('');
@@ -602,15 +708,14 @@
             const turn = msg.turnCount;
             const thoughts = [];
             for (let j = i - 1; j >= 0 && messages[j].turnCount === turn; j--) {
-              if (this._isThinkingMsg(messages[j])) {
-                const t = (messages[j].text || '').trim();
-                if (t) thoughts.unshift(t);
-              }
+              const t = this._thinkingText(messages[j]).trim();
+              if (t) thoughts.unshift(t);
             }
 
-            // 替换引用
+            // 替换引用（先把单独成行的标记并回上一行）
             const citeMap = msgCitationMap.get(i) || new Map();
-            let cleaned = responseText.replace(/【([^】]+)】/g, (_, key) => {
+            const normalized = this._normalizeCitationPlacement(responseText);
+            const cleaned = normalized.replace(/【([^】]+)】/g, (_, key) => {
               const n = citeMap.get(key);
               return n !== undefined && n !== null ? `[${n}]` : '';
             });
@@ -644,23 +749,108 @@
 
       // ---- 内部辅助方法 ----
       _isThinkingMsg(msg) {
+        if (!msg) return false;
         return msg.messageType === 'Progress'
           || msg.addToChainOfThought === true
           || msg.contentType === 'SearchResults';
       },
 
       _isFinalResponse(msg) {
-        if (msg.author !== 'bot') return false;
+        if (!msg || msg.author !== 'bot') return false;
         if (this._isThinkingMsg(msg)) return false;
         return this._getResponseText(msg) !== null;
       },
 
+      /**
+       * Progress 消息的正文统一作为思考链候选（m365 一直这么做）：
+       * 是否进 Thought Process 由 _isThinkingMsg 决定，这里不做 contentType 过滤。
+       */
+      _thinkingText(msg) {
+        if (!this._isThinkingMsg(msg)) return '';
+        return this._getMessageText(msg).trim();
+      },
+
+      _getMessageText(msg) {
+        if (!msg) return '';
+        return typeof msg.text === 'string' ? msg.text : '';
+      },
+
+      /** 正文优先取 adaptiveCards（含【引用】标记），没有再回落 .text */
       _getResponseText(msg) {
+        if (!msg) return null;
         try {
-          return msg.adaptiveCards[0].body[0].text;
-        } catch (e) {
-          return null;
+          const ac = msg.adaptiveCards[0].body[0].text;
+          if (typeof ac === 'string' && ac.trim()) return ac;
+        } catch (e) { /* 无 adaptiveCards，回落 .text */ }
+        const text = this._getMessageText(msg);
+        return text.trim() ? text : null;
+      },
+
+      /**
+       * 引用标记【key】有时会独占一行（表格里甚至落到下一行行首），
+       * 直接替换会留下空行或把表格打断。这里把它并回上一非空行末尾。
+       */
+      _normalizeCitationPlacement(text) {
+        const out = [];
+
+        for (const line of String(text || '').split('\n')) {
+          const m = line.match(/^[ \t]*(【[^】]+】)(.*)$/);
+          if (!m) {
+            out.push(line);
+            continue;
+          }
+
+          const marker = m[1];
+          const rest = m[2];
+          let target = out.length - 1;
+          while (target >= 0 && !out[target].trim()) target--;
+          if (target < 0) {
+            out.push(line);
+            continue;
+          }
+
+          const prev = out[target];
+          if (/^\s*\|.*\|\s*$/.test(prev)) {
+            out[target] = prev.replace(/\|\s*$/, marker + '|');
+          } else {
+            out[target] = prev.replace(/\s*$/, '') + marker;
+          }
+
+          if (rest.trim()) out.push(rest);
         }
+
+        return out.join('\n');
+      },
+
+      /** 解析单条引用：外链在 targetLink，标题在 displayData.content(JSON) */
+      _resolveReference(ref) {
+        if (!ref || typeof ref !== 'object') return null;
+        const url = typeof ref.targetLink === 'string' ? ref.targetLink.trim() : '';
+        if (!url) return null;
+        return { url, title: this._referenceTitle(ref) };
+      },
+
+      /** 引用标题：displayData.title / content JSON 里的可读名 → 域名兜底 */
+      _referenceTitle(ref) {
+        const dd = ref && ref.displayData;
+        if (dd && typeof dd === 'object') {
+          for (const key of ['title', 'name']) {
+            if (typeof dd[key] === 'string' && dd[key].trim()) return dd[key].trim();
+          }
+          if (typeof dd.content === 'string') {
+            try {
+              const c = JSON.parse(dd.content);
+              // 注意：label 是角标数字（"1"），不能当标题
+              for (const key of ['title', 'name', 'providerDisplayName']) {
+                if (typeof c?.[key] === 'string' && c[key].trim()) return c[key].trim();
+              }
+            } catch (e) { /* 非 JSON，忽略 */ }
+          }
+          if (typeof dd.providerDisplayName === 'string' && dd.providerDisplayName.trim()) {
+            return dd.providerDisplayName.trim();
+          }
+        }
+        return typeof ref.title === 'string' ? ref.title.trim() : '';
       },
 
       // M365 专用：列表分页请求（XHR，因为 fetch 在这个接口上有坑）
@@ -868,6 +1058,14 @@
             : [...pageMsgs, ...kept];
         }
 
+        // 防御性排序：pageDirection 只是服务端提示，并不保证流内分页顺序。
+        // 同源 M365 接口实测会下发「最新段在前、更早段在后且缺失 pageDirection」，
+        // 光靠前后拼接会得到错乱的对话。这里按 createdAt 升序（缺时间戳的保持原序）。
+        messages = messages
+          .map((m, i) => ({ m, i, t: this._messageTime(m) }))
+          .sort((a, b) => (a.t - b.t) || (a.i - b.i))
+          .map((x) => x.m);
+
         return { messages, meta };
       },
 
@@ -1013,6 +1211,12 @@
       _getMessageText(msg) {
         if (!msg) return '';
         return typeof msg.text === 'string' ? msg.text : '';
+      },
+
+      /** 消息时间戳（毫秒）：createdAt 优先，退回 timestamp；无效时返回 0 */
+      _messageTime(msg) {
+        const t = Date.parse(msg?.createdAt || msg?.timestamp || '');
+        return Number.isFinite(t) ? t : 0;
       },
 
       /** 优先用 adaptiveCards 正文（老结构兼容），否则回退 .text */
@@ -10870,8 +11074,7 @@
     const docTitle = (typeof document !== 'undefined' && document.title)
       ? document.title.replace(/\s*[-—|].*$/, '').trim()
       : '';
-    return data?.store?.rawConversationResponse?.chatName
-      || data?.chat?.name
+    return data?.chat?.name
       || data?.chatResp?.chat?.name
       || data?.conversation?.name
       || data?.conversationInfo?.downlink_body?.get_conv_info_downlink_body?.conversation_info?.name
