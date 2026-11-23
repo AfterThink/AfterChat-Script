@@ -16,7 +16,7 @@
 // @name:tr      AfterChat — LLM Sohbet Dışa Aktarıcı
 // @name:ar      AfterChat — مصدِّر محادثات LLM
 // @namespace    https://github.com/AfterThink
-// @version      1.25.0
+// @version      1.25.1
 // @description  Export chat history from ChatGPT, Claude, Gemini, Google AI Mode, Grok, DeepSeek, Microsoft Copilot, M365 Copilot, Perplexity, Kimi, Doubao, ChatGLM, Z.ai, Qwen, Qianwen, Poe, Tencent Yuanbao, Tencent Hunyuan, MiniMax, Mistral, Monica, Google AI Studio, DuckDuckGo AI Chat, Tencent IMA, Sakana AI, Arena AI, Dola, StepFun
 // @description:zh-CN  一键导出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智谱清言、Z.ai、通义千问、千问、Poe、腾讯元宝、腾讯混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、腾讯 ima、Sakana AI、Arena AI、Dola、阶跃星辰 StepFun 的聊天记录
 // @description:zh-TW  一鍵匯出 ChatGPT、Claude、Gemini、Google AI Mode、Grok、DeepSeek、Microsoft Copilot、M365 Copilot、Perplexity、Kimi、豆包、智譜清言、Z.ai、通義千問、千問、Poe、騰訊元寶、騰訊混元、MiniMax、Mistral、Monica、Google AI Studio、DuckDuckGo AI Chat、騰訊 ima、Sakana AI、Arena AI、Dola、階躍星辰 StepFun 的聊天記錄
@@ -1830,8 +1830,10 @@
     // ═══════════════════════════════════════════════════════
     //  ADAPTER[chatglm]  ChatGLM (智谱清言)
     // ═══════════════════════════════════════════════════════
-    // 列表 POST /chatglm/mainchat-api/conversation/recent_list {page,page_size}
-    // 详情 GET /chatglm/mainchat-api/conversation/messages?assistant_id&conversation_id
+    // 列表 GET /chatglm/mainchat-api/v3/conversation/list?page&page_size&query_mode
+    // 详情 GET /chatglm/mainchat-api/conversation/main_messages?conversation_id&page&page_size&assistant_id
+    //   详情已改成分页（page/page_size/total/has_more），一次只返回一页
+    // 会话 URL 改版后为 /chat/<mode>/<conversation_id>（旧版是 /main/alltoolsdetail?cid=）
     // 鉴权：cookie chatglm_token → authorization: Bearer；另需 x-sign 签名
     //   x-sign = md5(ts-nonce-8a1317a7468aa3ad86e997d08f3f31cb)
     //   ts = Date.now() 字符串倒数第 2 位替换为 (数字和-该位)%10；nonce = uuid4 去横线
@@ -1841,6 +1843,10 @@
       detect: () => window.location.hostname === 'chatglm.cn',
 
       getCurrentConversationId: () => {
+        // 新版：/chat/general/<24位id>（mode 可能是 general / agent 等）
+        const p = window.location.pathname.match(/^\/chat\/[^/]+\/([0-9a-z]{16,})/i);
+        if (p) return p[1];
+        // 旧版兜底：/main/alltoolsdetail?cid=<id>
         const m = window.location.search.match(/[?&]cid=([^&]+)/);
         return m ? m[1] : null;
       },
@@ -1927,10 +1933,8 @@
         const limit = CONFIG.DEBUG_LIMIT || Infinity;
 
         while (all.length < limit) {
-          const r = await fetch('/chatglm/mainchat-api/conversation/recent_list', {
-            method: 'POST',
-            headers: { ...this._headers(), 'content-type': 'application/json;charset=utf-8' },
-            body: JSON.stringify({ page, page_size: 20 }),
+          const r = await fetch(`/chatglm/mainchat-api/v3/conversation/list?page=${page}&page_size=30&query_mode=`, {
+            headers: this._headers(),
           });
           if (!r.ok) throw new Error(`列表API ${r.status}: ${r.statusText}`);
           const body = await r.json();
@@ -1962,10 +1966,8 @@
       async _findConversation(id) {
         let page = 1;
         while (page <= 50) {
-          const r = await fetch('/chatglm/mainchat-api/conversation/recent_list', {
-            method: 'POST',
-            headers: { ...this._headers(), 'content-type': 'application/json;charset=utf-8' },
-            body: JSON.stringify({ page, page_size: 50 }),
+          const r = await fetch(`/chatglm/mainchat-api/v3/conversation/list?page=${page}&page_size=50&query_mode=`, {
+            headers: this._headers(),
           });
           if (!r.ok) throw new Error(`列表API ${r.status}: ${r.statusText}`);
           const body = await r.json();
@@ -1987,20 +1989,41 @@
 
       async getConversationDetails(id) {
         const meta = await this._findConversation(id);
-        const r = await fetch(
-          `/chatglm/mainchat-api/conversation/messages?assistant_id=${encodeURIComponent(meta.assistant_id)}&conversation_id=${encodeURIComponent(id)}`,
-          { headers: this._headers() }
-        );
-        if (!r.ok) throw new Error(`详情API ${r.status}: ${r.statusText}`);
-        const body = await r.json();
-        if (body.status !== 0) throw new Error(`详情API status ${body.status}: ${body.message || ''}`);
+        const PAGE_SIZE = 30;
+        const messages = [];
+        const seen = new Set();
+
+        for (let page = 1; page <= 200; page++) {
+          const r = await fetch(
+            `/chatglm/mainchat-api/conversation/main_messages?conversation_id=${encodeURIComponent(id)}&page=${page}&page_size=${PAGE_SIZE}&assistant_id=${encodeURIComponent(meta.assistant_id)}`,
+            { headers: this._headers() }
+          );
+          if (!r.ok) throw new Error(`详情API ${r.status}: ${r.statusText}`);
+          const body = await r.json();
+          if (body.status !== 0) throw new Error(`详情API status ${body.status}: ${body.message || ''}`);
+
+          const list = body.result?.messages || [];
+          for (const m of list) {
+            const key = m?.id || '';
+            if (key) {
+              if (seen.has(key)) continue;
+              seen.add(key);
+            }
+            messages.push(m);
+          }
+          if (!body.result?.has_more || !list.length) break;
+          await sleep(CONFIG.API_PAGE_DELAY);
+        }
+
+        // 分页顺序不保证正序（page 1 通常是最新一页），统一按 create_time 升序
+        messages.sort((a, b) => String(a?.create_time || '').localeCompare(String(b?.create_time || '')));
 
         return {
           conversation_id: id,
           assistant_id: meta.assistant_id,
           title: meta.title,
           update_time: meta.update_time,
-          messages: body.result?.messages || [],
+          messages,
         };
       },
 
@@ -2009,7 +2032,7 @@
         const messages = data?.messages || [];
         if (!messages.length) throw new Error('未找到消息数据');
 
-        const convUrl = convId ? `https://chatglm.cn/main/alltoolsdetail?cid=${convId}` : 'https://chatglm.cn';
+        const convUrl = convId ? `https://chatglm.cn/chat/general/${convId}` : 'https://chatglm.cn';
         const timeStr = data.update_time
           ? formatLocalTime(new Date(Number(data.update_time) * 1000))
           : 'unknown';
@@ -2681,29 +2704,95 @@
         return data;
       },
 
-      // 站点已从 /rest/thread/list_recent 切到 GraphQL（SidebarRecentThreadsRelayQuery，
-      // Apollo persisted query）；旧接口现在恒返回 []，导致全部导出得到 0 条、
-      // startExportProcess 直接走 ui.done()，表现就是“点完直接对号”。
-      // 该连接只有 edges、无 pageInfo，after 游标也被忽略，故用较大的 first 一次取回。
-      async getAllConversations(onProgress) {
-        const HASH = '54fe025c6b86507e78086a4a1b11a39818b6102d3d7fb7bc6bf9f36f06c6669e';
-        const data = await this._gql('SidebarRecentThreadsRelayQuery', { first: 100 }, HASH);
-        const edges = data?.data?.viewer?.sidebarRecentThreads?.threads?.edges || [];
-        const limit = CONFIG.DEBUG_LIMIT || Infinity;
-        const result = edges
-          .map((e) => e?.node || {})
-          .map((n) => ({
-            id: n.entryId || '',
-            title: (n.name || '').trim(),
-            updated_at: n.updatedAt,
-            status: n.status,
-          }))
-          .filter((c) => c.id)
-          .slice(0, limit);
-        if (onProgress) onProgress(result.length);
-        return result;
+      // 站点已从 /rest/thread/list_recent 切到 GraphQL（Apollo persisted query）。
+      // ⚠️ 侧边栏连接 `SidebarRecentThreadsRelayQuery` 服务端硬顶 50 条、无 pageInfo、
+      //    `first` 传 100 也只回 50，全量导出会静默截断（表现为「只能导出 50 条」）。
+      // 全量清单改走「资料库」连接：`LibraryItemsRelayQuery`（首屏，含置顶分组）
+      // + `LibraryRecentItemsPaginationQuery`（25/页，游标翻页直到 hasNextPage=false）。
+      /** Library 系列查询的公共变量 */
+      _libraryBase() {
+        return {
+          excludedSources: ['MCP'],
+          includeFirstMessagePreview: false,
+          includeSearchPreview: false,
+          includeTemporary: null,
+          itemTypes: ['THREAD'],
+          searchTerm: null,
+          sortOrder: 'NEWEST',
+          sources: null,
+          statuses: null,
+          threadTypes: null,
+          viewerState: null,
+        };
       },
 
+      /** edges[] → 适配器统一会话结构（node.object 才是线程本体） */
+      _mapLibraryEdges(edges) {
+        const out = [];
+        for (const e of edges || []) {
+          const node = e?.node || {};
+          const obj = node.object || {};
+          const id = obj.entryId || obj.slug || '';
+          if (!id) continue;
+          out.push({
+            id,
+            title: (node.title || obj.name || '').trim(),
+            updated_at: obj.updatedAt || e.activityAt,
+            status: obj.status,
+            pinned: !!obj.isPinned,
+          });
+        }
+        return out;
+      },
+
+      async getAllConversations(onProgress, { boundary } = {}) {
+        const H_ITEMS = 'a512bc8ad7e959deaf77757afe6b7d129bd979fd852622ab4ebf84f68775b771';
+        const H_PAGE = '29489d961917b099abbdbacb5db150c13bca89330bd8a7baf336c5bc2e6b80ca';
+        const PAGE_SIZE = 25;
+        const limit = CONFIG.DEBUG_LIMIT || Infinity;
+
+        const all = [];
+        const seen = new Set();
+        const absorb = (edges) => {
+          const mapped = this._mapLibraryEdges(edges);
+          for (const c of mapped) {
+            if (seen.has(c.id)) continue;
+            seen.add(c.id);
+            all.push(c);
+            if (all.length >= limit) break;
+          }
+          return mapped;
+        };
+
+        const first = await this._gql('LibraryItemsRelayQuery', { includePins: true, ...this._libraryBase() }, H_ITEMS);
+        const viewer = first?.data?.viewer || {};
+        const recent0 = viewer.recentGroup?.items || {};
+        absorb(viewer.pinnedGroup?.items?.edges);   // 置顶会话不在 recentGroup 里
+        absorb(recent0.edges);
+        if (onProgress) onProgress(all.length);
+
+        let cursor = recent0.pageInfo?.endCursor || null;
+        let hasNext = !!recent0.pageInfo?.hasNextPage;
+        let guard = 0;
+
+        while (hasNext && cursor && all.length < limit && guard++ < 200) {
+          if (isPagePastBoundary(all.slice(-PAGE_SIZE), boundary)) break;
+          await sleep(CONFIG.API_PAGE_DELAY);
+          const p = await this._gql(
+            'LibraryRecentItemsPaginationQuery',
+            { count: PAGE_SIZE, cursor, ...this._libraryBase() },
+            H_PAGE
+          );
+          const items = p?.data?.viewer?.recentGroup?.items || {};
+          absorb(items.edges);
+          if (onProgress) onProgress(all.length);
+          cursor = items.pageInfo?.endCursor || null;
+          hasNext = !!items.pageInfo?.hasNextPage;
+          if (!(items.edges || []).length) break;
+        }
+
+        return all.slice(0, limit);
+      },
       async getConversationDetails(id) {
         const limit = 50;
         const allEntries = [];
